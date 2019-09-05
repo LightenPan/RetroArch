@@ -2068,8 +2068,9 @@ static int menu_displaylist_parse_horizontal_content_actions(
    if (playlist)
       playlist_get_index(playlist, idx, &entry);
 
+   RARCH_LOG("menu_displaylist_parse_horizontal_content_actions\n");
    content_loaded = !rarch_ctl(RARCH_CTL_IS_DUMMY_CORE, NULL)
-         && string_is_equal(menu->deferred_path, fullpath);
+	   && string_is_equal(path_basename(menu->deferred_path), path_basename(fullpath));
 
    if (content_loaded)
       menu_displaylist_parse_load_content_settings(menu, info);
@@ -2226,10 +2227,16 @@ static int menu_displaylist_parse_horizontal_content_actions(
       }
 
       if (download_enabled)
+	  {
          menu_entries_append_enum(info->list,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_THUMBNAILS),
                msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS),
                MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
+		  menu_entries_append_enum(info->list,
+			  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM),
+			  msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM),
+			  MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
+	  }
    }
 #endif
 
@@ -2916,6 +2923,12 @@ static unsigned menu_displaylist_parse_pl_thumbnail_download_list(
                MENU_ENUM_LABEL_PLAYLIST_ENTRY,
                FILE_TYPE_DOWNLOAD_PL_THUMBNAIL_CONTENT,
                0, 0);
+         menu_entries_append_enum(info->list,
+               path_base,
+               path,
+               MENU_ENUM_LABEL_PLAYLIST_ENTRY,
+               FILE_TYPE_DOWNLOAD_PL_ROM_CONTENT,
+               0, 0);
          count++;
       }
    }
@@ -2953,8 +2966,9 @@ static unsigned menu_displaylist_parse_content_information(
    if (!settings)
       return count;
 
+   RARCH_LOG("menu_displaylist_parse_content_information\n");
    content_loaded = !rarch_ctl(RARCH_CTL_IS_DUMMY_CORE, NULL)
-         && string_is_equal(menu->deferred_path, loaded_content_path);
+         && string_is_equal(path_basename(menu->deferred_path), path_basename(loaded_content_path));
 
    /* If content is currently running, have to make sure
     * we have a valid playlist to work with

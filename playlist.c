@@ -2607,3 +2607,25 @@ void playlist_set_thumbnail_mode(
       playlist->modified = true;
    }
 }
+
+// 获取rom的实际路径，如果下载目录有，则优先用下载目录
+void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_t size)
+{
+	strlcpy(path, entry->path, size);
+	settings_t *settings = config_get_ptr();
+	if (settings && entry && entry->path && entry->db_name)
+	{
+		char buf[1024] = {0};
+		char db_dir[1024] = {0};
+		char db_name[1024] = {0};
+		strlcpy(db_name, entry->db_name, sizeof(db_name));
+		char *basename = path_basename(entry->path);
+		fill_pathname_join(db_dir, settings->paths.directory_core_assets, path_remove_extension(db_name), sizeof(db_dir));
+		fill_pathname_join(buf, db_dir, basename, sizeof(buf));
+		RARCH_LOG("playlist_get_content_path. buf: %s\n", buf);
+		if (path_is_valid(buf))
+		{
+			strlcpy(path, buf, size);
+		}
+	}
+}

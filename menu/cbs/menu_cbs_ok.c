@@ -1123,7 +1123,12 @@ static bool menu_content_playlist_load(playlist_t *playlist, size_t idx)
    playlist_get_index(playlist, idx, &entry);
 
    path[0] = '\0';
-   strlcpy(path, entry->path, sizeof(path));
+   // strlcpy(path, entry->path, sizeof(path));
+
+   RARCH_LOG("menu_content_playlist_load 1. entry->path: %s\n", entry->path);
+   playlist_get_exist_rom_path(entry, path, sizeof(path));
+   RARCH_LOG("menu_content_playlist_load 2. path: %s\n", path);
+
    playlist_resolve_path(PLAYLIST_LOAD, path, sizeof(path));
 
    if (!string_is_empty(path))
@@ -1152,9 +1157,13 @@ static bool menu_content_playlist_load(playlist_t *playlist, size_t idx)
       free(path_check);
 
       if (valid_path)
+	  {
+		  RARCH_LOG("menu_content_playlist_load 3. path: %s\n", path);
          return true;
+	  }
    }
 
+   RARCH_LOG("menu_content_playlist_load 4. path: %s\n", path);
    return false;
 }
 
@@ -2004,6 +2013,7 @@ static int action_ok_playlist_entry_collection(const char *path,
        playlist_resolve_path(PLAYLIST_LOAD, new_core_path, sizeof(new_core_path));
    }
 
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!playlist || !menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push(
@@ -2016,9 +2026,10 @@ static int action_ok_playlist_entry_collection(const char *path,
    }
 
    playlist_get_index(playlist, selection_ptr, &entry);
-
-   strlcpy(new_path, entry->path, sizeof(new_path));
+   // strlcpy(new_path, entry->path, sizeof(new_path));
+   playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
    playlist_resolve_path(PLAYLIST_LOAD, new_path, sizeof(new_path));
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    return default_action_ok_load_content_from_playlist_from_menu(
             new_core_path, new_path, entry->label);
 }
@@ -2088,6 +2099,8 @@ static int action_ok_playlist_entry(const char *path,
        playlist_resolve_path(PLAYLIST_LOAD, new_core_path, sizeof(new_core_path));
    }
 
+   char new_path[PATH_MAX_LENGTH] = {0};
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!playlist || !menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push(
@@ -2097,11 +2110,11 @@ static int action_ok_playlist_entry(const char *path,
       return menu_cbs_exit();
    }
 
-   playlist_get_index(playlist,
-         selection_ptr, &entry);
-
+   playlist_get_index(playlist, selection_ptr, &entry);
+   playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    return default_action_ok_load_content_from_playlist_from_menu(
-         new_core_path, entry->path, entry_label);
+         new_core_path, new_path, entry_label);
 }
 
 static int action_ok_playlist_entry_start_content(const char *path,
@@ -2164,6 +2177,8 @@ static int action_ok_playlist_entry_start_content(const char *path,
       }
    }
 
+   char new_path[PATH_MAX_LENGTH] = {0};
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push("File could not be loaded from playlist.\n", 1, 100, true, NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
@@ -2171,8 +2186,9 @@ static int action_ok_playlist_entry_start_content(const char *path,
    }
 
    playlist_get_index(playlist, selection_ptr, &entry);
-
-   return default_action_ok_load_content_from_playlist_from_menu(entry->core_path, entry->path, entry->label);
+   playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
+   return default_action_ok_load_content_from_playlist_from_menu(entry->core_path, new_path, entry->label);
 
 error:
    return menu_cbs_exit();
@@ -3929,17 +3945,26 @@ void cb_generic_download(retro_task_t *task,
          break;
       }
       case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
-         break;
+		  break;
+	  case MENU_ENUM_LABEL_CB_SINGLE_ROM:
+		  extract = false;
       default:
          RARCH_WARN("Unknown transfer type '%s' bailing out.\n",
                msg_hash_to_str(transf->enum_idx));
          break;
    }
 
+   RARCH_LOG("cb_generic_download 1. output_path: %s\n", output_path);
    if (!string_is_empty(dir_path))
       fill_pathname_join(output_path, dir_path,
             transf->path, sizeof(output_path));
    else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL)
+   {
+      /* In this particular case we have the whole path
+       * already built from the task */
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM)
    {
       /* In this particular case we have the whole path
        * already built from the task */
@@ -3953,6 +3978,7 @@ void cb_generic_download(retro_task_t *task,
     */
    path_basedir_wrapper(output_path);
 
+   RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
    if (!path_mkdir(output_path))
    {
       err = msg_hash_to_str(MSG_FAILED_TO_CREATE_THE_DIRECTORY);
@@ -3968,6 +3994,14 @@ void cb_generic_download(retro_task_t *task,
        * already built from the task */
       strlcpy(output_path, transf->path, sizeof(output_path));
    }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM)
+   {
+      /* In this particular case we have the whole path
+       * already built from the task */
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+
+   RARCH_LOG("cb_generic_download finsh. output_path: %s\n", output_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))
@@ -4010,7 +4044,10 @@ void cb_generic_download(retro_task_t *task,
    {
       case MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD:
          generic_action_ok_command(CMD_EVENT_CORE_INFO_INIT);
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+		  generic_action_ok_command(CMD_EVENT_REBOOT);
+		  break;
       default:
          break;
    }
@@ -4154,6 +4191,7 @@ static int (funcname)(const char *path, const char *label, unsigned type, size_t
 }
 
 default_action_ok_download(action_ok_core_content_thumbnails, MENU_ENUM_LABEL_CB_CORE_THUMBNAILS_DOWNLOAD)
+default_action_ok_download(action_ok_core_content_rom, MENU_ENUM_LABEL_CB_CORE_ROM_DOWNLOAD)
 default_action_ok_download(action_ok_thumbnails_updater_download, MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_DOWNLOAD)
 default_action_ok_download(action_ok_download_url, MENU_ENUM_LABEL_CB_DOWNLOAD_URL)
 default_action_ok_download(action_ok_core_updater_download, MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD)
@@ -5927,6 +5965,32 @@ static int action_ok_pl_content_thumbnails(const char *path,
    return -1;
 #endif
 }
+static int action_ok_pl_content_rom(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+#ifdef HAVE_NETWORKING
+   settings_t *settings = config_get_ptr();
+   char playlist_path[PATH_MAX_LENGTH];
+
+   playlist_path[0] = '\0';
+
+   if (!settings)
+      return -1;
+
+   if (string_is_empty(settings->paths.directory_playlist))
+      return -1;
+
+   fill_pathname_join(
+         playlist_path,
+         settings->paths.directory_playlist, label,
+         sizeof(playlist_path));
+
+   task_push_pl_rom_download(path, playlist_path);
+   return 0;
+#else
+   return -1;
+#endif
+}
 
 #ifdef HAVE_NETWORKING
 static int action_ok_pl_entry_content_thumbnails(const char *path,
@@ -5947,6 +6011,32 @@ static int action_ok_pl_entry_content_thumbnails(const char *path,
    menu_driver_get_thumbnail_system(system, sizeof(system));
 
    task_push_pl_entry_thumbnail_download(system,
+         playlist, menu->rpl_entry_selection_ptr,
+         true, false);
+
+   return 0;
+}
+#endif
+
+#ifdef HAVE_NETWORKING
+static int action_ok_pl_entry_content_rom(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char system[PATH_MAX_LENGTH];
+   playlist_t *playlist = playlist_get_cached();
+   menu_handle_t *menu  = menu_driver_get_ptr();
+
+   system[0] = '\0';
+
+   if (!playlist)
+      return -1;
+
+   if (!menu)
+      return menu_cbs_exit();
+
+   menu_driver_get_thumbnail_system(system, sizeof(system));
+
+   task_push_pl_entry_rom_download(system,
          playlist, menu->rpl_entry_selection_ptr,
          true, false);
 
@@ -6291,6 +6381,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS:
             BIND_ACTION_OK(cbs, action_ok_pl_entry_content_thumbnails);
+            break;
+         case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM:
+            BIND_ACTION_OK(cbs, action_ok_pl_entry_content_rom);
             break;
          case MENU_ENUM_LABEL_UPDATE_LAKKA:
             BIND_ACTION_OK(cbs, action_ok_lakka_list);
@@ -7130,6 +7223,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case FILE_TYPE_DOWNLOAD_PL_THUMBNAIL_CONTENT:
             BIND_ACTION_OK(cbs, action_ok_pl_content_thumbnails);
+            break;
+         case FILE_TYPE_DOWNLOAD_PL_ROM_CONTENT:
+            BIND_ACTION_OK(cbs, action_ok_pl_content_rom);
             break;
          case FILE_TYPE_DOWNLOAD_CORE:
             BIND_ACTION_OK(cbs, action_ok_core_updater_download);

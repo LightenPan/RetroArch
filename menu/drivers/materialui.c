@@ -2454,6 +2454,10 @@ static void materialui_list_insert(void *userdata,
             node->texture_switch2_index = MUI_TEXTURE_IMAGE;
             node->texture_switch2_set   = true;
             break;
+         case FILE_TYPE_DOWNLOAD_PL_ROM_CONTENT:
+            node->texture_switch2_index = MUI_TEXTURE_CORES;
+            node->texture_switch2_set   = true;
+            break;
          case FILE_TYPE_PARENT_DIRECTORY:
             node->texture_switch2_index = MUI_TEXTURE_PARENT_DIRECTORY;
             node->texture_switch2_set   = true;

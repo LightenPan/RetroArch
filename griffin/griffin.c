@@ -1214,6 +1214,7 @@ DATA RUNLOOP
 #endif
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
 #include "../tasks/task_pl_thumbnail_download.c"
+#include "../tasks/task_pl_rom_download.c"
 #endif
 
 /*============================================================

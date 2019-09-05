@@ -1117,6 +1117,8 @@ MSG_HASH(MENU_ENUM_LABEL_RESET_CORE_ASSOCIATION,
       "reset_core_association")
 MSG_HASH(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS,
       "download_pl_entry_thumbnails")
+MSG_HASH(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM,
+      "download_pl_entry_rom")
 MSG_HASH(MENU_ENUM_LABEL_RUN,
       "collection")
 MSG_HASH(MENU_ENUM_LABEL_RUN_MUSIC,

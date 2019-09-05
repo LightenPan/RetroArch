@@ -208,8 +208,12 @@ static void fill_content_img(menu_thumbnail_path_data_t *path_data)
    char *scrub_char_pointer = NULL;
    
    /* Copy source label string */
-   strlcpy(path_data->content_img,
-         path_data->content_label, sizeof(path_data->content_img));
+   // 因为rom命名是用crc或者英文名，缩略图改为用文件名
+   char content_path[1024] = {0};
+   strlcpy(content_path, path_data->content_path, sizeof(content_path));
+   char *basename = path_basename(content_path);
+   basename = path_remove_extension(basename);
+   strlcpy(path_data->content_img, basename, sizeof(path_data->content_img));
    
    /* Scrub characters that are not cross-platform and/or violate the
     * No-Intro filename standard:
@@ -797,7 +801,28 @@ bool menu_thumbnail_get_img_name(menu_thumbnail_path_data_t *path_data, const ch
       return false;
    
    *img_name = path_data->content_img;
-   
+   return true;
+}
+
+bool menu_thumbnail_get_basename(menu_thumbnail_path_data_t *path_data, const char **img_name)
+{
+   if (!path_data)
+      return false;
+
+   if (!img_name)
+      return false;
+
+   if (!string_is_empty(path_data->content_path))
+   {
+	   *img_name = path_basename(path_data->content_path);
+      return true;
+   }
+
+   if (string_is_empty(path_data->content_img))
+      return false;
+
+   *img_name = path_data->content_img;
+
    return true;
 }
 

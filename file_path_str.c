@@ -149,7 +149,10 @@ const char *file_path_str(enum file_path_enum enum_idx)
          str = "registry.lpl";
          break;
       case FILE_PATH_CORE_THUMBNAILS_URL:
-         str = "http://thumbnails.libretro.com";
+         str = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/thumbnails";
+         break;
+      case FILE_PATH_ROM_URL:
+         str = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/roms";
          break;
       case FILE_PATH_CORE_THUMBNAILPACKS_URL:
          str = "http://thumbnailpacks.libretro.com";

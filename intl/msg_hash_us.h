@@ -2617,7 +2617,15 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS,
     "Download screenshot/box art/title screen thumbnail images for current content. Updates any existing thumbnails."
-    )
+	)
+MSG_HASH(
+	MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM,
+	"Download rom"
+	)
+MSG_HASH(
+	MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_ROM,
+	"Download rom for current content."
+	)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_SET_CORE_ASSOCIATION,
     "Set Core Association"

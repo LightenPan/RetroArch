@@ -99,6 +99,8 @@ struct playlist_entry
    unsigned last_played_second;
 };
 
+void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_t size);
+
 /**
  * playlist_init:
  * @path            	   : Path to playlist contents file.

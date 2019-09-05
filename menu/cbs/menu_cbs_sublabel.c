@@ -416,6 +416,7 @@ default_sublabel_macro(action_bind_sublabel_information,                        
 default_sublabel_macro(action_bind_sublabel_run,                                   MENU_ENUM_SUBLABEL_RUN)
 default_sublabel_macro(action_bind_sublabel_add_to_favorites,                      MENU_ENUM_SUBLABEL_ADD_TO_FAVORITES)
 default_sublabel_macro(action_bind_sublabel_download_pl_entry_thumbnails,          MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS)
+default_sublabel_macro(action_bind_sublabel_download_pl_entry_rom,				   MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_ROM)
 default_sublabel_macro(action_bind_sublabel_goto_favorites,                        MENU_ENUM_SUBLABEL_GOTO_FAVORITES)
 default_sublabel_macro(action_bind_sublabel_goto_images,                           MENU_ENUM_SUBLABEL_GOTO_IMAGES)
 default_sublabel_macro(action_bind_sublabel_goto_music,                            MENU_ENUM_SUBLABEL_GOTO_MUSIC)
@@ -1877,6 +1878,9 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_download_pl_entry_thumbnails);
+            break;
+         case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_download_pl_entry_rom);
             break;
          case MENU_ENUM_LABEL_RUN:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_run);
