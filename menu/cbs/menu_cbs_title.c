@@ -980,7 +980,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_TWITCH_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_user_accounts_twitch_list);
-            break;
+			break;
          case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_YOUTUBE_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_user_accounts_youtube_list);
             break;
@@ -1304,7 +1304,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_user_accounts_cheevos_list);
-            break;
+			break;
          case MENU_LABEL_DEFERRED_CORE_CONTENT_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_download_core_content_list);
             break;

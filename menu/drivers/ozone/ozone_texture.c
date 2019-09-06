@@ -99,7 +99,8 @@ menu_texture_item ozone_entries_icon_get_texture(ozone_handle_t *ozone,
 
       /* Menu icons */
       case MENU_ENUM_LABEL_CONTENT_SETTINGS:
-      case MENU_ENUM_LABEL_UPDATE_ASSETS:
+	  case MENU_ENUM_LABEL_UPDATE_ASSETS:
+	  case MENU_ENUM_LABEL_UPDATE_PLAYLISTS:
       case MENU_ENUM_LABEL_SAVE_CURRENT_CONFIG_OVERRIDE_GAME:
       case MENU_ENUM_LABEL_REMAP_FILE_SAVE_GAME:
       case MENU_ENUM_LABEL_VIDEO_SHADER_PRESET_SAVE_GLOBAL:

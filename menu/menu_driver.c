@@ -549,7 +549,9 @@ void menu_entry_set_value(uint32_t i, const char *s)
 
 bool menu_entry_is_password(menu_entry_t *entry)
 {
-   return entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD;
+	// return entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD;
+	return (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD
+		|| entry->enum_idx == MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD);
 }
 
 uint32_t menu_entry_num_has_range(uint32_t i)
@@ -743,11 +745,35 @@ int menu_entry_action(menu_entry_t *entry,
          if (cbs && cbs->action_down)
             ret = cbs->action_down(entry->type, entry->label);
          break;
-      case MENU_ACTION_SCROLL_UP:
-         menu_driver_ctl(MENU_NAVIGATION_CTL_DESCEND_ALPHABET, NULL);
+	  case MENU_ACTION_SCROLL_UP:
+		  for (int i = 0; i < 10; ++i)
+		  {
+			  size_t scroll_accel    = 0;
+			  unsigned scroll_speed  = 0;
+			  if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
+				  break;
+
+			  scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
+			  if (menu_entries_get_size() <= 0)
+				  break;
+			  menu_driver_ctl(MENU_NAVIGATION_CTL_DECREMENT, &scroll_speed);
+		  }
+         // menu_driver_ctl(MENU_NAVIGATION_CTL_DESCEND_ALPHABET, NULL);
          break;
-      case MENU_ACTION_SCROLL_DOWN:
-         menu_driver_ctl(MENU_NAVIGATION_CTL_ASCEND_ALPHABET, NULL);
+	  case MENU_ACTION_SCROLL_DOWN:
+		  for (int i = 0; i < 10; ++i)
+		  {
+			  size_t scroll_accel    = 0;
+			  unsigned scroll_speed  = 0;
+			  if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
+				  break;
+
+			  scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
+			  if (menu_entries_get_size() <= 0)
+				  break;
+			  menu_driver_ctl(MENU_NAVIGATION_CTL_INCREMENT, &scroll_speed);
+		  }
+         // menu_driver_ctl(MENU_NAVIGATION_CTL_ASCEND_ALPHABET, NULL);
          break;
       case MENU_ACTION_CANCEL:
          if (cbs && cbs->action_cancel)
@@ -3723,7 +3749,7 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                      menu_userdata, &menu_driver_selection_ptr);
          }
          break;
-      case MENU_NAVIGATION_CTL_DESCEND_ALPHABET:
+	  case MENU_NAVIGATION_CTL_DESCEND_ALPHABET:
          {
             size_t i        = 0;
 

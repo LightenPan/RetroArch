@@ -222,7 +222,13 @@ int menu_hash_get_help_cht_enum(enum msg_hash_enums msg, char *s, size_t len)
          break;
       case MENU_ENUM_LABEL_CHEEVOS_PASSWORD:
          snprintf(s, len, "你的Retro Achievements帳號的密碼。");
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
+		  snprintf(s, len, "复古游戏AllInOne帳號的用戶名");
+		  break;
+	  case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
+		  snprintf(s, len, "复古游戏AllInOne帳號的密碼");
+		  break;
       case MENU_ENUM_LABEL_USER_LANGUAGE:
          snprintf(s, len, "依據選擇的語言來本地化菜單和其他屏顯消息。 \n"
                " \n"

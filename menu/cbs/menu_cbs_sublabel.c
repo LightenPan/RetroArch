@@ -257,6 +257,9 @@ default_sublabel_macro(action_bind_sublabel_video_filter,                  MENU_
 default_sublabel_macro(action_bind_sublabel_netplay_nickname,              MENU_ENUM_SUBLABEL_NETPLAY_NICKNAME)
 default_sublabel_macro(action_bind_sublabel_cheevos_username,              MENU_ENUM_SUBLABEL_CHEEVOS_USERNAME)
 default_sublabel_macro(action_bind_sublabel_cheevos_password,              MENU_ENUM_SUBLABEL_CHEEVOS_PASSWORD)
+default_sublabel_macro(action_bind_sublabel_retrogame_allinone_username,   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_USERNAME)
+default_sublabel_macro(action_bind_sublabel_retrogame_allinone_password,   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_PASSWORD)
+
 default_sublabel_macro(action_bind_sublabel_video_post_filter_record,      MENU_ENUM_SUBLABEL_VIDEO_POST_FILTER_RECORD)
 default_sublabel_macro(action_bind_sublabel_start_core,                    MENU_ENUM_SUBLABEL_START_CORE)
 default_sublabel_macro(action_bind_sublabel_core_list,                     MENU_ENUM_SUBLABEL_CORE_LIST)
@@ -2356,7 +2359,13 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_CHEEVOS_PASSWORD:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_cheevos_password);
-            break;
+			break;
+		 case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
+			 BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_retrogame_allinone_username);
+			 break;
+		 case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
+			 BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_retrogame_allinone_password);
+			 break;
          case MENU_ENUM_LABEL_VIDEO_FILTER:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_video_filter);
             break;

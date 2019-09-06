@@ -74,6 +74,37 @@ typedef struct pl_entry_rom_id
 /* Utility Functions */
 /*********************/
 
+void clac_retrogame_allinone_sign(char *url_query, int len)
+{
+	settings_t *settings = config_get_ptr();
+	if (settings == NULL)
+	{
+		return;
+	}
+
+	uint32_t now = time(NULL);
+	char *username = settings->arrays.retrogame_allinone_username;
+	char *password = settings->arrays.retrogame_allinone_password;
+	char plain[1024] = {0};
+	snprintf(plain, sizeof(plain), "%s%u%s", username, now, password);
+	uint8_t hash[16] = {0};
+	MD5_CTX ctx;
+	MD5_Init(&ctx);
+	MD5_Update(&ctx, (void*)plain, strlen(plain));
+	MD5_Final(hash, &ctx);
+	RARCH_LOG("clac_retrogame_allinone_sign log info. username: %s, time: %u, password: %s, sign: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
+		username, now, password,
+		hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
+		hash[ 8], hash[ 9], hash[10], hash[11],hash[12], hash[13], hash[14], hash[15]);
+
+	// 组合账号密码参数
+	char fmt[1024] = {0};
+	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		settings->arrays.retrogame_allinone_username, now,
+		hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
+		hash[ 8], hash[ 9], hash[10], hash[11],hash[12], hash[13], hash[14], hash[15]);
+	strncpy(url_query, fmt, len);
+}
 /* Fetches local and remote paths for current thumbnail
  * of current type */
 static bool get_rom_paths(
@@ -90,6 +121,7 @@ static bool get_rom_paths(
    char content_dir[PATH_MAX_LENGTH];
    char raw_url[2048];
    char tmp_buf[PATH_MAX_LENGTH];
+   settings_t *settings = config_get_ptr();
 
    content_dir[0] = '\0';
    raw_url[0]     = '\0';
@@ -150,12 +182,16 @@ static bool get_rom_paths(
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, img_name, sizeof(raw_url));
 
-   RARCH_LOG("get_rom_paths log info. url: %s, path: %s\n", raw_url, path);
-
    if (string_is_empty(raw_url))
       return false;
 
    net_http_urlencode_full(url, raw_url, url_size);
+
+   char url_query[1024] = {0};
+   clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+   strlcat(url, url_query, url_size);
+
+   RARCH_LOG("get_rom_paths log result. url: %s, path: %s, url_query: %s", url, path, url_query);
 
    if (string_is_empty(url))
       return false;
@@ -192,7 +228,7 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
          /* Note: We don't actually care if this fails since that
           * just means the file is missing from the server, so it's
           * not something we can handle here... */
-         pl_thumb->http_task = (retro_task_t*)task_push_http_transfer(url, true, NULL, cb_generic_download, transf);
+         pl_thumb->http_task = (retro_task_t*)task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
       }
    }
 }
@@ -301,7 +337,7 @@ static void task_pl_rom_download_handler(retro_task_t *task)
                   task_set_title(task, strdup(label));
                else
                   task_set_title(task, strdup(""));
-               task_set_progress(task, (pl_thumb->list_index * 100) / pl_thumb->list_size);
+               // task_set_progress(task, (pl_thumb->list_index * 100) / pl_thumb->list_size);
 
                /* Start iterating over thumbnail type */
                pl_thumb->type_idx = 1;
@@ -351,7 +387,7 @@ static void task_pl_rom_download_handler(retro_task_t *task)
          break;
       case PL_ROM_END:
       default:
-         task_set_progress(task, 100);
+         // task_set_progress(task, 100);
          goto task_finished;
          break;
    }
@@ -583,7 +619,7 @@ static void task_pl_entry_rom_download_handler(retro_task_t *task)
                task_set_title(task, strdup(label));
             else
                task_set_title(task, strdup(""));
-            task_set_progress(task, 0);
+            // task_set_progress(task, 0);
 
             /* All good - can start iterating */
             pl_thumb->status = PL_ROM_ITERATE_TYPE;
@@ -609,7 +645,7 @@ static void task_pl_entry_rom_download_handler(retro_task_t *task)
             }
 
             /* Update progress */
-            task_set_progress(task, ((pl_thumb->type_idx - 1) * 100));
+            // task_set_progress(task, ((pl_thumb->type_idx - 1) * 100));
 
             /* Download current thumbnail */
             if (pl_thumb)
@@ -621,7 +657,7 @@ static void task_pl_entry_rom_download_handler(retro_task_t *task)
          break;
       case PL_ROM_END:
       default:
-         task_set_progress(task, 100);
+         // task_set_progress(task, 100);
          goto task_finished;
          break;
    }

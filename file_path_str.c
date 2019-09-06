@@ -149,10 +149,10 @@ const char *file_path_str(enum file_path_enum enum_idx)
          str = "registry.lpl";
          break;
       case FILE_PATH_CORE_THUMBNAILS_URL:
-         str = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/thumbnails";
+         str = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/thumbnails";
          break;
       case FILE_PATH_ROM_URL:
-         str = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/roms";
+         str = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/roms";
          break;
       case FILE_PATH_CORE_THUMBNAILPACKS_URL:
          str = "http://thumbnailpacks.libretro.com";
@@ -187,7 +187,10 @@ const char *file_path_str(enum file_path_enum enum_idx)
          break;
       case FILE_PATH_ASSETS_ZIP:
          str = "assets.zip";
-         break;
+		 break;
+	  case FILE_PATH_PLAYLISTS_ZIP:
+		  str = "playlists.zip";
+		  break;
       case FILE_PATH_AUTOCONFIG_ZIP:
          str = "autoconfig.zip";
          break;

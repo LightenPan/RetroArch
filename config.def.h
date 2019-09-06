@@ -1015,84 +1015,84 @@ static const bool enable_device_vibration    = false;
 static char buildbot_server_url[] = "http://hakchicloud.com/Libretro_Cores/";
 #elif defined(ANDROID)
 #if defined(ANDROID_ARM_V7)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/android/latest/armeabi-v7a/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/android/latest/armeabi-v7a/";
 #elif defined(ANDROID_ARM)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/android/latest/armeabi/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/android/latest/armeabi/";
 #elif defined(ANDROID_AARCH64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/android/latest/arm64-v8a/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/android/latest/arm64-v8a/";
 #elif defined(ANDROID_X86)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/android/latest/x86/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/android/latest/x86/";
 #elif defined(ANDROID_X64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/android/latest/x86_64/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/android/latest/x86_64/";
 #else
 static char buildbot_server_url[] = "";
 #endif
 #elif defined(__QNX__)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/blackberry/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/blackberry/latest/";
 #elif defined(IOS)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/apple/ios/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/apple/ios/latest/";
 #elif defined(OSX)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/apple/osx/x86_64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/apple/osx/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
 static char buildbot_server_url[] = "http://bot.libretro.com/nightly/apple/osx/x86/latest/";
 #else
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/apple/osx/ppc/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/apple/osx/ppc/latest/";
 #endif
 #elif defined(_WIN32) && !defined(_XBOX)
 #if _MSC_VER >= 1910
 #ifndef __WINRT__
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/x64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/x64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/x86/latest/";
 #elif defined(__arm__) || defined(_M_ARM)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/arm/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/arm/latest/";
 #elif defined(__aarch64__) || defined(_M_ARM64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/arm64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-desktop/arm64/latest/";
 #endif
 #else
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/x64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/x64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/x86/latest/";
 #elif defined(__arm__) || defined(_M_ARM)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/arm/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/arm/latest/";
 #elif defined(__aarch64__) || defined(_M_ARM64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/arm64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2017-uwp/arm64/latest/";
 #endif
 #endif
 #elif _MSC_VER == 1600
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2010/x86_64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2010/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2010/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2010/x86/latest/";
 #endif
 #elif _MSC_VER == 1400
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2005/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2005/x86/latest/";
 #elif _MSC_VER == 1310
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows-msvc2003/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows-msvc2003/x86/latest/";
 #else
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows/x86_64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/windows/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/windows/x86/latest/";
 #endif
 #endif
 #elif defined(__linux__)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/linux/x86_64/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/linux/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/linux/x86/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/linux/x86/latest/";
 #elif defined(__arm__) && __ARM_ARCH == 7 && defined(__ARM_PCS_VFP)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/linux/armhf/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/linux/armhf/latest/";
 #else
 static char buildbot_server_url[] = "";
 #endif
 #elif defined(WIIU)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/nintendo/wiiu/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/nintendo/wiiu/latest/";
 #elif defined(HAVE_LIBNX)
-static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/nightly/nintendo/switch/libnx/latest/";
+static char buildbot_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/nightly/nintendo/switch/libnx/latest/";
 #elif defined(__CELLOS_LV2__) && defined(DEX_BUILD)
 static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/dex-ps3/";
 #elif defined(__CELLOS_LV2__) && defined(CEX_BUILD)
@@ -1103,7 +1103,7 @@ static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/
 static char buildbot_server_url[] = "";
 #endif
 
-static char buildbot_assets_server_url[] = "http://retrogame.dynamic-dns.net/cdn/RetroGame/libretro/assets";
+static char buildbot_assets_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/assets";
 
 static char default_discord_app_id[] = "475456035851599874";
 

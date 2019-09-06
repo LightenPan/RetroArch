@@ -7510,7 +7510,7 @@ static bool setting_append_list(
                MENU_ENUM_LABEL_VALUE_USER_SETTINGS,
                &group_info,
                &subgroup_info,
-               parent_group);
+			   parent_group);
 
          CONFIG_ACTION(
                list, list_info,
@@ -15057,7 +15057,37 @@ static bool setting_append_list(
                general_write_handler,
                general_read_handler);
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
-         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+		 (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+
+		 CONFIG_STRING(
+			 list, list_info,
+			 settings->arrays.retrogame_allinone_username,
+			 sizeof(settings->arrays.retrogame_allinone_username),
+			 MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,
+			 MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_USERNAME,
+			 "",
+			 &group_info,
+			 &subgroup_info,
+			 parent_group,
+			 general_write_handler,
+			 general_read_handler);
+		 SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
+		 (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+
+		 CONFIG_STRING(
+			 list, list_info,
+			 settings->arrays.retrogame_allinone_password,
+			 sizeof(settings->arrays.retrogame_allinone_password),
+			 MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,
+			 MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
+			 "",
+			 &group_info,
+			 &subgroup_info,
+			 parent_group,
+			 general_write_handler,
+			 general_read_handler);
+		 SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
+		 (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
          CONFIG_STRING(
                list, list_info,
@@ -15136,7 +15166,7 @@ static bool setting_append_list(
                MENU_ENUM_LABEL_VALUE_ACCOUNTS_TWITCH,
                &group_info,
                &subgroup_info,
-               parent_group);
+			   parent_group);
 #endif
 
          END_SUB_GROUP(list, list_info, parent_group);
@@ -15195,7 +15225,7 @@ static bool setting_append_list(
 
          END_SUB_GROUP(list, list_info, parent_group);
          END_GROUP(list, list_info, parent_group);
-         break;
+		 break;
       case SETTINGS_LIST_USER_ACCOUNTS_CHEEVOS:
          START_GROUP(list, list_info, &group_info,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_ACCOUNTS_CHEEVOS_SETTINGS),
@@ -15940,7 +15970,7 @@ static rarch_setting_t *menu_setting_new_internal(rarch_setting_info_t *list_inf
       SETTINGS_LIST_USER_ACCOUNTS,
       SETTINGS_LIST_USER_ACCOUNTS_CHEEVOS,
       SETTINGS_LIST_USER_ACCOUNTS_YOUTUBE,
-      SETTINGS_LIST_USER_ACCOUNTS_TWITCH,
+	  SETTINGS_LIST_USER_ACCOUNTS_TWITCH,
       SETTINGS_LIST_DIRECTORY,
       SETTINGS_LIST_PRIVACY,
       SETTINGS_LIST_MIDI

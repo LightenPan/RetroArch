@@ -283,7 +283,7 @@ static enum msg_hash_enums action_ok_dl_to_enum(unsigned lbl)
       case ACTION_OK_DL_ACCOUNTS_CHEEVOS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST;
       case ACTION_OK_DL_ACCOUNTS_TWITCH_LIST:
-         return MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_TWITCH_LIST;
+		  return MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_TWITCH_LIST;
       case ACTION_OK_DL_DUMP_DISC_LIST:
          return MENU_ENUM_LABEL_DEFERRED_DUMP_DISC_LIST;
       case ACTION_OK_DL_LOAD_DISC_LIST:
@@ -880,7 +880,7 @@ int generic_action_ok_displaylist_push(const char *path,
                MENU_ENUM_LABEL_DEFERRED_CORE_UPDATER_LIST);
          info.enum_idx      = MENU_ENUM_LABEL_DEFERRED_CORE_UPDATER_LIST;
          dl_type            = DISPLAYLIST_PENDING_CLEAR;
-         break;
+		 break;
       case ACTION_OK_DL_THUMBNAILS_UPDATER_LIST:
          info.type          = type;
          info.directory_ptr = idx;
@@ -1046,7 +1046,7 @@ int generic_action_ok_displaylist_push(const char *path,
       case ACTION_OK_DL_PLAYLIST_MANAGER_SETTINGS:
       case ACTION_OK_DL_ACCOUNTS_CHEEVOS_LIST:
       case ACTION_OK_DL_ACCOUNTS_YOUTUBE_LIST:
-      case ACTION_OK_DL_ACCOUNTS_TWITCH_LIST:
+	  case ACTION_OK_DL_ACCOUNTS_TWITCH_LIST:
       case ACTION_OK_DL_PLAYLIST_COLLECTION:
       case ACTION_OK_DL_FAVORITES_LIST:
       case ACTION_OK_DL_BROWSE_URL_LIST:
@@ -3775,7 +3775,6 @@ static int generic_action_ok_network(const char *path,
          suppress_msg = true;
          break;
       case MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST:
-
          if (string_is_empty(settings->paths.network_buildbot_url))
             return menu_cbs_exit();
 
@@ -3784,7 +3783,15 @@ static int generic_action_ok_network(const char *path,
          url_label = msg_hash_to_str(enum_idx);
          type_id2  = ACTION_OK_DL_CORE_UPDATER_LIST;
          callback  = cb_net_generic;
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_CB_CORE_UPDATER_PLAYLISTS:
+		  fill_pathname_join(url_path, path,
+			  file_path_str(FILE_PATH_INDEX_URL), sizeof(url_path));
+		  url_label = msg_hash_to_str(enum_idx);
+		  type_id2  = ACTION_OK_DL_CORE_UPDATER_PLAYLISTS;
+		  callback  = cb_net_generic;
+		  suppress_msg = true;
+		  break;
       case MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_LIST:
          fill_pathname_join(url_path,
                file_path_str(FILE_PATH_CORE_THUMBNAILPACKS_URL),
@@ -3834,6 +3841,7 @@ static int (funcname)(const char *path, const char *label, unsigned type, size_t
 default_action_ok_list(action_ok_core_content_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_LIST)
 default_action_ok_list(action_ok_core_content_dirs_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_DIRS_LIST)
 default_action_ok_list(action_ok_core_updater_list, MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST)
+default_action_ok_list(action_ok_core_updater_playlists, MENU_ENUM_LABEL_CB_CORE_UPDATER_PLAYLISTS)
 default_action_ok_list(action_ok_thumbnails_updater_list, MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_LIST)
 default_action_ok_list(action_ok_lakka_list, MENU_ENUM_LABEL_CB_LAKKA_LIST)
 
@@ -3893,7 +3901,10 @@ void cb_generic_download(retro_task_t *task,
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
          dir_path = settings->paths.directory_assets;
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+		  dir_path = settings->paths.directory_playlist;
+		  break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          dir_path = settings->paths.directory_autoconfig;
          break;
@@ -4121,7 +4132,10 @@ static int action_ok_download_generic(const char *path,
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
          path = file_path_str(FILE_PATH_ASSETS_ZIP);
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+		  path = file_path_str(FILE_PATH_PLAYLISTS_ZIP);
+		  break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          path = file_path_str(FILE_PATH_AUTOCONFIG_ZIP);
          break;
@@ -4197,6 +4211,7 @@ default_action_ok_download(action_ok_download_url, MENU_ENUM_LABEL_CB_DOWNLOAD_U
 default_action_ok_download(action_ok_core_updater_download, MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD)
 default_action_ok_download(action_ok_lakka_download, MENU_ENUM_LABEL_CB_LAKKA_DOWNLOAD)
 default_action_ok_download(action_ok_update_assets, MENU_ENUM_LABEL_CB_UPDATE_ASSETS)
+default_action_ok_download(action_ok_update_playlists, MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS)
 default_action_ok_download(action_ok_update_core_info_files, MENU_ENUM_LABEL_CB_UPDATE_CORE_INFO_FILES)
 default_action_ok_download(action_ok_update_overlays, MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS)
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
@@ -6038,7 +6053,7 @@ static int action_ok_pl_entry_content_rom(const char *path,
 
    task_push_pl_entry_rom_download(system,
          playlist, menu->rpl_entry_selection_ptr,
-         true, false);
+         true, true);
 
    return 0;
 }
@@ -6372,7 +6387,10 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_CORE_UPDATER_LIST:
             BIND_ACTION_OK(cbs, action_ok_core_updater_list);
-            break;
+			break;
+		 case MENU_ENUM_LABEL_CORE_UPDATER_PLAYLISTS:
+			 BIND_ACTION_OK(cbs, action_ok_core_updater_list);
+			 break;
          case MENU_ENUM_LABEL_THUMBNAILS_UPDATER_LIST:
             BIND_ACTION_OK(cbs, action_ok_thumbnails_updater_list);
             break;
@@ -6456,7 +6474,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_ACCOUNTS_TWITCH:
             BIND_ACTION_OK(cbs, action_ok_push_accounts_twitch_list);
-            break;
+			break;
          case MENU_ENUM_LABEL_DUMP_DISC:
             BIND_ACTION_OK(cbs, action_ok_push_dump_disc_list);
             break;
@@ -6750,7 +6768,10 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_UPDATE_ASSETS:
             BIND_ACTION_OK(cbs, action_ok_update_assets);
-            break;
+			break;
+		 case MENU_ENUM_LABEL_UPDATE_PLAYLISTS:
+			 BIND_ACTION_OK(cbs, action_ok_update_playlists);
+			 break;
          case MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES:
             BIND_ACTION_OK(cbs, action_ok_update_core_info_files);
             break;

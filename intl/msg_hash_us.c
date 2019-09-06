@@ -248,7 +248,13 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
             break;
         case MENU_ENUM_LABEL_CHEEVOS_PASSWORD:
             snprintf(s, len, "Password for your Retro Achievements account.");
-            break;
+			break;
+		case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
+			snprintf(s, len, "Username for your RetroGameAllInOne account.");
+			break;
+		case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
+			snprintf(s, len, "Password for your RetroGameAllInOne account.");
+			break;
         case MENU_ENUM_LABEL_USER_LANGUAGE:
             snprintf(s, len, "Localizes the menu and all onscreen messages \n"
                     "according to the language you have selected \n"

@@ -1149,13 +1149,13 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
                break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_cheevos_list);
-               break;
+			   break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_YOUTUBE_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_youtube_list);
                break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_TWITCH_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_twitch_list);
-               break;
+			   break;
             case MENU_ENUM_LABEL_DEFERRED_ARCHIVE_ACTION_DETECT_CORE:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_archive_action_detect_core);
                break;
@@ -1479,7 +1479,7 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
                break;
             case MENU_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_cheevos_list);
-               break;
+			   break;
             case MENU_LABEL_DEFERRED_ARCHIVE_ACTION_DETECT_CORE:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_archive_action_detect_core);
                break;

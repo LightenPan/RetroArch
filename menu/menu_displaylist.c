@@ -4548,13 +4548,13 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                   count++;
             }
          }
-         break;
+		 break;
       case DISPLAYLIST_RETRO_ACHIEVEMENTS_SETTINGS_LIST:
          {
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_CHEEVOS_ENABLE,                                        PARSE_ONLY_BOOL  },
                {MENU_ENUM_LABEL_CHEEVOS_USERNAME,                                      PARSE_ONLY_STRING},
-               {MENU_ENUM_LABEL_CHEEVOS_PASSWORD,                                      PARSE_ONLY_STRING},
+			   {MENU_ENUM_LABEL_CHEEVOS_PASSWORD,                                      PARSE_ONLY_STRING},
                {MENU_ENUM_LABEL_CHEEVOS_HARDCORE_MODE_ENABLE,                          PARSE_ONLY_BOOL  },
                {MENU_ENUM_LABEL_CHEEVOS_LEADERBOARDS_ENABLE,                           PARSE_ONLY_BOOL  },
                {MENU_ENUM_LABEL_CHEEVOS_BADGES_ENABLE,                                 PARSE_ONLY_BOOL  },
@@ -4571,13 +4571,13 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                   count++;
             }
          }
-         break;
+		 break;
       case DISPLAYLIST_ACCOUNTS_TWITCH_LIST:
          if (menu_displaylist_parse_settings_enum(list,
                MENU_ENUM_LABEL_TWITCH_STREAM_KEY,
                PARSE_ONLY_STRING, false) == 0)
             count++;
-         break;
+		 break;
       case DISPLAYLIST_USER_INTERFACE_SETTINGS_LIST:
          {
             menu_displaylist_build_info_selective_t build_list[] = {
@@ -4761,7 +4761,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_ACCOUNTS_RETRO_ACHIEVEMENTS,            PARSE_ACTION},
                {MENU_ENUM_LABEL_ACCOUNTS_YOUTUBE,                       PARSE_ACTION},
-               {MENU_ENUM_LABEL_ACCOUNTS_TWITCH,                        PARSE_ACTION},
+			   {MENU_ENUM_LABEL_ACCOUNTS_TWITCH,                        PARSE_ACTION},
             };
 
             for (i = 0; i < ARRAY_SIZE(build_list); i++)
@@ -4777,7 +4777,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
          {
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_CHEEVOS_USERNAME,                       PARSE_ONLY_STRING},
-               {MENU_ENUM_LABEL_CHEEVOS_PASSWORD,                       PARSE_ONLY_STRING},
+			   {MENU_ENUM_LABEL_CHEEVOS_PASSWORD,                       PARSE_ONLY_STRING},
             };
 
             for (i = 0; i < ARRAY_SIZE(build_list); i++)
@@ -4788,7 +4788,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                   count++;
             }
          }
-         break;
+		 break;
       case DISPLAYLIST_ONSCREEN_OVERLAY_SETTINGS_LIST:
          {
             menu_displaylist_build_info_t build_list[] = {
@@ -5115,7 +5115,9 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_PRIVACY_SETTINGS,  PARSE_ACTION},
                {MENU_ENUM_LABEL_ACCOUNTS_LIST,     PARSE_ACTION},
-               {MENU_ENUM_LABEL_NETPLAY_NICKNAME,  PARSE_ONLY_STRING},
+			   {MENU_ENUM_LABEL_NETPLAY_NICKNAME,  PARSE_ONLY_STRING},
+ 			   {MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,  PARSE_ONLY_STRING},
+ 			   {MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,  PARSE_ONLY_STRING},
                {MENU_ENUM_LABEL_USER_LANGUAGE,     PARSE_ONLY_UINT},
             };
 
@@ -5127,7 +5129,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                   count++;
             }
          }
-         break;
+		 break;
       case DISPLAYLIST_UPDATER_SETTINGS_LIST:
          {
             menu_displaylist_build_info_t build_list[] = {
@@ -7196,7 +7198,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
       case DISPLAYLIST_QUICK_MENU_VIEWS_SETTINGS_LIST:
       case DISPLAYLIST_MENU_SOUNDS_LIST:
       case DISPLAYLIST_UPDATER_SETTINGS_LIST:
-      case DISPLAYLIST_USER_SETTINGS_LIST:
+	  case DISPLAYLIST_USER_SETTINGS_LIST:
       case DISPLAYLIST_ONSCREEN_DISPLAY_SETTINGS_LIST:
       case DISPLAYLIST_POWER_MANAGEMENT_SETTINGS_LIST:
       case DISPLAYLIST_SETTINGS_ALL:
@@ -7208,7 +7210,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
 #ifdef HAVE_VIDEO_LAYOUT
       case DISPLAYLIST_ONSCREEN_VIDEO_LAYOUT_SETTINGS_LIST:
 #endif
-      case DISPLAYLIST_ACCOUNTS_CHEEVOS_LIST:
+	  case DISPLAYLIST_ACCOUNTS_CHEEVOS_LIST:
       case DISPLAYLIST_ACCOUNTS_LIST:
       case DISPLAYLIST_MENU_FILE_BROWSER_SETTINGS_LIST:
       case DISPLAYLIST_MENU_VIEWS_SETTINGS_LIST:
@@ -7218,7 +7220,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
       case DISPLAYLIST_OPTIONS_DISK:
       case DISPLAYLIST_AI_SERVICE_SETTINGS_LIST:
       case DISPLAYLIST_USER_INTERFACE_SETTINGS_LIST:
-      case DISPLAYLIST_ACCOUNTS_TWITCH_LIST:
+	  case DISPLAYLIST_ACCOUNTS_TWITCH_LIST:
       case DISPLAYLIST_RETRO_ACHIEVEMENTS_SETTINGS_LIST:
       case DISPLAYLIST_ACCOUNTS_YOUTUBE_LIST:
       case DISPLAYLIST_RECORDING_SETTINGS_LIST:
@@ -7933,7 +7935,13 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_ASSETS),
                      MENU_ENUM_LABEL_UPDATE_ASSETS,
                      MENU_SETTING_ACTION, 0, 0))
-               count++;
+					 count++;
+			if (menu_entries_append_enum(info->list,
+				msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS),
+				msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS),
+				MENU_ENUM_LABEL_UPDATE_PLAYLISTS,
+				MENU_SETTING_ACTION, 0, 0))
+				count++;
 #endif
 
             if (menu_entries_append_enum(info->list,

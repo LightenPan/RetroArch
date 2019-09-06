@@ -240,7 +240,7 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ACCOUNTS_CHEEVOS_USERNAME,
     "Username"
-    )
+	)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ACCOUNTS_LIST,
     "Accounts"
@@ -3617,7 +3617,11 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_UPDATE_ASSETS,
     "Update Assets"
-    )
+	)
+	MSG_HASH(
+	MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS,
+	"Update Playlists"
+	)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_UPDATE_AUTOCONFIG_PROFILES,
     "Update Joypad Profiles"
@@ -5644,7 +5648,11 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_SUBLABEL_CHEEVOS_PASSWORD,
     "Input the password of your RetroAchievements account."
-    )
+	)
+MSG_HASH(MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_USERNAME,
+	"Input the username of your RetroGame AllInOne account.")
+MSG_HASH(MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_PASSWORD,
+	"Input the password of your RetroGame AllInOne account.")
 MSG_HASH(
     MENU_ENUM_SUBLABEL_NETPLAY_NICKNAME,
     "Input your user name here. This will be used for netplay sessions, among other things."
@@ -8763,6 +8771,14 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TWITCH_STREAM_KEY,
     "Twitch Stream Key"
     )
+MSG_HASH(
+	MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_USERNAME,
+	"username for RetroGameAllInOne"
+	)
+MSG_HASH(
+	MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
+	"invite code for RetroGameAllInOne"
+	)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_YOUTUBE_STREAM_KEY,
     "YouTube Stream Key"
