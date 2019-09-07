@@ -74,6 +74,18 @@ typedef struct pl_entry_rom_id
 /* Utility Functions */
 /*********************/
 
+void md5_hexdigest(char *input, int input_len, char *output, int *output_len)
+{
+	uint8_t hash[16] = {0};
+	MD5_CTX ctx;
+	MD5_Init(&ctx);
+	MD5_Update(&ctx, (void*)input, input_len);
+	MD5_Final(hash, &ctx);
+	snprintf(output, output_len, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
+		hash[ 8], hash[ 9], hash[10], hash[11],hash[12], hash[13], hash[14], hash[15]);
+}
+
 void clac_retrogame_allinone_sign(char *url_query, int len)
 {
 	settings_t *settings = config_get_ptr();
@@ -82,27 +94,41 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
 		return;
 	}
 
+	// sign计算方法：
+	// 1、获取password的md5: pwdmd5=md5(password)
+	// 2、获取password的用户加盐userpwdmd5: md5(username+pwdmd5)
+	// 3、获取最终签名sign=md5(username+time+userpwdmd5)
 	uint32_t now = time(NULL);
 	char *username = settings->arrays.retrogame_allinone_username;
 	char *password = settings->arrays.retrogame_allinone_password;
-	char plain[1024] = {0};
-	snprintf(plain, sizeof(plain), "%s%u%s", username, now, password);
 	uint8_t hash[16] = {0};
 	MD5_CTX ctx;
 	MD5_Init(&ctx);
-	MD5_Update(&ctx, (void*)plain, strlen(plain));
-	MD5_Final(hash, &ctx);
-	RARCH_LOG("clac_retrogame_allinone_sign log info. username: %s, time: %u, password: %s, sign: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
-		username, now, password,
-		hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
-		hash[ 8], hash[ 9], hash[10], hash[11],hash[12], hash[13], hash[14], hash[15]);
+
+	// 1、获取password的md5: pwdmd5=md5(password)
+	char plain_pwd[1024] = {0};
+	char pwdm5[64] = {0};
+	snprintf(plain_pwd, sizeof(plain_pwd), "%s", password);
+	md5_hexdigest(plain_pwd, strlen(plain_pwd), pwdm5, sizeof(pwdm5));
+
+	// 2、获取password的用户加盐userpwdmd5: md5(username+pwdmd5)
+	char plain_userpwdmd5[1024] = {0};
+	char userpwdmd5[64] = {0};
+	snprintf(plain_userpwdmd5, sizeof(plain_userpwdmd5), "%s %s", username, pwdm5);
+	md5_hexdigest(plain_userpwdmd5, strlen(plain_userpwdmd5), userpwdmd5, sizeof(userpwdmd5));
+
+	// 3、获取最终签名sign=md5(username+time+userpwdmd5)
+	char plain_sign[1024] = {0};
+	char sign[64] = {0};
+	snprintf(plain_sign, sizeof(plain_sign), "%s %u %s", username, now, userpwdmd5);
+	md5_hexdigest(plain_sign, strlen(plain_sign), sign, sizeof(sign));
+
+	RARCH_LOG("clac_retrogame_allinone_sign log info. acc: %s, time: %u, pwd: %s, pwdm5: %s, userpwdmd5: %s, sign: %s\n",
+		username, now, password, pwdm5, userpwdmd5, sign);
 
 	// 组合账号密码参数
 	char fmt[1024] = {0};
-	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		settings->arrays.retrogame_allinone_username, now,
-		hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
-		hash[ 8], hash[ 9], hash[10], hash[11],hash[12], hash[13], hash[14], hash[15]);
+	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%s", username, now, sign);
 	strncpy(url_query, fmt, len);
 }
 /* Fetches local and remote paths for current thumbnail
