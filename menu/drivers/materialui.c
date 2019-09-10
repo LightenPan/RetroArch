@@ -2716,6 +2716,7 @@ static void materialui_list_insert(void *userdata,
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_AUTOCONFIG_PROFILES)) ||
 				  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_ASSETS)) ||
+				  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS)) ||
 				  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_CHEATS)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_DATABASES)) ||

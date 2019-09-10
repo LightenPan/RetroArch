@@ -3913,7 +3913,10 @@ void cb_generic_download(retro_task_t *task,
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS:
          dir_path = settings->paths.directory_overlay;
-         break;
+		 break;
+	  case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
+		  dir_path = settings->paths.directory_system;
+		  break;
       case MENU_ENUM_LABEL_CB_UPDATE_CHEATS:
          dir_path = settings->paths.path_cheat_database;
          break;
@@ -4133,6 +4136,9 @@ static int action_ok_download_generic(const char *path,
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
          path = file_path_str(FILE_PATH_ASSETS_ZIP);
 		 break;
+	  case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
+		  path = file_path_str(FILE_PATH_SYSTEMS_ZIP);
+		  break;
 	  case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
 		  path = file_path_str(FILE_PATH_PLAYLISTS_ZIP);
 		  break;
@@ -4211,6 +4217,7 @@ default_action_ok_download(action_ok_download_url, MENU_ENUM_LABEL_CB_DOWNLOAD_U
 default_action_ok_download(action_ok_core_updater_download, MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD)
 default_action_ok_download(action_ok_lakka_download, MENU_ENUM_LABEL_CB_LAKKA_DOWNLOAD)
 default_action_ok_download(action_ok_update_assets, MENU_ENUM_LABEL_CB_UPDATE_ASSETS)
+default_action_ok_download(action_ok_update_systems, MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS)
 default_action_ok_download(action_ok_update_playlists, MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS)
 default_action_ok_download(action_ok_update_core_info_files, MENU_ENUM_LABEL_CB_UPDATE_CORE_INFO_FILES)
 default_action_ok_download(action_ok_update_overlays, MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS)
@@ -6769,6 +6776,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_UPDATE_ASSETS:
             BIND_ACTION_OK(cbs, action_ok_update_assets);
 			break;
+		 case MENU_ENUM_LABEL_UPDATE_SYSTEMS:
+			 BIND_ACTION_OK(cbs, action_ok_update_systems);
+			 break;
 		 case MENU_ENUM_LABEL_UPDATE_PLAYLISTS:
 			 BIND_ACTION_OK(cbs, action_ok_update_playlists);
 			 break;

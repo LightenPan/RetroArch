@@ -3619,6 +3619,10 @@ MSG_HASH(
     "Update Assets"
 	)
 	MSG_HASH(
+	MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS,
+	"Update Systems"
+	)
+	MSG_HASH(
 	MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS,
 	"Update Playlists"
 	)

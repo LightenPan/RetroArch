@@ -7937,6 +7937,12 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      MENU_SETTING_ACTION, 0, 0))
 					 count++;
 			if (menu_entries_append_enum(info->list,
+				msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS),
+				msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS),
+				MENU_ENUM_LABEL_UPDATE_SYSTEMS,
+				MENU_SETTING_ACTION, 0, 0))
+				count++;
+			if (menu_entries_append_enum(info->list,
 				msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS),
 				msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS),
 				MENU_ENUM_LABEL_UPDATE_PLAYLISTS,

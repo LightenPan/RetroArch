@@ -188,6 +188,9 @@ const char *file_path_str(enum file_path_enum enum_idx)
       case FILE_PATH_ASSETS_ZIP:
          str = "assets.zip";
 		 break;
+	  case FILE_PATH_SYSTEMS_ZIP:
+		  str = "systems.zip";
+		  break;
 	  case FILE_PATH_PLAYLISTS_ZIP:
 		  str = "playlists.zip";
 		  break;
