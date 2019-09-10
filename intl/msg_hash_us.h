@@ -4654,7 +4654,11 @@ MSG_HASH(
 MSG_HASH(
     MSG_DOWNLOAD_FAILED,
     "Download failed"
-    )
+	)
+MSG_HASH(
+	MSG_DOWNLOAD_NOLOGIN,
+	"Please login first"
+	)
 MSG_HASH(
     MSG_ERROR,
     "Error"

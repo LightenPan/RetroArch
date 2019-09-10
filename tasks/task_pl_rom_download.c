@@ -59,9 +59,8 @@ typedef struct pl_rom_handle
    size_t list_index;
    unsigned type_idx;
    bool overwrite;
-   bool right_thumbnail_exists;
-   bool left_thumbnail_exists;
    enum pl_rom_status status;
+   char *title;
 } pl_rom_handle_t;
 
 typedef struct pl_entry_rom_id
@@ -248,8 +247,12 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
 
          /* Initialise file transfer */
          transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
-         strlcpy(transf->path, path, sizeof(transf->path));
-		 RARCH_LOG("download_pl_rom. url: %s, path: %s, transf->path, path\n", url, path, transf->path, path);
+		 strlcpy(transf->path, path, sizeof(transf->path));
+		 if (pl_thumb && pl_thumb->title)
+		 {
+			 strlcpy(transf->title, pl_thumb->title, sizeof(transf->title));
+		 }
+		 RARCH_LOG("download_pl_rom. url: %s, path: %s, transf->path%s, path: %s, title: %s\n", url, path, transf->path, path, transf->title);
 
          /* Note: We don't actually care if this fails since that
           * just means the file is missing from the server, so it's
@@ -392,7 +395,7 @@ static void task_pl_rom_download_handler(retro_task_t *task)
             }
 
             /* Check whether all thumbnail types have been processed */
-            if (pl_thumb->type_idx > 3)
+            if (pl_thumb->type_idx > 1)
             {
                /* Time to move on to the next entry */
                pl_thumb->list_index++;
@@ -522,72 +525,6 @@ error:
    }
 
    return false;
-}
-
-/*************************************/
-/* Playlist Entry Thumbnail Download */
-/*************************************/
-
-static void cb_task_pl_entry_rom_refresh_menu(
-      retro_task_t *task, void *task_data,
-      void *user_data, const char *err)
-{
-#if defined(RARCH_INTERNAL) && defined(HAVE_MENU)
-
-   pl_rom_handle_t *pl_thumb     = NULL;
-   const char *thumbnail_path      = NULL;
-   const char *left_thumbnail_path = NULL;
-   bool do_refresh                 = false;
-   playlist_t *current_playlist    = playlist_get_cached();
-   menu_handle_t *menu             = menu_driver_get_ptr();
-
-   if (!task)
-      return;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-   if (!pl_thumb || !pl_thumb->thumbnail_path_data)
-      return;
-
-   /* Only refresh if current playlist hasn't changed,
-    * and menu selection pointer is on the same entry
-    * (Note: this is crude, but it's sufficient to prevent
-    * 'refresh' from getting spammed when switching
-    * playlists or scrolling through one playlist at
-    * maximum speed with on demand downloads enabled) */
-
-   if (!current_playlist)
-      return;
-   if (!menu)
-      return;
-   if (string_is_empty(playlist_get_conf_path(current_playlist)))
-      return;
-
-   if (((pl_thumb->list_index != menu_navigation_get_selection()) &&
-        (pl_thumb->list_index != menu->rpl_entry_selection_ptr)) ||
-         !string_is_equal(pl_thumb->playlist_path,
-            playlist_get_conf_path(current_playlist)))
-      return;
-
-   /* Only refresh if left/right thumbnails did not exist
-    * when the task began, but do exist now
-    * (with the caveat that we must also refresh if existing
-    * files have been overwritten) */
-
-   if (!pl_thumb->right_thumbnail_exists || pl_thumb->overwrite)
-      if (menu_thumbnail_update_path(pl_thumb->thumbnail_path_data, MENU_THUMBNAIL_RIGHT))
-         if (menu_thumbnail_get_path(pl_thumb->thumbnail_path_data, MENU_THUMBNAIL_RIGHT, &thumbnail_path))
-            do_refresh = path_is_valid(thumbnail_path);
-
-   if (!do_refresh)
-      if (!pl_thumb->left_thumbnail_exists || pl_thumb->overwrite)
-         if (menu_thumbnail_update_path(pl_thumb->thumbnail_path_data, MENU_THUMBNAIL_LEFT))
-            if (menu_thumbnail_get_path(pl_thumb->thumbnail_path_data, MENU_THUMBNAIL_LEFT, &left_thumbnail_path))
-               do_refresh = path_is_valid(left_thumbnail_path);
-
-   if (do_refresh)
-      menu_driver_ctl(RARCH_MENU_CTL_REFRESH_THUMBNAIL_IMAGE, NULL);
-
-#endif
 }
 
 static void task_pl_entry_rom_free(retro_task_t *task)
@@ -793,6 +730,13 @@ bool task_push_pl_entry_rom_download(
    pl_thumb->type_idx            = 1;
    pl_thumb->overwrite           = overwrite;
    pl_thumb->status              = PL_ROM_BEGIN;
+
+   struct playlist_entry *p_playlist_entry = NULL;
+   playlist_get_index(playlist, idx, &p_playlist_entry);
+   if (p_playlist_entry != NULL)
+   {
+	   pl_thumb->title = p_playlist_entry->label;
+   }
 
    task_queue_push(task);
 

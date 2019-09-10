@@ -88,8 +88,10 @@ static void task_queue_push_progress(retro_task_t *task)
       if (task->finished)
       {
          if (task->error)
-            task_queue_msg_push(task, 1, 60, true, "%s: %s",
-               "Task failed", task->title);
+		 {
+			 // task_queue_msg_push(task, 1, 60, true, "%s: %s", "Task failed", task->title);
+			 task_queue_msg_push(task, 1, 60, true, "%s: %s", task->error, task->title);
+		 }
          else
             task_queue_msg_push(task, 1, 60, false, "100%%: %s", task->title);
       }

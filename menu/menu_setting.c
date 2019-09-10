@@ -3707,14 +3707,14 @@ static void setting_get_string_representation_uint_xmb_icon_theme(
          strlcpy(s,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_XMB_ICON_THEME_MONOCHROME), len);
          break;
-      case XMB_ICON_THEME_FLATUI:
-         strlcpy(s,
-               msg_hash_to_str(MENU_ENUM_LABEL_VALUE_XMB_ICON_THEME_FLATUI), len);
-         break;
       case XMB_ICON_THEME_RETROACTIVE:
          strlcpy(s,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_XMB_ICON_THEME_RETROACTIVE), len);
-         break;
+		 break;
+	  case XMB_ICON_THEME_FLATUI:
+		  strlcpy(s,
+			  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_XMB_ICON_THEME_FLATUI), len);
+		  break;
       case XMB_ICON_THEME_RETROSYSTEM:
          strlcpy(s,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_XMB_ICON_THEME_RETROSYSTEM), len);
@@ -12204,7 +12204,8 @@ static bool setting_append_list(
                   general_read_handler);
             (*list)[list_info->index - 1].get_string_representation =
                &setting_get_string_representation_uint_xmb_icon_theme;
-            menu_settings_list_current_add_range(list, list_info, 0, XMB_ICON_THEME_LAST - 1, 1, true, true);
+			// menu_settings_list_current_add_range(list, list_info, 0, XMB_ICON_THEME_LAST - 1, 1, true, true);
+			menu_settings_list_current_add_range(list, list_info, 0, XMB_ICON_THEME_MONOCHROME, 1, true, true);
             menu_settings_list_current_add_cmd(list, list_info, CMD_EVENT_REINIT);
             (*list)[list_info->index - 1].ui_type   = ST_UI_TYPE_UINT_COMBOBOX;
 

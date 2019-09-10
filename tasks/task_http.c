@@ -184,7 +184,9 @@ task_finished:
             free(tmp);
 
          if (task_get_cancelled(task))
-            task_set_error(task, strdup("Task cancelled."));
+			 task_set_error(task, strdup("Task cancelled."));
+		 else if (http->handle && http->handle->status == 401 && !task->mute)
+			 task_set_error(task, strdup(msg_hash_to_str(MSG_DOWNLOAD_NOLOGIN)));
          else if (!task->mute)
             task_set_error(task, strdup("Download failed."));
       }
@@ -295,9 +297,21 @@ static void* task_push_http_transfer_generic(
    t->progress             = -1;
 
    if (user_data != NULL)
-      s = ((file_transfer_t*)user_data)->path;
+   {
+	   file_transfer_t *pfile_transfer = (file_transfer_t*)user_data;
+	   if (!string_is_empty(pfile_transfer->title))
+	   {
+		   s = pfile_transfer->title;
+	   }
+	   else
+	   {
+		   s = pfile_transfer->path;
+	   }
+   }
    else
+   {
       s = url;
+   }
 
    if (strstr(s, ".index"))
       snprintf(tmp, sizeof(tmp), "%s %s",

@@ -1734,7 +1734,8 @@ ifeq ($(HAVE_NETWORKING), 1)
 
    ifeq ($(HAVE_MENU_COMMON), 1)
       OBJ += tasks/task_pl_thumbnail_download.o \
-				 menu/menu_networking.o
+			 tasks/task_pl_rom_download.o \
+			 menu/menu_networking.o
    endif
 
    ifeq ($(HAVE_SSL), 1)
