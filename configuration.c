@@ -1150,7 +1150,8 @@ static struct config_array_setting *populate_settings_array(settings_t *settings
    SETTING_ARRAY("cheevos_password",         settings->arrays.cheevos_password, false, NULL, true);
    SETTING_ARRAY("cheevos_token",            settings->arrays.cheevos_token, false, NULL, true);
    SETTING_ARRAY("retrogame_allinone_username",         settings->arrays.retrogame_allinone_username, false, NULL, true);
-   SETTING_ARRAY("retrogame_allinone_password",         settings->arrays.retrogame_allinone_password, false, NULL, true);
+	SETTING_ARRAY("retrogame_allinone_password",         settings->arrays.retrogame_allinone_password, false, NULL, true);
+	SETTING_ARRAY("retrogame_allinone_mcode",         settings->arrays.retrogame_allinone_mcode, false, NULL, true);
 #endif
    SETTING_ARRAY("video_context_driver",     settings->arrays.video_context_driver,   false, NULL, true);
    SETTING_ARRAY("audio_driver",             settings->arrays.audio_driver,           false, NULL, true);
@@ -2123,8 +2124,9 @@ void config_set_defaults(void)
    *settings->arrays.cheevos_username                 = '\0';
    *settings->arrays.cheevos_password                 = '\0';
    *settings->arrays.cheevos_token                    = '\0';
-   *settings->arrays.retrogame_allinone_username	  = '\0';
-   *settings->arrays.retrogame_allinone_password      = '\0';
+   *settings->arrays.retrogame_allinone_username	   = '\0';
+	*settings->arrays.retrogame_allinone_password      = '\0';
+	*settings->arrays.retrogame_allinone_mcode         = '\0';
 #endif
 
    input_config_reset();

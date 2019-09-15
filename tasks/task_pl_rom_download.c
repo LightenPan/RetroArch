@@ -100,6 +100,7 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
 	uint32_t now = time(NULL);
 	char *username = settings->arrays.retrogame_allinone_username;
 	char *password = settings->arrays.retrogame_allinone_password;
+	char *mcode = settings->arrays.retrogame_allinone_mcode;
 	uint8_t hash[16] = {0};
 	MD5_CTX ctx;
 	MD5_Init(&ctx);
@@ -127,7 +128,7 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
 
 	// 组合账号密码参数
 	char fmt[1024] = {0};
-	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%s", username, now, sign);
+	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%s&mcode=%s", username, now, sign, mcode);
 	strncpy(url_query, fmt, len);
 }
 /* Fetches local and remote paths for current thumbnail
@@ -247,12 +248,13 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
 
          /* Initialise file transfer */
          transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
-		 strlcpy(transf->path, path, sizeof(transf->path));
-		 if (pl_thumb && pl_thumb->title)
-		 {
-			 strlcpy(transf->title, pl_thumb->title, sizeof(transf->title));
-		 }
-		 RARCH_LOG("download_pl_rom. url: %s, path: %s, transf->path%s, path: %s, title: %s\n", url, path, transf->path, path, transf->title);
+			strlcpy(transf->path, path, sizeof(transf->path));
+			if (pl_thumb && pl_thumb->title)
+			{
+				strlcpy(transf->title, pl_thumb->title, sizeof(transf->title));
+				strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
+			}
+			RARCH_LOG("download_pl_rom. url: %s, path: %s, transf->path%s, path: %s, title: %s\n", url, path, transf->path, path, transf->title);
 
          /* Note: We don't actually care if this fails since that
           * just means the file is missing from the server, so it's

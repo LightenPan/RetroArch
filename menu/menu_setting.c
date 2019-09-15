@@ -5888,7 +5888,32 @@ void general_read_handler(rarch_setting_t *setting)
          break;
       case MENU_ENUM_LABEL_INPUT_PLAYER5_JOYPAD_INDEX:
          *setting->value.target.integer = settings->uints.input_joypad_map[4];
-         break;
+			break;
+		case MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE:
+			{
+				// 如果机器码没有设置，这里用随机数初始化
+				if (string_is_empty(settings->arrays.retrogame_allinone_mcode))
+				{
+					// 用5个随机数生成机器码
+					char mcode[256] = {0};
+					unsigned number_value = (unsigned)time(NULL);
+					unsigned random_array[5] = {0};
+					for (int i = 0; i < sizeof(random_array); i++)
+					{
+						number_value = number_value * 214013 + 2531011;
+						random_array[i] = (number_value >> 14) % 100000;
+					}
+					snprintf(mcode, sizeof(mcode),
+						"%u_%u_%u_%u_%u",
+						random_array[0],
+						random_array[1],
+						random_array[2],
+						random_array[3],
+						random_array[4]);
+					strncpy(settings->arrays.retrogame_allinone_mcode, mcode, sizeof(settings->arrays.retrogame_allinone_mcode));
+				}
+			}
+			break;
       default:
          break;
    }
@@ -6233,7 +6258,6 @@ void general_write_handler(rarch_setting_t *setting)
                max_bit_position = cheat_manager_state.working_cheat.memory_search_size<3 ? 255 : 0;
                setting->max     = max_bit_position;
             }
-
          }
          break;
       case MENU_ENUM_LABEL_CHEAT_START_OR_RESTART:
@@ -15056,7 +15080,7 @@ static bool setting_append_list(
                &subgroup_info,
                parent_group,
                general_write_handler,
-               general_read_handler);
+					general_read_handler);
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
 		 (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
@@ -15089,6 +15113,19 @@ static bool setting_append_list(
 			 general_read_handler);
 		 SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
 		 (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+
+		 CONFIG_STRING(
+			 list, list_info,
+			 settings->arrays.retrogame_allinone_mcode,
+			 sizeof(settings->arrays.retrogame_allinone_mcode),
+			 MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,
+			 MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_MCODE,
+			 "",
+			 &group_info,
+			 &subgroup_info,
+			 parent_group,
+			 general_write_handler,
+			 general_read_handler);
 
          CONFIG_STRING(
                list, list_info,

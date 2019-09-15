@@ -466,7 +466,7 @@ static unsigned menu_font_color_red   = 255;
 static unsigned menu_font_color_green = 255;
 static unsigned menu_font_color_blue  = 255;
 static unsigned xmb_menu_layout       = 0;
-static unsigned xmb_icon_theme        = XMB_ICON_THEME_MONOCHROME;
+static unsigned xmb_icon_theme        = XMB_ICON_THEME_RETROACTIVE;
 static unsigned xmb_theme             = XMB_THEME_ELECTRIC_BLUE;
 
 #if defined(HAVE_LAKKA) || defined(__arm__) || defined(__PPC64__) || defined(__ppc64__) || defined(__powerpc64__) || defined(__powerpc__) || defined(__ppc__) || defined(__POWERPC__)
@@ -554,7 +554,7 @@ static unsigned input_backtouch_toggle       = false;
 #define DEFAULT_ALL_USERS_CONTROL_MENU false
 
 #if defined(ANDROID) || defined(_WIN32)
-#define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS true
+#define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS false
 #else
 #define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS false
 #endif
@@ -573,8 +573,8 @@ static unsigned input_backtouch_toggle       = false;
 
 /* Offset for where messages will be placed on-screen.
  * Values are in range [0.0, 1.0]. */
-static const float message_pos_offset_x = 0.05;
-static const float message_pos_offset_y = 0.05;
+static const float message_pos_offset_x = 0.03;
+static const float message_pos_offset_y = 0.10;
 
 /* Color of the message.
  * RGB hex value. */
@@ -839,7 +839,7 @@ static const bool stdin_cmd_enable = false;
 
 static const uint16_t network_remote_base_port = 55400;
 
-static const bool network_on_demand_thumbnails = false;
+static const bool network_on_demand_thumbnails = true;
 
 /* Number of entries that will be kept in content history playlist file. */
 static const unsigned default_content_history_size = 100;
@@ -927,7 +927,7 @@ static const bool input_descriptor_label_show = true;
 
 static const bool input_descriptor_hide_unbound = false;
 
-static const unsigned input_max_users = 5;
+static const unsigned input_max_users = 2;
 
 static const unsigned input_poll_type_behavior = 2;
 
@@ -935,7 +935,7 @@ static const unsigned input_bind_timeout = 5;
 
 static const unsigned input_bind_hold = 2;
 
-static const unsigned menu_thumbnails_default = 3;
+static const unsigned menu_thumbnails_default = 2;
 
 static const unsigned menu_left_thumbnails_default = 0;
 
@@ -1103,7 +1103,7 @@ static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/
 static char buildbot_server_url[] = "";
 #endif
 
-static char buildbot_assets_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/assets";
+static char buildbot_assets_server_url[] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro/assets/";
 
 static char default_discord_app_id[] = "475456035851599874";
 

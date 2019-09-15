@@ -978,7 +978,10 @@ static void menu_widgets_draw_task_msg(menu_widget_msg_t *msg, video_frame_info_
    if (msg->task_finished)
    {
       if (msg->task_error)
-         snprintf(task_percentage, sizeof(task_percentage), "Task failed");
+		{
+			// snprintf(task_percentage, sizeof(task_percentage), "Task failed");
+			snprintf(task_percentage, sizeof(task_percentage), msg_hash_to_str(MSG_ERROR_TASK_FAILED));
+		}
       else
          snprintf(task_percentage, sizeof(task_percentage), " ");
    }

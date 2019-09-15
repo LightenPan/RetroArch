@@ -4698,7 +4698,11 @@ MSG_HASH(
 MSG_HASH(
     MSG_ERROR_SAVING_SHADER_PRESET,
     "Error saving shader preset."
-    )
+	 )
+MSG_HASH(
+	 MSG_ERROR_TASK_FAILED,
+	 "Task failed"
+	 )
 MSG_HASH(
     MSG_EXTERNAL_APPLICATION_DIR,
     "External Application Dir"
@@ -8787,6 +8791,10 @@ MSG_HASH(
 	MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
 	"invite code for RetroGameAllInOne"
 	)
+	MSG_HASH(
+MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_MCODE,
+	"mcode for RetroGameAllInOne"
+)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_YOUTUBE_STREAM_KEY,
     "YouTube Stream Key"
