@@ -1072,6 +1072,10 @@ const char *config_get_default_menu(void)
 #ifdef HAVE_MENU
    enum menu_driver_enum default_driver = MENU_DEFAULT_DRIVER;
 
+#ifdef RARCH_MOBILE
+	return "xmb";
+#endif
+
    if (!string_is_empty(g_defaults.settings.menu))
       return g_defaults.settings.menu;
 
@@ -2315,11 +2319,17 @@ void config_set_defaults(void)
             g_defaults.dirs[DEFAULT_DIR_OVERLAY],
             sizeof(settings->paths.directory_overlay));
 #ifdef RARCH_MOBILE
-      if (string_is_empty(settings->paths.path_overlay))
-            fill_pathname_join(settings->paths.path_overlay,
-                  settings->paths.directory_overlay,
-                  "gamepads/flat/retropad.cfg",
-                  sizeof(settings->paths.path_overlay));
+		if (string_is_empty(settings->paths.path_overlay))
+		{
+// 			 fill_pathname_join(settings->paths.path_overlay,
+// 					 settings->paths.directory_overlay,
+// 					 "gamepads/flat/retropad.cfg",
+// 					 sizeof(settings->paths.path_overlay));
+			 fill_pathname_join(settings->paths.path_overlay,
+				 settings->paths.directory_overlay,
+				 "adult.cfg",
+				 sizeof(settings->paths.path_overlay));
+		}
 #endif
    }
 #endif

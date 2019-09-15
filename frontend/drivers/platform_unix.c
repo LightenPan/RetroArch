@@ -1676,6 +1676,8 @@ static void frontend_unix_get_env(int *argc,
     *
     * */
 
+	// 安卓也会走到这里，默认使用xmb菜单
+	strlcpy(g_defaults.settings.menu, "xmb", sizeof(g_defaults.settings.menu));
    if (device_is_game_console(device_model) || device_is_android_tv())
    {
       g_defaults.overlay.set    = true;
@@ -1744,7 +1746,7 @@ static void frontend_unix_get_env(int *argc,
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_CHEATS], base_path,
          "cheats", sizeof(g_defaults.dirs[DEFAULT_DIR_CHEATS]));
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_OVERLAY], base_path,
-         "overlay", sizeof(g_defaults.dirs[DEFAULT_DIR_OVERLAY]));
+		"overlays", sizeof(g_defaults.dirs[DEFAULT_DIR_OVERLAY]));
 #ifdef HAVE_VIDEO_LAYOUT
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_VIDEO_LAYOUT], base_path,
          "layouts", sizeof(g_defaults.dirs[DEFAULT_DIR_VIDEO_LAYOUT]));
