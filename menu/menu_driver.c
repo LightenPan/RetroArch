@@ -745,33 +745,41 @@ int menu_entry_action(menu_entry_t *entry,
          if (cbs && cbs->action_down)
             ret = cbs->action_down(entry->type, entry->label);
          break;
-	  case MENU_ACTION_SCROLL_UP:
-		  for (int i = 0; i < 10; ++i)
-		  {
-			  size_t scroll_accel    = 0;
-			  unsigned scroll_speed  = 0;
-			  if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
-				  break;
+		case MENU_ACTION_SCROLL_UP:
+			{
+				unsigned total_scroll_speed  = 0;
+				for (int i = 0; i < 10; ++i)
+				{
+					size_t scroll_accel    = 0;
+					unsigned scroll_speed  = 0;
+					if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
+						break;
 
-			  scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
-			  if (menu_entries_get_size() <= 0)
-				  break;
-			  menu_driver_ctl(MENU_NAVIGATION_CTL_DECREMENT, &scroll_speed);
-		  }
+					scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
+					if (menu_entries_get_size() <= 0)
+						break;
+					total_scroll_speed += scroll_speed;
+				}
+				menu_driver_ctl(MENU_NAVIGATION_CTL_DECREMENT, &total_scroll_speed);
+			}
          // menu_driver_ctl(MENU_NAVIGATION_CTL_DESCEND_ALPHABET, NULL);
          break;
 	  case MENU_ACTION_SCROLL_DOWN:
-		  for (int i = 0; i < 10; ++i)
 		  {
-			  size_t scroll_accel    = 0;
-			  unsigned scroll_speed  = 0;
-			  if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
-				  break;
+			  unsigned total_scroll_speed  = 0;
+			  for (int i = 0; i < 10; ++i)
+			  {
+				  unsigned scroll_speed  = 0;
+				  size_t scroll_accel    = 0;
+				  if (!menu_driver_ctl(MENU_NAVIGATION_CTL_GET_SCROLL_ACCEL, &scroll_accel))
+					  break;
 
-			  scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
-			  if (menu_entries_get_size() <= 0)
-				  break;
-			  menu_driver_ctl(MENU_NAVIGATION_CTL_INCREMENT, &scroll_speed);
+				  scroll_speed = (unsigned)((MAX(scroll_accel, 2) - 2) / 4 + 1);
+				  if (menu_entries_get_size() <= 0)
+					  break;
+				  total_scroll_speed += scroll_speed;
+			  }
+			  menu_driver_ctl(MENU_NAVIGATION_CTL_INCREMENT, &total_scroll_speed);
 		  }
          // menu_driver_ctl(MENU_NAVIGATION_CTL_ASCEND_ALPHABET, NULL);
          break;
@@ -2909,6 +2917,73 @@ void menu_display_draw_keyboard(
             width, height, color, TEXT_ALIGN_CENTER, 1.0f,
             false, 0, false);
    }
+}
+
+void menu_display_draw_keyboard2(
+										  uintptr_t hover_texture,
+										  const font_data_t *font,
+										  video_frame_info_t *video_info,
+										  char *grid[], unsigned id,
+										  unsigned text_color)
+{
+	RARCH_LOG("menu_display_draw_keyboard2 begin\n");
+
+	unsigned i;
+	int ptr_width, ptr_height;
+	unsigned width    = video_info->width;
+	unsigned height   = video_info->height;
+
+	float white[16]=  {
+		1.00, 1.00, 1.00, 1.00,
+		1.00, 1.00, 1.00, 1.00,
+		1.00, 1.00, 1.00, 1.00,
+		1.00, 1.00, 1.00, 1.00,
+	};
+
+	menu_display_draw_quad(
+		video_info,
+		0, height/2.0, width, height/2.0,
+		width, height,
+		&osk_dark[0]);
+
+	int row = 4;
+	int column = 3;
+	ptr_width  = width  / column;
+	ptr_height = height / 10;
+
+	if (ptr_width >= ptr_height)
+		ptr_width = ptr_height;
+
+	for (i = 0; i < row*column; i++)
+	{
+		int line_y     = (i / column) * height / 10.0;
+		unsigned color = 0xffffffff;
+
+		if (i == id)
+		{
+			menu_display_blend_begin(video_info);
+
+			menu_display_draw_texture(
+				video_info,
+				width/2.0 - (column*ptr_width)/2.0 + (i % column) * ptr_width,
+				height/2.0 + ptr_height*1.5 + line_y,
+				ptr_width, ptr_height,
+				width, height,
+				&white[0],
+				hover_texture);
+
+			menu_display_blend_end(video_info);
+
+			color = text_color;
+		}
+
+		menu_display_draw_text(font, grid[i],
+			width/2.0 - (column*ptr_width)/2.0 + (i % column)
+			* ptr_width + ptr_width/2.0,
+			height/2.0 + ptr_height + line_y + font->size / 3,
+			width, height, color, TEXT_ALIGN_CENTER, 1.0f,
+			false, 0, false);
+	}
 }
 
 /* Draw text on top of the screen.

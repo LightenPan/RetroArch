@@ -3968,7 +3968,7 @@ void cb_generic_download(retro_task_t *task,
          break;
    }
 
-   RARCH_LOG("cb_generic_download 1. output_path: %s\n", output_path);
+   // RARCH_LOG("cb_generic_download 1. output_path: %s\n", output_path);
    if (!string_is_empty(dir_path))
       fill_pathname_join(output_path, dir_path,
             transf->path, sizeof(output_path));
@@ -3992,7 +3992,7 @@ void cb_generic_download(retro_task_t *task,
     */
    path_basedir_wrapper(output_path);
 
-   RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
+   // RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
    if (!path_mkdir(output_path))
    {
       err = msg_hash_to_str(MSG_FAILED_TO_CREATE_THE_DIRECTORY);
@@ -4015,7 +4015,7 @@ void cb_generic_download(retro_task_t *task,
       strlcpy(output_path, transf->path, sizeof(output_path));
    }
 
-   RARCH_LOG("cb_generic_download finsh. output_path: %s\n", output_path);
+   // RARCH_LOG("cb_generic_download finsh. output_path: %s\n", output_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))

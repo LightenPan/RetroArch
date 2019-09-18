@@ -59,7 +59,12 @@ static const char *lowercase_grid[] = {
                           "1","2","3","4","5","6","7","8","9","0","Bksp",
                           "q","w","e","r","t","y","u","i","o","p","Enter",
                           "a","s","d","f","g","h","j","k","l","@","Upper",
-                          "z","x","c","v","b","n","m"," ","-",".","Next"};
+								  "z","x","c","v","b","n","m"," ","-",".","Next"};
+
+static const char *ninenum_grid[] = {
+					  "1","2","3","Bksp",
+					  "4","5","6","Enter",
+					  "7","8","9","Next"};
 #endif
 
 void menu_event_set_osk_idx(enum osk_type idx)
@@ -144,8 +149,8 @@ void menu_event_osk_iterate(void)
       case OSK_SYMBOLS_PAGE1:
          memcpy(osk_grid, symbols_page1_grid, sizeof(uppercase_grid));
          break;
-      case OSK_UPPERCASE_LATIN:
-         memcpy(osk_grid, uppercase_grid, sizeof(uppercase_grid));
+      case OSK_NINENUM:
+         memcpy(osk_grid, ninenum_grid, sizeof(ninenum_grid));
          break;
       case OSK_LOWERCASE_LATIN:
       default:

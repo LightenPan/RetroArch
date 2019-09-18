@@ -29,6 +29,7 @@
 #endif
 
 #define OSK_CHARS_PER_LINE 11
+#define OSK_NINENUM_PER_LINE 4
 
 RETRO_BEGIN_DECLS
 
@@ -44,6 +45,7 @@ enum osk_type
    OSK_KATAKANA_PAGE1,
    OSK_KATAKANA_PAGE2,
 #endif
+	OSK_NINENUM,
    OSK_TYPE_LAST
 };
 

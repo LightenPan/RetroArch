@@ -150,7 +150,7 @@ static bool get_thumbnail_paths(
    strlcat(raw_url, sub_dir, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, img_name, sizeof(raw_url));
-   RARCH_LOG("get_thumbnail_paths url: %s, path: %s\n", raw_url, path);
+   // RARCH_LOG("get_thumbnail_paths url: %s, path: %s\n", raw_url, path);
    
    if (string_is_empty(raw_url))
       return false;

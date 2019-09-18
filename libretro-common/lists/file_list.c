@@ -95,12 +95,22 @@ bool file_list_insert(file_list_t *list,
    list->list[idx].directory_ptr = directory_ptr;
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
-   list->list[idx].actiondata    = NULL;
+	list->list[idx].actiondata    = NULL;
+	list->list[idx].ninenum	      = NULL;
 
    if (label)
-      list->list[idx].label      = strdup(label);
-   if (path)
-      list->list[idx].path       = strdup(path);
+		list->list[idx].label      = strdup(label);
+
+	if (path)
+	{
+		list->list[idx].path       = strdup(path);
+		char ninenum[1024] = {0};
+		chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
+		if (strlen(ninenum) > 0)
+		{
+			list->list[idx].ninenum = strdup(ninenum);
+		}
+	}
 
    list->size++;
 
@@ -112,6 +122,7 @@ bool file_list_append(file_list_t *list,
       unsigned type, size_t directory_ptr,
       size_t entry_idx)
 {
+	// RARCH_LOG("file_list_append log begin. path: %s, label: %s\n", path, label);
    unsigned idx = (unsigned)list->size;
    /* Expand file list if needed */
    if (idx >= list->capacity)
@@ -125,15 +136,26 @@ bool file_list_append(file_list_t *list,
    list->list[idx].directory_ptr = directory_ptr;
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
-   list->list[idx].actiondata    = NULL;
+	list->list[idx].actiondata    = NULL;
+	list->list[idx].ninenum			= NULL;
 
    if (label)
-      list->list[idx].label      = strdup(label);
+		list->list[idx].label      = strdup(label);
+
    if (path)
-      list->list[idx].path       = strdup(path);
+	{
+		list->list[idx].path       = strdup(path);
+		char ninenum[1024] = {0};
+		chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
+		if (strlen(ninenum) > 0)
+		{
+			list->list[idx].ninenum = strdup(ninenum);
+		}
+	}
 
    list->size++;
 
+	// RARCH_LOG("file_list_append log end. path: %s, label: %s\n", path, label);
    return true;
 }
 
@@ -164,7 +186,10 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
 
       if (list->list[list->size].label)
          free(list->list[list->size].label);
-      list->list[list->size].label = NULL;
+		list->list[list->size].label = NULL;
+		if (list->list[list->size].ninenum)
+			free(list->list[list->size].ninenum);
+		list->list[list->size].ninenum = NULL;
    }
 
    if (directory_ptr)
@@ -189,7 +214,11 @@ void file_list_free(file_list_t *list)
 
       if (list->list[i].label)
          free(list->list[i].label);
-      list->list[i].label = NULL;
+		list->list[i].label = NULL;
+
+		if (list->list[i].ninenum)
+			free(list->list[i].ninenum);
+		list->list[i].ninenum = NULL;
 
       if (list->list[i].alt)
          free(list->list[i].alt);
@@ -216,7 +245,11 @@ void file_list_clear(file_list_t *list)
 
       if (list->list[i].label)
          free(list->list[i].label);
-      list->list[i].label = NULL;
+		list->list[i].label = NULL;
+
+		if (list->list[i].ninenum)
+			free(list->list[i].ninenum);
+		list->list[i].ninenum = NULL;
 
       if (list->list[i].alt)
          free(list->list[i].alt);
@@ -234,10 +267,10 @@ void file_list_set_label_at_offset(file_list_t *list, size_t idx,
 
    if (list->list[idx].label)
       free(list->list[idx].label);
-   list->list[idx].alt      = NULL;
+	list->list[idx].alt      = NULL;
 
    if (label)
-      list->list[idx].label = strdup(label);
+		list->list[idx].label = strdup(label);
 }
 
 void file_list_get_label_at_offset(const file_list_t *list, size_t idx,
@@ -408,6 +441,69 @@ bool file_list_search(const file_list_t *list, const char *needle, size_t *idx)
           * first characters before we settle. */
          *idx = i;
          ret  = true;
+      }
+   }
+
+   return ret;
+}
+
+
+/**
+ *判断是字符串str是不是以start开始
+ */
+int is_start_with(const char *str, char *start)
+{
+	if (NULL == str || NULL == start)
+	{
+		return -1;
+	}
+
+	int str_len = strlen(str);
+	int start_len = strlen(start);
+	if (str_len < start_len || str_len == 0 || start_len == 0)
+	{
+		return -1;
+	}
+
+	char *p = start;
+	int i = 0;
+	while(*p != '\0')
+	{
+		if (str[i] != *p)
+		{
+			return -1;
+		}
+		++p;
+		++i;
+	}
+	return 0;
+}
+
+bool file_list_search_quickkid(const file_list_t *list, const char *needle, size_t *idx)
+{
+	RARCH_LOG("file_list_search_quickkid begin. needle: %s", needle);
+   size_t i;
+   bool ret        = false;
+
+   if (!list)
+      return false;
+
+	size_t last_match = 0; // 加权匹配
+   for (i = 0; i < list->size; i++)
+	{
+		const char *ninenum = list->list[i].ninenum;
+		RARCH_LOG("file_list_search_quickkid log item. ninenum: %s, needle: %s\n", ninenum, needle);
+
+		if (!ninenum || string_is_empty(ninenum))
+		{
+			continue;
+		}
+
+      if (0 == is_start_with(ninenum, needle))
+      {
+         *idx = i;
+         ret  = true;
+         break;
       }
    }
 

@@ -1004,7 +1004,7 @@ static void menu_input_search_cb(void *userdata, const char *str)
    if (!selection_buf)
       return;
 
-   if (str && *str && file_list_search(selection_buf, str, &idx))
+   if (str && *str && file_list_search_quickkid(selection_buf, str, &idx))
    {
       menu_navigation_set_selection(idx);
       menu_driver_navigation_set(true);
@@ -12356,31 +12356,62 @@ static unsigned menu_event(
    {
       menu_event_osk_iterate();
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
-      {
-         if (menu_event_get_osk_ptr() < 33)
-            menu_event_set_osk_ptr(menu_event_get_osk_ptr()
-                  + OSK_CHARS_PER_LINE);
-      }
+// 		if (menu_event_get_osk_idx() == OSK_NINENUM)
+// 		{
+// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+// 			{
+// 				if (menu_event_get_osk_ptr() < 12)
+// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
+// 					+ OSK_NINENUM_PER_LINE);
+// 			}
+// 
+// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
+// 			{
+// 				if (menu_event_get_osk_ptr() >= OSK_NINENUM_PER_LINE)
+// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
+// 					- OSK_NINENUM_PER_LINE);
+// 			}
+// 
+// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+// 			{
+// 				if (menu_event_get_osk_ptr() < 15)
+// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr() + 1);
+// 			}
+// 
+// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+// 			{
+// 				if (menu_event_get_osk_ptr() >= 1)
+// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr() - 1);
+// 			}
+// 		}
+// 		else
+		{
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+			{
+				if (menu_event_get_osk_ptr() < 33)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
+					+ OSK_CHARS_PER_LINE);
+			}
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
-      {
-         if (menu_event_get_osk_ptr() >= OSK_CHARS_PER_LINE)
-            menu_event_set_osk_ptr(menu_event_get_osk_ptr()
-                  - OSK_CHARS_PER_LINE);
-      }
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
+			{
+				if (menu_event_get_osk_ptr() >= OSK_CHARS_PER_LINE)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
+					- OSK_CHARS_PER_LINE);
+			}
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-      {
-         if (menu_event_get_osk_ptr() < 43)
-            menu_event_set_osk_ptr(menu_event_get_osk_ptr() + 1);
-      }
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+			{
+				if (menu_event_get_osk_ptr() < 43)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() + 1);
+			}
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
-      {
-         if (menu_event_get_osk_ptr() >= 1)
-            menu_event_set_osk_ptr(menu_event_get_osk_ptr() - 1);
-      }
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+			{
+				if (menu_event_get_osk_ptr() >= 1)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() - 1);
+			}
+		}
 
       if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_L))
       {

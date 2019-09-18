@@ -2096,7 +2096,8 @@ static void ozone_list_deep_copy(const file_list_t *src, file_list_t *dst,
       *d       = *s;
       d->alt   = string_is_empty(d->alt)   ? NULL : strdup(d->alt);
       d->path  = string_is_empty(d->path)  ? NULL : strdup(d->path);
-      d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
+		d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
+		d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum);
 
       if (src_udata)
          file_list_set_userdata(dst, j, (void*)ozone_copy_node((const ozone_node_t*)src_udata));

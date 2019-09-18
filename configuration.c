@@ -2325,6 +2325,7 @@ void config_set_defaults(void)
 // 					 settings->paths.directory_overlay,
 // 					 "gamepads/flat/retropad.cfg",
 // 					 sizeof(settings->paths.path_overlay));
+			// 安卓使用我的自定义按键
 			 fill_pathname_join(settings->paths.path_overlay,
 				 settings->paths.directory_overlay,
 				 "adult.cfg",
