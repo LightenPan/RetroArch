@@ -914,13 +914,25 @@ static void xmb_render_messagebox_internal(
    }
 
    if (menu_input_dialog_get_display_kb())
-      menu_display_draw_keyboard(
-            xmb->textures.list[XMB_TEXTURE_KEY_HOVER],
-            xmb->font,
-            video_info,
-            menu_event_get_osk_grid(),
-            menu_event_get_osk_ptr(),
-            0xffffffff);
+	{
+		if (menu_event_get_osk_idx() == OSK_NINENUM) {
+			menu_display_draw_keyboard_ninenum(
+				xmb->textures.list[XMB_TEXTURE_KEY_HOVER],
+				xmb->font,
+				video_info,
+				menu_event_get_osk_grid(),
+				menu_event_get_osk_ptr(),
+				0xffffffff);
+		} else {
+			menu_display_draw_keyboard(
+				xmb->textures.list[XMB_TEXTURE_KEY_HOVER],
+				xmb->font,
+				video_info,
+				menu_event_get_osk_grid(),
+				menu_event_get_osk_ptr(),
+				0xffffffff);
+		}
+	}
 
 end:
    string_list_free(list);
@@ -2288,6 +2300,12 @@ static void xmb_populate_entries(void *data,
                       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_IMAGES_LIST));
    xmb->is_playlist = xmb->is_playlist && !string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RDB_ENTRY_DETAIL));
 
+	if (xmb->is_playlist) {
+		menu_event_set_osk_idx(OSK_NINENUM); // 设置键盘为九宫格键盘
+	} else {
+		menu_event_set_osk_idx(OSK_LOWERCASE_LATIN); // 设置为默认键盘
+	}
+
    /* Determine whether this is a database manager list */
    xmb->is_db_manager_list = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_DATABASE_MANAGER_LIST));
 
@@ -3546,6 +3564,44 @@ static void xmb_draw_dark_layer(
    menu_display_blend_end(video_info);
 }
 
+static void xmb_draw_ninenum_dark_layer(
+										  xmb_handle_t *xmb,
+										  video_frame_info_t *video_info,
+										  unsigned width,
+										  unsigned height)
+{
+	menu_display_ctx_draw_t draw;
+	struct video_coords coords;
+	float black[16] = {
+		0, 0, 0, 0.4,
+		0, 0, 0, 0.4,
+		0, 0, 0, 0.4,
+		0, 0, 0, 0.4,
+	};
+
+	menu_display_set_alpha(black, MIN(xmb->alpha, 0.40));
+
+	coords.vertices      = 4;
+	coords.vertex        = NULL;
+	coords.tex_coord     = NULL;
+	coords.lut_tex_coord = NULL;
+	coords.color         = &black[0];
+
+	draw.x           = 0;
+	draw.y           = 0;
+	draw.width       = width;
+	draw.height      = height;
+	draw.coords      = &coords;
+	draw.matrix_data = NULL;
+	draw.texture     = menu_display_white_texture;
+	draw.prim_type   = MENU_DISPLAY_PRIM_TRIANGLESTRIP;
+	draw.pipeline.id = 0;
+
+	menu_display_blend_begin(video_info);
+	menu_display_draw(&draw, video_info);
+	menu_display_blend_end(video_info);
+}
+
 static void xmb_frame(void *data, video_frame_info_t *video_info)
 {
    math_matrix_4x4 mymat;
@@ -4323,8 +4379,13 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
    }
 
    if (render_background)
-   {
-      xmb_draw_dark_layer(xmb, video_info, width, height);
+	{
+		// 九宫格显示浅色背景
+		if (menu_event_get_osk_idx() == OSK_NINENUM) {
+			xmb_draw_ninenum_dark_layer(xmb, video_info, width, height);
+		} else {
+			xmb_draw_dark_layer(xmb, video_info, width, height);
+		}
       xmb_render_messagebox_internal(
             video_info, xmb, msg);
    }

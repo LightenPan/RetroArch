@@ -41,9 +41,9 @@ static const char *lowercase_grid[] = {
 								  "z","x","c","v","b","n","m"," ","-",".","⊕"};
 
 static const char *ninenum_grid[] = {
-								  "1","2","3","⇦",
-								  "4","5","6","⏎",
-								  "7","8","9","⊕"};
+									"1\nABC","2\nDEF","3\nGHI","\nBksp",
+									"4\nJKL","5\nMNO","6\nPQR","\nEnter",
+									"7\nSTU","8\nVWX","9\nYZ","\n下一个"};
 
 static const char *hiragana_page1_grid[] = {
                           "あ","い","う","え","お","ら","り","る","れ","ろ","⇦",

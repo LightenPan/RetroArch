@@ -481,31 +481,48 @@ int is_start_with(const char *str, char *start)
 
 bool file_list_search_quickkid(const file_list_t *list, const char *needle, size_t *idx)
 {
-	RARCH_LOG("file_list_search_quickkid begin. needle: %s", needle);
    size_t i;
    bool ret        = false;
 
    if (!list)
       return false;
 
-	size_t last_match = 0; // 加权匹配
+	// 上一次匹配内容
+	static int last_search_idx = 0;
+	static char last_search_needle[256] = {0};
+	RARCH_LOG("file_list_search_quickkid log static info. needle: %s, last_search_needle: %s, last_search_idx: %d\n",
+		needle, last_search_needle, last_search_idx);
+
    for (i = 0; i < list->size; i++)
 	{
 		const char *ninenum = list->list[i].ninenum;
-		RARCH_LOG("file_list_search_quickkid log item. ninenum: %s, needle: %s\n", ninenum, needle);
 
 		if (!ninenum || string_is_empty(ninenum))
 		{
 			continue;
 		}
 
-      if (0 == is_start_with(ninenum, needle))
-      {
-         *idx = i;
-         ret  = true;
-         break;
-      }
+		if (strstr(ninenum, needle))
+		{
+			// 重复输入，跳过上次检索的id
+			if (0 == strcmp(needle, last_search_needle) && i <= last_search_idx)
+			{
+				continue;
+			}
+
+			*idx = i;
+			ret  = true;
+			last_search_idx = i;
+			strncpy(last_search_needle, needle, sizeof(last_search_needle));
+			RARCH_LOG("file_list_search_quickkid log hit. idx: %d, ninenum: %s, needle: %s\n", i, ninenum, needle);
+			break;
+		}
    }
+
+	if (!ret) {
+		last_search_idx = 0;
+		last_search_needle[0] = '\0';
+	}
 
    return ret;
 }

@@ -1054,7 +1054,7 @@ bool menu_input_dialog_start_search(void)
    if (!menu)
       return false;
 
-   menu_input_dialog_keyboard_display = true;
+   menu_input_dialog_keyboard_display = true; // 显示键盘
    strlcpy(menu_input_dialog_keyboard_label,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SEARCH),
          sizeof(menu_input_dialog_keyboard_label));
@@ -12353,38 +12353,36 @@ static unsigned menu_event(
    delay_count += menu_animation_get_delta_time();
 
    if (display_kb)
-   {
+	{
       menu_event_osk_iterate();
 
-// 		if (menu_event_get_osk_idx() == OSK_NINENUM)
-// 		{
-// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
-// 			{
-// 				if (menu_event_get_osk_ptr() < 12)
-// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
-// 					+ OSK_NINENUM_PER_LINE);
-// 			}
-// 
-// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
-// 			{
-// 				if (menu_event_get_osk_ptr() >= OSK_NINENUM_PER_LINE)
-// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr()
-// 					- OSK_NINENUM_PER_LINE);
-// 			}
-// 
-// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-// 			{
-// 				if (menu_event_get_osk_ptr() < 15)
-// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr() + 1);
-// 			}
-// 
-// 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
-// 			{
-// 				if (menu_event_get_osk_ptr() >= 1)
-// 					menu_event_set_osk_ptr(menu_event_get_osk_ptr() - 1);
-// 			}
-// 		}
-// 		else
+		if (menu_event_get_osk_idx() == OSK_NINENUM)
+		{
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+			{
+				if (menu_event_get_osk_ptr() < 8)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() + OSK_NINENUM_CHARS_PER_LINE);
+			}
+
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
+			{
+				if (menu_event_get_osk_ptr() >= OSK_NINENUM_CHARS_PER_LINE)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() - OSK_NINENUM_CHARS_PER_LINE);
+			}
+
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+			{
+				if (menu_event_get_osk_ptr() < 11)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() + 1);
+			}
+
+			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+			{
+				if (menu_event_get_osk_ptr() >= 1)
+					menu_event_set_osk_ptr(menu_event_get_osk_ptr() - 1);
+			}
+		}
+		else
 		{
 			if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
 			{

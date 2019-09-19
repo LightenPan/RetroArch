@@ -81,11 +81,19 @@ typedef struct menu_ctx_load_image
    enum menu_image_type type;
 } menu_ctx_load_image_t;
 
+// float osk_dark[16] =  {
+//    0.00, 0.00, 0.00, 0.85,
+//    0.00, 0.00, 0.00, 0.85,
+//    0.00, 0.00, 0.00, 0.85,
+//    0.00, 0.00, 0.00, 0.85,
+// };
+
+// 不透明度
 float osk_dark[16] =  {
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
+	0.00, 0.00, 0.00, 1,
+	0.00, 0.00, 0.00, 1,
+	0.00, 0.00, 0.00, 1,
+	0.00, 0.00, 0.00, 1,
 };
 
 /* Menu drivers */
@@ -2919,15 +2927,13 @@ void menu_display_draw_keyboard(
    }
 }
 
-void menu_display_draw_keyboard2(
+void menu_display_draw_keyboard_ninenum(
 										  uintptr_t hover_texture,
 										  const font_data_t *font,
 										  video_frame_info_t *video_info,
 										  char *grid[], unsigned id,
 										  unsigned text_color)
 {
-	RARCH_LOG("menu_display_draw_keyboard2 begin\n");
-
 	unsigned i;
 	int ptr_width, ptr_height;
 	unsigned width    = video_info->width;
@@ -2940,14 +2946,16 @@ void menu_display_draw_keyboard2(
 		1.00, 1.00, 1.00, 1.00,
 	};
 
-	menu_display_draw_quad(
-		video_info,
-		0, height/2.0, width, height/2.0,
-		width, height,
-		&osk_dark[0]);
+	// 不显示黑框，方便九宫格搜索
+	// 	menu_display_draw_quad(
+	// 		video_info,
+	// 		0, height/2.0,
+	// 		width, height/2.0,
+	// 		width, height,
+	// 		&osk_dark[0]);
 
-	int row = 4;
-	int column = 3;
+	int row = 3;
+	int column = 4;
 	ptr_width  = width  / column;
 	ptr_height = height / 10;
 
@@ -2965,7 +2973,7 @@ void menu_display_draw_keyboard2(
 
 			menu_display_draw_texture(
 				video_info,
-				width/2.0 - (column*ptr_width)/2.0 + (i % column) * ptr_width,
+				0 + (i % column) * ptr_width,
 				height/2.0 + ptr_height*1.5 + line_y,
 				ptr_width, ptr_height,
 				width, height,
@@ -2978,7 +2986,7 @@ void menu_display_draw_keyboard2(
 		}
 
 		menu_display_draw_text(font, grid[i],
-			width/2.0 - (column*ptr_width)/2.0 + (i % column)
+			0 + (i % column)
 			* ptr_width + ptr_width/2.0,
 			height/2.0 + ptr_height + line_y + font->size / 3,
 			width, height, color, TEXT_ALIGN_CENTER, 1.0f,

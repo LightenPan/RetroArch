@@ -587,7 +587,13 @@ void menu_display_draw_keyboard(
       const font_data_t *font,
       video_frame_info_t *video_info,
       char *grid[], unsigned id,
-      unsigned text_color);
+		unsigned text_color);
+void menu_display_draw_keyboard_ninenum(
+		uintptr_t hover_texture,
+		const font_data_t *font,
+		video_frame_info_t *video_info,
+		char *grid[], unsigned id,
+		unsigned text_color);
 
 void menu_display_draw_pipeline(menu_display_ctx_draw_t *draw,
       video_frame_info_t *video_info);

@@ -62,9 +62,9 @@ static const char *lowercase_grid[] = {
 								  "z","x","c","v","b","n","m"," ","-",".","Next"};
 
 static const char *ninenum_grid[] = {
-					  "1","2","3","Bksp",
-					  "4","5","6","Enter",
-					  "7","8","9","Next"};
+								"1\nABC","2\nDEF","3\nGHI","Bksp",
+								"4\nJKL","5\nMNO","6\nPQR","Enter",
+								"7\nSTU","8\nVWX","9\nYZ","Next"};
 #endif
 
 void menu_event_set_osk_idx(enum osk_type idx)
@@ -101,7 +101,7 @@ void menu_event_osk_append(int ptr)
    if (string_is_equal(osk_grid[ptr],"\xe2\x87\xa6")) /* backspace character */
       input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
    else if (string_is_equal(osk_grid[ptr],"\xe2\x8f\x8e")) /* return character */
-      input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+		input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
    else
    if (string_is_equal(osk_grid[ptr],"\xe2\x87\xa7")) /* up arrow */
       menu_event_set_osk_idx(OSK_UPPERCASE_LATIN);
@@ -110,9 +110,13 @@ void menu_event_osk_append(int ptr)
    else if (string_is_equal(osk_grid[ptr],"\xe2\x8a\x95")) /* plus sign (next button) */
 #else
    if (string_is_equal(osk_grid[ptr], "Bksp"))
-      input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
+		input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
+	if (string_is_equal(osk_grid[ptr], "\nBksp"))
+		input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
    else if (string_is_equal(osk_grid[ptr], "Enter"))
-      input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+		input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+	else if (string_is_equal(osk_grid[ptr], "\nEnter"))
+		input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
    else
    if (string_is_equal(osk_grid[ptr], "Upper"))
       menu_event_set_osk_idx(OSK_UPPERCASE_LATIN);
@@ -124,8 +128,33 @@ void menu_event_osk_append(int ptr)
          menu_event_set_osk_idx((enum osk_type)(menu_event_get_osk_idx() + 1));
       else
          menu_event_set_osk_idx((enum osk_type)(OSK_TYPE_UNKNOWN + 1));
-   else
-      input_keyboard_line_append(osk_grid[ptr]);
+	else {
+		if (menu_event_get_osk_idx() == OSK_NINENUM) {
+			// 九宫格只取第一个字符
+			char first_char[2] = {0};
+			if (strlen(osk_grid[ptr]) > 1 && osk_grid[ptr][0] != '\n')
+			{
+				first_char[0] = osk_grid[ptr][0];
+			}
+			input_keyboard_line_append(first_char);
+
+			// 九宫格搜索时，列表实时跳转
+			file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
+			if (selection_buf)
+			{
+				size_t idx = 0;
+				if (g_keyboard_line->buffer
+					&& *g_keyboard_line->buffer
+					&& file_list_search_quickkid(selection_buf, g_keyboard_line->buffer, &idx))
+				{
+					menu_navigation_set_selection(idx);
+					menu_driver_navigation_set(true);
+				}
+			}
+		} else {
+			input_keyboard_line_append(osk_grid[ptr]);
+		}
+	}
 }
 
 void menu_event_osk_iterate(void)
