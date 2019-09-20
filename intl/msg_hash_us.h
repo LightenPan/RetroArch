@@ -4703,6 +4703,8 @@ MSG_HASH(
 	 MSG_ERROR_TASK_FAILED,
 	 "Task failed"
 	 )
+MSG_HASH(MSG_ERROR_NO_MATCH_NINENUM,
+	 "no match game")
 MSG_HASH(
     MSG_EXTERNAL_APPLICATION_DIR,
     "External Application Dir"

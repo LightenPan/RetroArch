@@ -217,7 +217,7 @@ static bool get_rom_paths(
    clac_retrogame_allinone_sign(url_query, sizeof(url_query));
    strlcat(url, url_query, url_size);
 
-   RARCH_LOG("get_rom_paths log result. url: %s, path: %s, url_query: %s", url, path, url_query);
+   RARCH_LOG("get_rom_paths log result. url: %s, path: %s, url_query: %s\n", url, path, url_query);
 
    if (string_is_empty(url))
       return false;

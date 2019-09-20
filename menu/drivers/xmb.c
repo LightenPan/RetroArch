@@ -3573,13 +3573,13 @@ static void xmb_draw_ninenum_dark_layer(
 	menu_display_ctx_draw_t draw;
 	struct video_coords coords;
 	float black[16] = {
-		0, 0, 0, 0.4,
-		0, 0, 0, 0.4,
-		0, 0, 0, 0.4,
-		0, 0, 0, 0.4,
+		0, 0, 0, 1,
+		0, 0, 0, 1,
+		0, 0, 0, 1,
+		0, 0, 0, 1,
 	};
 
-	menu_display_set_alpha(black, MIN(xmb->alpha, 0.40));
+	menu_display_set_alpha(black, MIN(xmb->alpha, 0.20));
 
 	coords.vertices      = 4;
 	coords.vertex        = NULL;

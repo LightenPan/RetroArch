@@ -150,6 +150,13 @@ void menu_event_osk_append(int ptr)
 					menu_navigation_set_selection(idx);
 					menu_driver_navigation_set(true);
 				}
+				else
+				{
+					runloop_msg_queue_push(
+						msg_hash_to_str(MSG_ERROR_NO_MATCH_NINENUM),
+						1, 100, true,
+						NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
+				}
 			}
 		} else {
 			input_keyboard_line_append(osk_grid[ptr]);

@@ -1270,6 +1270,8 @@ static int file_load_with_detect_core_wrapper(
       const char *path, const char *label,
       unsigned type, bool is_carchive)
 {
+	RARCH_LOG("file_load_with_detect_core_wrapper.\n");
+
    menu_content_ctx_defer_info_t def_info;
    int ret                             = 0;
    char *new_core_path                 = NULL;
@@ -1322,7 +1324,8 @@ static int file_load_with_detect_core_wrapper(
       free(menu_path_new);
 
       if (enum_label_idx == MENU_ENUM_LABEL_COLLECTION)
-      {
+		{
+			RARCH_LOG("file_load_with_detect_core_wrapper. MENU_ENUM_LABEL_COLLECTION\n");
          free(new_core_path);
          return generic_action_ok_displaylist_push(path, NULL,
                NULL, 0, idx, entry_idx, ACTION_OK_DL_DEFERRED_CORE_LIST_SET);
@@ -1899,6 +1902,8 @@ static int action_ok_file_load(const char *path,
 static int action_ok_playlist_entry_collection(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
+	RARCH_LOG("action_ok_playlist_entry_collection. path: %s\n", path);
+
    char new_path[PATH_MAX_LENGTH];
    char new_core_path[PATH_MAX_LENGTH];
    size_t selection_ptr                = 0;
@@ -1932,6 +1937,7 @@ static int action_ok_playlist_entry_collection(const char *path,
 
    playlist_get_index(playlist, selection_ptr, &entry);
 
+	RARCH_LOG("action_ok_playlist_entry_collection. path: %s, subsystem_ident: %s\n", path, entry->subsystem_ident);
    /* Subsystem codepath */
    if (!string_is_empty(entry->subsystem_ident))
    {
@@ -1962,7 +1968,9 @@ static int action_ok_playlist_entry_collection(const char *path,
    /* Is the core path / name of the playlist entry not yet filled in? */
    if (     string_is_equal(entry->core_path, file_path_str(FILE_PATH_DETECT))
          && string_is_equal(entry->core_name, file_path_str(FILE_PATH_DETECT)))
-   {
+	{
+		RARCH_LOG("action_ok_playlist_entry_collection hit detect.\n");
+
       core_info_ctx_find_t core_info;
       const char *entry_path                 = NULL;
       const char *default_core_path          =
@@ -1983,7 +1991,8 @@ static int action_ok_playlist_entry_collection(const char *path,
          found_associated_core = false;
 
       if (!found_associated_core)
-      {
+		{
+			RARCH_LOG("action_ok_playlist_entry_collection not find associated core.\n");
          /* TODO: figure out if this should refer to the inner or outer entry_path */
          /* TODO: make sure there's only one entry_path in this function */
          int ret = action_ok_file_load_with_detect_core_collection(entry_path,
@@ -2037,6 +2046,8 @@ static int action_ok_playlist_entry_collection(const char *path,
 static int action_ok_playlist_entry(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
+	RARCH_LOG("action_ok_playlist_entry. path: %s\n", path);
+
    char new_core_path[PATH_MAX_LENGTH];
    size_t selection_ptr                = 0;
    playlist_t *playlist                = playlist_get_cached();
@@ -2100,7 +2111,6 @@ static int action_ok_playlist_entry(const char *path,
    }
 
    char new_path[PATH_MAX_LENGTH] = {0};
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!playlist || !menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push(
@@ -2112,7 +2122,6 @@ static int action_ok_playlist_entry(const char *path,
 
    playlist_get_index(playlist, selection_ptr, &entry);
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    return default_action_ok_load_content_from_playlist_from_menu(
          new_core_path, new_path, entry_label);
 }
@@ -2120,6 +2129,8 @@ static int action_ok_playlist_entry(const char *path,
 static int action_ok_playlist_entry_start_content(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
+	RARCH_LOG("action_ok_playlist_entry_start_content. path: %s\n", path);
+
    size_t selection_ptr                = 0;
    playlist_t *playlist                = playlist_get_cached();
    const struct playlist_entry *entry  = NULL;

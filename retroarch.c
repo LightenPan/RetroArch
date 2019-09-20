@@ -1004,11 +1004,12 @@ static void menu_input_search_cb(void *userdata, const char *str)
    if (!selection_buf)
       return;
 
-   if (str && *str && file_list_search_quickkid(selection_buf, str, &idx))
-   {
-      menu_navigation_set_selection(idx);
-      menu_driver_navigation_set(true);
-   }
+	// 已经在九宫格输入页面处理，这里就不在处理查询
+//    if (str && *str && file_list_search_quickkid(selection_buf, str, &idx))
+//    {
+//       menu_navigation_set_selection(idx);
+//       menu_driver_navigation_set(true);
+//    }
 
    menu_input_dialog_end();
 }
