@@ -793,7 +793,8 @@ enum
    RA_OPT_MAX_FRAMES,
    RA_OPT_MAX_FRAMES_SCREENSHOT,
    RA_OPT_MAX_FRAMES_SCREENSHOT_PATH,
-   RA_OPT_SET_SHADER
+	RA_OPT_SET_SHADER,
+	RA_OPT_SET_LABEL
 };
 
 enum  runloop_state
@@ -3856,6 +3857,7 @@ static void command_event_set_savestate_auto_index(void)
 
 static bool event_init_content(void)
 {
+	RARCH_LOG("event_init_content begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    bool contentless = false;
    bool is_inited   = false;
 
@@ -3871,6 +3873,8 @@ static bool event_init_content(void)
 
    if (!contentless)
       path_fill_names();
+
+	RARCH_LOG("event_init_content begin2. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
    if (!content_init())
    {
@@ -4015,6 +4019,7 @@ static void retroarch_set_frame_limit(void)
 
 static bool command_event_init_core(enum rarch_core_type type)
 {
+	RARCH_LOG("command_event_init_core begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    settings_t *settings            = configuration_settings;
 
    if (!init_libretro_symbols(type, &current_core))
@@ -6033,6 +6038,11 @@ void main_exit(void *args)
  **/
 int rarch_main(int argc, char *argv[], void *data)
 {
+	for (int i = 0; i < argc; ++i)
+	{
+		RARCH_LOG("rarch_main log args. index: %d, argv[%d]: %s\n", i, i, argv[i]);
+	}
+
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
    if (FAILED(CoInitialize(NULL)))
    {
@@ -21714,6 +21724,7 @@ static void retroarch_parse_input_and_config(int argc, char *argv[])
 #ifdef HAVE_DYNAMIC
       { "libretro",           1, NULL, 'L' },
 #endif
+		{ "label",              1, NULL, RA_OPT_SET_LABEL },
       { "menu",               0, NULL, RA_OPT_MENU },
       { "help",               0, NULL, 'h' },
       { "save",               1, NULL, 's' },
@@ -21855,7 +21866,12 @@ static void retroarch_parse_input_and_config(int argc, char *argv[])
             case 'c':
                RARCH_LOG("Set config file to : %s\n", optarg);
                path_set(RARCH_PATH_CONFIG, optarg);
-               break;
+					break;
+
+				case RA_OPT_SET_LABEL:
+					RARCH_LOG("Set label to : %s\n", optarg);
+					path_set(RARCH_PATH_LABEL, optarg);
+					break;
 
             case RA_OPT_APPENDCONFIG:
                path_set(RARCH_PATH_CONFIG_APPEND, optarg);
@@ -22446,6 +22462,8 @@ static void retroarch_validate_cpu_features(void)
  **/
 bool retroarch_main_init(int argc, char *argv[])
 {
+	RARCH_LOG("retroarch_main_init begin");
+
    bool init_failed  = false;
    global_t  *global = &g_extern;
 #if defined(DEBUG) && defined(HAVE_DRMINGW)
@@ -22465,9 +22483,24 @@ bool retroarch_main_init(int argc, char *argv[])
    rarch_error_on_init = true;
 
    /* Have to initialise non-file logging once at the start... */
-   retro_main_log_file_init(NULL, false);
+	retro_main_log_file_init(NULL, false);
 
-   retroarch_parse_input_and_config(argc, argv);
+	RARCH_LOG("retroarch_main_init after retro_main_log_file_init. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+
+	retroarch_parse_input_and_config(argc, argv);
+
+	for (int i = 0; i < argc; ++i)
+	{
+		RARCH_LOG("retroarch_main_init log argv[%d]: %s\n", i, argv[i]);
+	}
+	if (argc >=3)
+	{
+		path_set(RARCH_PATH_LABEL, argv[2]);
+		RARCH_LOG("retroarch_main_init hit label: %s\n", argv[2]);
+	}
+	RARCH_LOG("retroarch_main_init after retroarch_parse_input_and_config. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
    if (verbosity_is_enabled())
    {
@@ -22567,6 +22600,9 @@ bool retroarch_main_init(int argc, char *argv[])
 #ifdef HAVE_MENU
    menu_driver_ctl(RARCH_MENU_CTL_FIND_DRIVER, NULL);
 #endif
+
+	RARCH_LOG("retroarch_main_init before CMD_EVENT_CORE_INIT. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
    /* Attempt to initialize core */
    if (has_set_core)

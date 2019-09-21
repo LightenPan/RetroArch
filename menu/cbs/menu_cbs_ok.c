@@ -1343,7 +1343,7 @@ static int file_load_with_detect_core_wrapper(
                content_info.environ_get = NULL;
 
                if (!task_push_load_content_with_new_core_from_menu(
-                        new_core_path, def_info.s,
+                        new_core_path, def_info.s, label,
                         &content_info,
                         CORE_TYPE_PLAIN,
                         NULL, NULL))
@@ -2129,7 +2129,7 @@ static int action_ok_playlist_entry(const char *path,
 static int action_ok_playlist_entry_start_content(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-	RARCH_LOG("action_ok_playlist_entry_start_content. path: %s\n", path);
+	RARCH_LOG("action_ok_playlist_entry_start_content. path: %s, label: %s\n", path, label);
 
    size_t selection_ptr                = 0;
    playlist_t *playlist                = playlist_get_cached();
@@ -2189,7 +2189,6 @@ static int action_ok_playlist_entry_start_content(const char *path,
    }
 
    char new_path[PATH_MAX_LENGTH] = {0};
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push("File could not be loaded from playlist.\n", 1, 100, true, NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
@@ -2198,7 +2197,6 @@ static int action_ok_playlist_entry_start_content(const char *path,
 
    playlist_get_index(playlist, selection_ptr, &entry);
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    return default_action_ok_load_content_from_playlist_from_menu(entry->core_path, new_path, entry->label);
 
 error:
@@ -3207,7 +3205,7 @@ static int action_ok_load_core_deferred(const char *path,
       return menu_cbs_exit();
 
    if (!task_push_load_content_with_new_core_from_menu(
-            path, menu->deferred_path,
+            path, menu->deferred_path, label,
             &content_info,
             CORE_TYPE_PLAIN,
             NULL, NULL))
@@ -3636,7 +3634,7 @@ static int action_ok_file_load_detect_core(const char *path,
    content_info.environ_get            = NULL;
 
    if (!task_push_load_content_with_new_core_from_menu(
-            path, menu->detect_content_path,
+            path, menu->detect_content_path, label,
             &content_info,
             CORE_TYPE_PLAIN,
             NULL, NULL))
@@ -5738,7 +5736,7 @@ static int action_ok_load_archive_detect_core(const char *path,
             ret                                 = 0;
 
             if (!task_push_load_content_with_new_core_from_menu(
-                     new_core_path, def_info.s,
+                     new_core_path, def_info.s, label,
                      &content_info,
                      CORE_TYPE_PLAIN,
                      NULL, NULL))

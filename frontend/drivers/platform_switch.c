@@ -187,13 +187,13 @@ static void frontend_switch_get_environment_settings(int *argc, char *argv[], vo
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_ASSETS], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "assets", sizeof(g_defaults.dirs[DEFAULT_DIR_ASSETS]));
 
-   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SAVESTATE], g_defaults.dirs[DEFAULT_DIR_CORE],
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SAVESTATE], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "savestates", sizeof(g_defaults.dirs[DEFAULT_DIR_SAVESTATE]));
 
-   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SRAM], g_defaults.dirs[DEFAULT_DIR_CORE],
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SRAM], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "savefiles", sizeof(g_defaults.dirs[DEFAULT_DIR_SRAM]));
 
-   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SYSTEM], g_defaults.dirs[DEFAULT_DIR_CORE],
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SYSTEM], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "system", sizeof(g_defaults.dirs[DEFAULT_DIR_SYSTEM]));
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_MENU_CONFIG], g_defaults.dirs[DEFAULT_DIR_PORT],
@@ -299,11 +299,13 @@ static void frontend_switch_deinit(void *data)
 #ifdef HAVE_LIBNX
 static void frontend_switch_exec(const char *path, bool should_load_game)
 {
-   char game_path[PATH_MAX-4];
-   const char *arg_data[3];
+	char game_path[PATH_MAX-4];
+	char game_label[PATH_MAX-4];
+   const char *arg_data[4];
    int args           = 0;
 
-   game_path[0]       = NULL;
+	game_path[0]       = NULL;
+	game_label[0]      = NULL;
    arg_data[0]        = NULL;
 
    arg_data[args]     = elf_path_cst;
@@ -313,12 +315,17 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
    RARCH_LOG("Attempt to load core: [%s].\n", path);
 #ifndef IS_SALAMANDER
    if (should_load_game && !path_is_empty(RARCH_PATH_CONTENT))
-   {
+	{
       strcpy(game_path, path_get(RARCH_PATH_CONTENT));
-      arg_data[args] = game_path;
-      arg_data[args + 1] = NULL;
-      args++;
-      RARCH_LOG("content path: [%s].\n", path_get(RARCH_PATH_CONTENT));
+		arg_data[args++] = game_path;
+		char *label = path_get(RARCH_PATH_LABEL);
+		if (label && !string_is_empty(label))
+		{
+			strcpy(game_label, label);
+			arg_data[args++] = game_label;
+		}
+      arg_data[args] = NULL;
+		RARCH_LOG("frontend_switch_exec content path: [%s], label: [%s].\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    }
 #endif
 
@@ -341,11 +348,12 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
 #endif
       char *argBuffer = (char *)malloc(PATH_MAX);
       if (should_load_game)
-         snprintf(argBuffer, PATH_MAX, "%s \"%s\"", path, game_path);
+			snprintf(argBuffer, PATH_MAX, "%s \"%s\" \"%s\"", path, game_path, game_label);
       else
          snprintf(argBuffer, PATH_MAX, "%s", path);
 
-      envSetNextLoad(path, argBuffer);
+		envSetNextLoad(path, argBuffer);
+		RARCH_LOG("content envSetNextLoad argBuffer: %s.\n", argBuffer);
    }
 }
 
@@ -929,8 +937,19 @@ void frontend_switch_process_args(int *argc, char *argv[])
    {
       /* Ensure current Path is set, only works for the static dummy, likely a hbloader args Issue (?) */
       path_set(RARCH_PATH_CORE, argv[0]);
-   }
+	}
+
+	for (int i = 0; i < *argc; ++i)
+	{
+		RARCH_LOG("frontend_switch_process_args log args. argv[%d]: %s", i, argv[i]);
+	}
 #endif
+}
+
+enum retro_language frontend_switch_get_user_language(void)
+{
+	enum retro_language lang = RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
+	return lang;
 }
 
 frontend_ctx_driver_t frontend_ctx_switch =
@@ -973,6 +992,6 @@ frontend_ctx_driver_t frontend_ctx_switch =
         NULL, /* check_for_path_changes */
         NULL, /* set_sustained_performance_mode */
         NULL, /* get_cpu_model_name */
-        NULL, /* get_user_language */
+        frontend_switch_get_user_language, /* get_user_language */
         "switch",
 };

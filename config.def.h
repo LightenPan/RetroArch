@@ -460,7 +460,7 @@ static bool content_show_add     	  = true;
 static bool content_show_playlists    = true;
 
 #ifdef HAVE_XMB
-static unsigned xmb_scale_factor      = 100;
+static unsigned xmb_scale_factor      = 110;
 static unsigned xmb_alpha_factor      = 75;
 static unsigned menu_font_color_red   = 255;
 static unsigned menu_font_color_green = 255;

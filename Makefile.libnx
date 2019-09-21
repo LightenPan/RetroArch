@@ -247,6 +247,8 @@ $(OUTPUT).elf	:	$(OBJ)
 clean:
 	rm -f $(DEPENDS) $(OBJ) $(OUTPUT).pfs0 $(OUTPUT).nro $(OUTPUT).elf
 
+clean_switch:
+	rm -f libretro_libnx.a $(OUTPUT).*
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------

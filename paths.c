@@ -62,6 +62,7 @@ static char subsystem_path[PATH_MAX_LENGTH]             = {0};
 static char path_default_shader_preset[PATH_MAX_LENGTH] = {0};
 static char path_main_basename[8192]                    = {0};
 static char path_content[PATH_MAX_LENGTH]               = {0};
+static char path_label[PATH_MAX_LENGTH]                 = {0};
 static char path_libretro[PATH_MAX_LENGTH]              = {0};
 static char path_config_file[PATH_MAX_LENGTH]           = {0};
 static char path_config_append_file[PATH_MAX_LENGTH]    = {0};
@@ -261,6 +262,7 @@ struct string_list *path_get_subsystem_list(void)
 
 void path_set_special(char **argv, unsigned num_content)
 {
+	RARCH_LOG("path_set_special begin\n");
    unsigned i;
    union string_list_elem_attr attr;
    struct string_list *subsystem_paths = NULL;
@@ -269,6 +271,12 @@ void path_set_special(char **argv, unsigned num_content)
 
    /* First content file is the significant one. */
    path_set_basename(argv[0]);
+
+	if (num_content >= 2)
+	{
+		path_set(RARCH_PATH_LABEL, argv[1]);
+		RARCH_LOG("path_set_special hit label: %s\n", argv[1]);
+	}
 
    subsystem_fullpaths = string_list_new();
    subsystem_paths = string_list_new();
@@ -299,7 +307,7 @@ void path_set_special(char **argv, unsigned num_content)
                str,
                file_path_str(FILE_PATH_STATE_EXTENSION),
                sizeof(global->name.savestate));
-         RARCH_LOG("%s \"%s\".\n",
+         RARCH_LOG("path_set_special %s \"%s\".\n",
                msg_hash_to_str(MSG_REDIRECTING_SAVESTATE_TO),
                global->name.savestate);
       }
@@ -469,7 +477,9 @@ char *path_get_ptr(enum rarch_path_type type)
    switch (type)
    {
       case RARCH_PATH_CONTENT:
-         return path_content;
+			return path_content;
+		case RARCH_PATH_LABEL:
+			return path_label;
       case RARCH_PATH_DEFAULT_SHADER_PRESET:
          return path_default_shader_preset;
       case RARCH_PATH_BASENAME:
@@ -503,7 +513,9 @@ const char *path_get(enum rarch_path_type type)
    switch (type)
    {
       case RARCH_PATH_CONTENT:
-         return path_content;
+			return path_content;
+		case RARCH_PATH_LABEL:
+			return path_label;
       case RARCH_PATH_DEFAULT_SHADER_PRESET:
          return path_default_shader_preset;
       case RARCH_PATH_BASENAME:
@@ -624,7 +636,11 @@ bool path_set(enum rarch_path_type type, const char *path)
       case RARCH_PATH_CONTENT:
          strlcpy(path_content, path,
                sizeof(path_content));
-         break;
+			break;
+		case RARCH_PATH_LABEL:
+			strlcpy(path_label, path,
+				sizeof(path_label));
+			break;
       case RARCH_PATH_NONE:
          break;
    }
