@@ -146,7 +146,7 @@ void fill_pathname_application_special(char *s,
    {
       case APPLICATION_SPECIAL_DIRECTORY_AUTOCONFIG:
          {
-            settings_t *settings     = config_get_ptr();
+            settings_t *settings = config_get_ptr();
             fill_pathname_join(s,
                   settings->paths.directory_autoconfig,
                   settings->arrays.input_joypad_driver,
@@ -155,7 +155,7 @@ void fill_pathname_application_special(char *s,
          break;
       case APPLICATION_SPECIAL_DIRECTORY_CONFIG:
          {
-            settings_t *settings     = config_get_ptr();
+            settings_t *settings = config_get_ptr();
 
             /* Try config directory setting first,
              * fallback to the location of the current configuration file. */

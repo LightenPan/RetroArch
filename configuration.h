@@ -636,9 +636,10 @@ typedef struct settings
       char username[32];
       char netplay_password[128];
       char netplay_spectate_password[128];
-      char netplay_server[255];
+		char netplay_server[255];
+		char network_buildbot_base_url[255];
       char network_buildbot_url[255];
-      char network_buildbot_assets_url[255];
+		char network_buildbot_assets_url[255];
       char browse_url[4096];
       char path_stream_url[8192];
 

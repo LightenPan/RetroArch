@@ -26,6 +26,6 @@
 
 
 // ºº×Ö×ª¾Å¹¬¸ñÊı×Ö
-void chs_to_ninenum2(const char *keyword, bool only_first, char *out_str, int out_len);
+int chs_to_ninenum(const char *keyword, bool only_first, char *out_str, int out_len);
 
 #endif

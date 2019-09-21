@@ -1536,7 +1536,12 @@ int menu_hash_get_help_chs_enum(enum msg_hash_enums msg, char *s, size_t len)
       case MENU_ENUM_LABEL_DYNAMIC_WALLPAPER:
          snprintf(s, len,
                "在不同的环境下加载不同的壁纸。");
-         break;
+			break;
+		case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_BASE_URL:
+			snprintf(s, len,
+				"base URL to core updater directory on the \n"
+				"Libretro buildbot.");
+			break;
       case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_URL:
          snprintf(s, len,
                "URL to core updater directory on the \n"

@@ -42,6 +42,7 @@
 
 #include "core_type.h"
 #include "core.h"
+#include "input/input_driver.h"
 
 #ifdef HAVE_MENU
 #include "menu/menu_defines.h"
@@ -303,6 +304,21 @@ typedef struct global
    } menu;
 #endif
 } global_t;
+
+struct input_keyboard_line
+{
+   char *buffer;
+   size_t ptr;
+   size_t size;
+
+   /** Line complete callback.
+    * Calls back after return is
+    * pressed with the completed line.
+    * Line can be NULL.
+    **/
+   input_keyboard_line_complete_t cb;
+   void *userdata;
+};
 
 bool rarch_ctl(enum rarch_ctl_state state, void *data);
 
@@ -2095,6 +2111,8 @@ bool menu_driver_is_toggled(void);
 bool menu_driver_is_toggled(void);
 
 bool menu_widgets_ready(void);
+
+input_keyboard_line_t *get_input_keyboard_line(void);
 
 RETRO_END_DECLS
 

@@ -133,7 +133,7 @@ int chs_to_ninenum(const char *keyword, bool only_first, char *out_str, int out_
 	int count = chs_to_pinyin(keyword, only_first, line, 1024);
 	if (count < 0)
 	{
-		return;
+		return count;
 	}
 	pinyin_to_ninenum(line, out_str, out_len);
 }

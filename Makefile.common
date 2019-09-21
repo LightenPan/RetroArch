@@ -155,6 +155,9 @@ endif
 OBJ += frontend/frontend_driver.o \
        frontend/drivers/platform_null.o \
        retroarch.o \
+       quickkid/pinyin.o \
+       quickkid/quickkid.o \
+       quickkid/utf8vector.o \
        paths.o \
        msg_hash.o \
        intl/msg_hash_us.o \

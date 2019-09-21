@@ -32,6 +32,8 @@
 
 #include "../../input/input_driver.h"
 #include "../../configuration.h"
+#include "../menu_entries.h"
+#include "../../retroarch.h"
 
 static char *osk_grid[45]        = {NULL};
 
@@ -142,10 +144,12 @@ void menu_event_osk_append(int ptr)
 			file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
 			if (selection_buf)
 			{
+				input_keyboard_line_t *keyboard_line = get_input_keyboard_line();
 				size_t idx = 0;
-				if (g_keyboard_line->buffer
-					&& *g_keyboard_line->buffer
-					&& file_list_search_quickkid(selection_buf, g_keyboard_line->buffer, &idx))
+				if (keyboard_line
+					&& keyboard_line->buffer
+					&& *keyboard_line->buffer
+					&& file_list_search_quickkid(selection_buf, keyboard_line->buffer, &idx))
 				{
 					menu_navigation_set_selection(idx);
 					menu_driver_navigation_set(true);

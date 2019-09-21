@@ -1098,64 +1098,65 @@ bool menu_input_dialog_start(menu_input_ctx_line_t *line)
 
 bool menu_input_dialog_get_display_kb(void)
 {
-#ifdef HAVE_LIBNX
-   SwkbdConfig kbd;
-   Result rc;
-
-   /* swkbd only works on "real" titles */
-   if (     __nx_applet_type != AppletType_Application 
-         && __nx_applet_type != AppletType_SystemApplication)
-      return menu_input_dialog_keyboard_display;
-
-   if (!menu_input_dialog_keyboard_display)
-      return false;
-
-   rc = swkbdCreate(&kbd, 0);
-
-   if (R_SUCCEEDED(rc))
-   {
-      unsigned i;
-      char buf[LIBNX_SWKBD_LIMIT] = {'\0'};
-      swkbdConfigMakePresetDefault(&kbd);
-
-      swkbdConfigSetGuideText(&kbd, menu_input_dialog_keyboard_label);
-
-      rc = swkbdShow(&kbd, buf, sizeof(buf));
-
-      swkbdClose(&kbd);
-
-      /* RetroArch uses key-by-key input
-         so we need to simulate it */
-      for (i = 0; i < LIBNX_SWKBD_LIMIT; i++)
-      {
-         /* In case a previous "Enter" press closed the keyboard */
-         if (!menu_input_dialog_keyboard_display)
-            break;
-
-         if (buf[i] == '\n' || buf[i] == '\0')
-            input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-         else
-         {
-            /* input_keyboard_line_append expects a null-terminated
-               string, so just make one (yes, the touch keyboard is
-               a list of "null-terminated characters") */
-            char oldchar = buf[i+1];
-            buf[i+1]     = '\0';
-            input_keyboard_line_append(&buf[i]);
-            buf[i+1]     = oldchar;
-         }
-      }
-
-      /* fail-safe */
-      if (menu_input_dialog_keyboard_display)
-         input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-
-      libnx_apply_overclock();
-      return false;
-   }
-   libnx_apply_overclock();
-#endif
-   return menu_input_dialog_keyboard_display;
+	return menu_input_dialog_keyboard_display;
+// #ifdef HAVE_LIBNX
+//    SwkbdConfig kbd;
+//    Result rc;
+// 
+//    /* swkbd only works on "real" titles */
+//    if (     __nx_applet_type != AppletType_Application 
+//          && __nx_applet_type != AppletType_SystemApplication)
+//       return menu_input_dialog_keyboard_display;
+// 
+//    if (!menu_input_dialog_keyboard_display)
+//       return false;
+// 
+//    rc = swkbdCreate(&kbd, 0);
+// 
+//    if (R_SUCCEEDED(rc))
+//    {
+//       unsigned i;
+//       char buf[LIBNX_SWKBD_LIMIT] = {'\0'};
+//       swkbdConfigMakePresetDefault(&kbd);
+// 
+//       swkbdConfigSetGuideText(&kbd, menu_input_dialog_keyboard_label);
+// 
+//       rc = swkbdShow(&kbd, buf, sizeof(buf));
+// 
+//       swkbdClose(&kbd);
+// 
+//       /* RetroArch uses key-by-key input
+//          so we need to simulate it */
+//       for (i = 0; i < LIBNX_SWKBD_LIMIT; i++)
+//       {
+//          /* In case a previous "Enter" press closed the keyboard */
+//          if (!menu_input_dialog_keyboard_display)
+//             break;
+// 
+//          if (buf[i] == '\n' || buf[i] == '\0')
+//             input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+//          else
+//          {
+//             /* input_keyboard_line_append expects a null-terminated
+//                string, so just make one (yes, the touch keyboard is
+//                a list of "null-terminated characters") */
+//             char oldchar = buf[i+1];
+//             buf[i+1]     = '\0';
+//             input_keyboard_line_append(&buf[i]);
+//             buf[i+1]     = oldchar;
+//          }
+//       }
+// 
+//       /* fail-safe */
+//       if (menu_input_dialog_keyboard_display)
+//          input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+// 
+//       libnx_apply_overclock();
+//       return false;
+//    }
+//    libnx_apply_overclock();
+// #endif
+//    return menu_input_dialog_keyboard_display;
 }
 
 bool menu_driver_is_toggled(void)
@@ -1852,21 +1853,6 @@ struct turbo_buttons
    bool frame_enable[MAX_USERS];
    uint16_t enable[MAX_USERS];
    unsigned count;
-};
-
-struct input_keyboard_line
-{
-   char *buffer;
-   size_t ptr;
-   size_t size;
-
-   /** Line complete callback.
-    * Calls back after return is
-    * pressed with the completed line.
-    * Line can be NULL.
-    **/
-   input_keyboard_line_complete_t cb;
-   void *userdata;
 };
 
 static bool input_driver_keyboard_linefeed_enable = false;
@@ -26434,4 +26420,9 @@ static void core_free_retro_game_info(struct retro_game_info *dest)
    dest->path = NULL;
    dest->data = NULL;
    dest->meta = NULL;
+}
+
+input_keyboard_line_t * get_input_keyboard_line(void)
+{
+	return g_keyboard_line;
 }

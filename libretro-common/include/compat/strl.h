@@ -54,6 +54,9 @@ size_t strlcat(char *dest, const char *source, size_t size);
 
 char *strldup(const char *s, size_t n);
 
+char * strreplace(char const * const original, 
+						char const * const pattern, char const * const replacement);
+
 RETRO_END_DECLS
 
 #endif

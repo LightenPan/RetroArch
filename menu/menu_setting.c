@@ -14493,6 +14493,20 @@ static bool setting_append_list(
          parent_group = msg_hash_to_str(MENU_ENUM_LABEL_UPDATER_SETTINGS);
          START_SUB_GROUP(list, list_info, "State", &group_info, &subgroup_info, parent_group);
 #ifdef HAVE_NETWORKING
+			CONFIG_STRING(
+					list, list_info,
+					settings->paths.network_buildbot_base_url,
+					sizeof(settings->paths.network_buildbot_base_url),
+					MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_BASE_URL,
+					MENU_ENUM_LABEL_VALUE_CORE_UPDATER_BUILDBOT_BASE_URL,
+					buildbot_server_url,
+					&group_info,
+					&subgroup_info,
+					parent_group,
+					general_write_handler,
+					general_read_handler);
+			SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
+			(*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
          CONFIG_STRING(
                list, list_info,
                settings->paths.network_buildbot_url,

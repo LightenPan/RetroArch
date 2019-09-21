@@ -1830,7 +1830,12 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
             snprintf(s, len,
                      "Dynamically load a new background \n"
                              "depending on context.");
-            break;
+				break;
+		  case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_BASE_URL:
+				  snprintf(s, len,
+					  "base URL to core updater directory on the \n"
+					  "Libretro buildbot.");
+				  break;
         case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_URL:
             snprintf(s, len,
                      "URL to core updater directory on the \n"

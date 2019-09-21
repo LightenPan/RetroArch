@@ -1197,9 +1197,15 @@ static struct config_path_setting *populate_settings_path(settings_t *settings, 
    SETTING_PATH("kiosk_mode_password",        settings->paths.kiosk_mode_password, false, NULL, true);
    SETTING_PATH("netplay_nickname",           settings->paths.username, false, NULL, true);
    SETTING_PATH("video_filter",               settings->paths.path_softfilter_plugin, false, NULL, true);
-   SETTING_PATH("audio_dsp_plugin",           settings->paths.path_audio_dsp_plugin, false, NULL, true);
+	SETTING_PATH("audio_dsp_plugin",           settings->paths.path_audio_dsp_plugin, false, NULL, true);
+	SETTING_PATH("core_updater_buildbot_base_url", settings->paths.network_buildbot_base_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_cores_url", settings->paths.network_buildbot_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_assets_url", settings->paths.network_buildbot_assets_url, false, NULL, true);
+
+	// 替换成基础地址，方便国外用户使用
+	char base_url[256] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro";
+	strreplace(settings->paths.network_buildbot_url, base_url, settings->paths.network_buildbot_base_url);
+	strreplace(settings->paths.network_buildbot_assets_url, base_url, settings->paths.network_buildbot_assets_url);
 #ifdef HAVE_NETWORKING
    SETTING_PATH("netplay_ip_address",       settings->paths.netplay_server, false, NULL, true);
    SETTING_PATH("netplay_password",           settings->paths.netplay_password, false, NULL, true);
@@ -2148,10 +2154,22 @@ void config_set_defaults(void)
       }
    }
 
+	char base_url[256] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro";
+   strlcpy(settings->paths.network_buildbot_base_url, base_url,
+         sizeof(settings->paths.network_buildbot_base_url));
    strlcpy(settings->paths.network_buildbot_url, buildbot_server_url,
          sizeof(settings->paths.network_buildbot_url));
    strlcpy(settings->paths.network_buildbot_assets_url, buildbot_assets_server_url,
-         sizeof(settings->paths.network_buildbot_assets_url));
+			sizeof(settings->paths.network_buildbot_assets_url));
+
+	// 用配置的url替换下载url，可以在配置文件中使用香港的机器
+	strreplace(settings->paths.network_buildbot_url,
+		base_url,
+		settings->paths.network_buildbot_base_url);
+	strreplace(settings->paths.network_buildbot_assets_url,
+		base_url,
+		settings->paths.network_buildbot_assets_url);
+
 
    *settings->arrays.input_keyboard_layout                = '\0';
 

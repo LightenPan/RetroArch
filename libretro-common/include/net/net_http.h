@@ -31,7 +31,28 @@
 
 RETRO_BEGIN_DECLS
 
-struct http_t;
+struct http_socket_state_t
+{
+	int fd;
+	bool ssl;
+	void *ssl_ctx;
+};
+
+struct http_t
+{
+	int status;
+
+	char part;
+	char bodytype;
+	bool error;
+
+	size_t pos;
+	size_t len;
+	size_t buflen;
+	char *data;
+	struct http_socket_state_t sock_state;
+};
+
 struct http_connection_t;
 
 struct http_connection_t *net_http_connection_new(const char *url, const char *method, const char *data);

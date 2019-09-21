@@ -29,6 +29,8 @@
 #include <string/stdstring.h>
 #include <compat/strcasestr.h>
 
+#include "../../quickkid/quickkid.h"
+
 bool file_list_reserve(file_list_t *list, size_t nitems)
 {
    const size_t item_size = sizeof(struct item_file);
@@ -449,7 +451,7 @@ bool file_list_search(const file_list_t *list, const char *needle, size_t *idx)
 
 
 /**
- *ÅÐ¶ÏÊÇ×Ö·û´®strÊÇ²»ÊÇÒÔstart¿ªÊ¼
+ *ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½strï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½startï¿½ï¿½Ê¼
  */
 int is_start_with(const char *str, char *start)
 {
@@ -487,7 +489,7 @@ bool file_list_search_quickkid(const file_list_t *list, const char *needle, size
    if (!list)
       return false;
 
-	// ÉÏÒ»´ÎÆ¥ÅäÄÚÈÝ
+	// ï¿½ï¿½Ò»ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	static int last_search_idx = 0;
 	static char last_search_needle[256] = {0};
 	RARCH_LOG("file_list_search_quickkid log static info. needle: %s, last_search_needle: %s, last_search_idx: %d\n",
@@ -504,7 +506,7 @@ bool file_list_search_quickkid(const file_list_t *list, const char *needle, size
 
 		if (strstr(ninenum, needle))
 		{
-			// ÖØ¸´ÊäÈë£¬Ìø¹ýÉÏ´Î¼ìË÷µÄid
+			// ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ë£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Î¼ï¿½ï¿½ï¿½ï¿½ï¿½id
 			if (0 == strcmp(needle, last_search_needle) && i <= last_search_idx)
 			{
 				continue;

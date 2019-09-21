@@ -4386,8 +4386,7 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
 		} else {
 			xmb_draw_dark_layer(xmb, video_info, width, height);
 		}
-      xmb_render_messagebox_internal(
-            video_info, xmb, msg);
+      xmb_render_messagebox_internal(video_info, xmb, msg);
    }
 
    /* Cursor image */

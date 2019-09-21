@@ -30,6 +30,7 @@
 #include "../configuration.h"
 #include "../file_path_special.h"
 #include "../playlist.h"
+#include "../libretro-common/include/rhash.h"
 
 #ifdef RARCH_INTERNAL
 #ifdef HAVE_MENU
