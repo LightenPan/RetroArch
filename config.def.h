@@ -123,7 +123,7 @@
 
 #define DEFAULT_PLAYLIST_ENTRY_RENAME true
 
-#define DEFAULT_USER_LANGUAGE 0
+#define DEFAULT_USER_LANGUAGE 12
 
 #if (defined(_WIN32) && !defined(_XBOX)) || (defined(__linux) && !defined(ANDROID) && !defined(HAVE_LAKKA)) || (defined(__MACH__) && !defined(IOS)) || defined(EMSCRIPTEN)
 #define DEFAULT_MOUSE_ENABLE true
@@ -422,7 +422,7 @@ static bool menu_show_quit_retroarch     = true;
 static bool menu_show_restart_retroarch  = true;
 static bool menu_show_reboot             = true;
 static bool menu_show_shutdown           = true;
-#if defined(HAVE_LAKKA) || defined(VITA) || defined(_3DS)
+#if defined(HAVE_LAKKA) || defined(_3DS)
 static bool menu_show_core_updater       = false;
 #else
 static bool menu_show_core_updater       = true;

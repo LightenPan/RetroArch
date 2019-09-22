@@ -470,7 +470,7 @@ enum retro_language frontend_driver_get_user_language(void)
 {
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
    if (!frontend || !frontend->get_user_language)
-      return RETRO_LANGUAGE_ENGLISH;
+      return RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
    return frontend->get_user_language();
 }
 #endif

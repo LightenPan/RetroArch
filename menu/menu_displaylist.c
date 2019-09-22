@@ -7884,6 +7884,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
 #elif defined(HAVE_NETWORKING)
 #if defined(__WINRT__) || defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
 #else
+				RARCH_LOG("menu_displaylist_ctl log menu_show_core_updater: %d\n", settings->bools.menu_show_core_updater);
             if (settings->bools.menu_show_core_updater)
             {
                if (menu_entries_append_enum(info->list,
@@ -7919,23 +7920,20 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                count++;
 
 #ifdef HAVE_COMPRESSION
-            if (settings->bools.menu_show_core_updater)
-            {
-               if (menu_entries_append_enum(info->list,
-                        msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_CORE_INFO_FILES),
-                        msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES),
-                        MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES,
-                        MENU_SETTING_ACTION, 0, 0))
-                  count++;
-            }
+			if (menu_entries_append_enum(info->list,
+				msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_CORE_INFO_FILES),
+				msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES),
+				MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES,
+				MENU_SETTING_ACTION, 0, 0))
+				count++;
 
 #ifdef HAVE_UPDATE_ASSETS
-            if (menu_entries_append_enum(info->list,
-                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_ASSETS),
-                     msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_ASSETS),
-                     MENU_ENUM_LABEL_UPDATE_ASSETS,
-                     MENU_SETTING_ACTION, 0, 0))
-					 count++;
+         if (menu_entries_append_enum(info->list,
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_ASSETS),
+                  msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_ASSETS),
+                  MENU_ENUM_LABEL_UPDATE_ASSETS,
+                  MENU_SETTING_ACTION, 0, 0))
+				 count++;
 			if (menu_entries_append_enum(info->list,
 				msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS),
 				msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS),

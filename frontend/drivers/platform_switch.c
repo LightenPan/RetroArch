@@ -188,10 +188,10 @@ static void frontend_switch_get_environment_settings(int *argc, char *argv[], vo
                       "assets", sizeof(g_defaults.dirs[DEFAULT_DIR_ASSETS]));
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SAVESTATE], g_defaults.dirs[DEFAULT_DIR_PORT],
-                      "savestates", sizeof(g_defaults.dirs[DEFAULT_DIR_SAVESTATE]));
+                      "states", sizeof(g_defaults.dirs[DEFAULT_DIR_SAVESTATE]));
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SRAM], g_defaults.dirs[DEFAULT_DIR_PORT],
-                      "savefiles", sizeof(g_defaults.dirs[DEFAULT_DIR_SRAM]));
+                      "saves", sizeof(g_defaults.dirs[DEFAULT_DIR_SRAM]));
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SYSTEM], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "system", sizeof(g_defaults.dirs[DEFAULT_DIR_SYSTEM]));
@@ -946,12 +946,6 @@ void frontend_switch_process_args(int *argc, char *argv[])
 #endif
 }
 
-enum retro_language frontend_switch_get_user_language(void)
-{
-	enum retro_language lang = RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
-	return lang;
-}
-
 frontend_ctx_driver_t frontend_ctx_switch =
     {
         frontend_switch_get_environment_settings,
@@ -992,6 +986,6 @@ frontend_ctx_driver_t frontend_ctx_switch =
         NULL, /* check_for_path_changes */
         NULL, /* set_sustained_performance_mode */
         NULL, /* get_cpu_model_name */
-        frontend_switch_get_user_language, /* get_user_language */
+        NULL, /* get_user_language */
         "switch",
 };

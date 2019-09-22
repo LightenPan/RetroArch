@@ -2349,7 +2349,7 @@ static const char* frontend_unix_get_cpu_model_name(void)
 
 enum retro_language frontend_unix_get_user_language(void)
 {
-   enum retro_language lang = RETRO_LANGUAGE_ENGLISH;
+   enum retro_language lang = RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
 #ifdef HAVE_LANGEXTRA
 #ifdef ANDROID
    jstring jstr = NULL;

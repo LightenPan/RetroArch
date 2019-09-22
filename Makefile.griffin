@@ -843,6 +843,9 @@ endif
 
 ifeq ($(platform), vita)
    CFLAGS      += -DHAVE_SOCKET_LEGACY
+   CFLAGS      += -DHAVE_UPDATE_ASSETS
+   CFLAGS      += -DHAVE_LIBRETRODB
+   CFLAGS      += -DHAVE_COMPRESSION
 endif
 
 ifeq ($(HAVE_KERNEL_PRX), 1)
@@ -1139,6 +1142,9 @@ clean:
 ifeq ($(platform), wii)
 	$(MAKE) -C $(APP_BOOTER_DIR) clean
 endif
+
+clean_vita:
+	rm -f retroarch_vita.*
 
 .PHONY: clean
 

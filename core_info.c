@@ -220,7 +220,7 @@ static config_file_t *core_info_list_iterate(
          current_path,
          info_path_base_size);
 
-#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(VITA) && !defined(PS2) && !defined(HW_WUP))
+#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(PS2) && !defined(HW_WUP))
    {
       char *substr = strrchr(info_path_base, '_');
       if (substr)
@@ -251,6 +251,8 @@ static core_info_list_t *core_info_list_new(const char *path,
       const char *exts,
       bool dir_show_hidden_files)
 {
+	RARCH_LOG("core_info_list_new begin. path: %s, libretro_info_dir: %s, exts: %s\n", path, libretro_info_dir, exts);
+
    size_t i;
    core_info_t *core_info           = NULL;
    core_info_list_t *core_info_list = NULL;
@@ -300,11 +302,12 @@ static core_info_list_t *core_info_list_new(const char *path,
    for (i = 0; i < contents->size; i++)
    {
       const char *base_path = contents->elems[i].data;
-      config_file_t *conf   = core_info_list_iterate(base_path,
-            path_basedir);
-
+      config_file_t *conf   = core_info_list_iterate(base_path, path_basedir);
       if (conf)
-      {
+		{
+			RARCH_LOG("core_info_list_new hit conf. index: %d, base_path: %s, path_basedir: %s\n",
+				i, base_path, path_basedir);
+
          char *tmp           = NULL;
 
          if (config_get_string(conf, "display_name", &tmp)
@@ -462,6 +465,11 @@ static core_info_list_t *core_info_list_new(const char *path,
 
          core_info[i].config_data = conf;
       }
+		else
+		{
+			RARCH_LOG("core_info_list_new not hit conf. index: %d, base_path: %s, path_basedir: %s\n",
+				i, base_path, path_basedir);
+		}
 
       if (!string_is_empty(base_path))
          core_info[i].path = strdup(base_path);

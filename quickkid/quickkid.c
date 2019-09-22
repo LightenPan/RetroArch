@@ -16,6 +16,7 @@
 #include "pinyin.h"
 #include "utf8vector.h"
 #include "linereader.h"
+#include "../libretro-common/include/boolean.h"
 
 
 #if 0

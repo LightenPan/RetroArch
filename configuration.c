@@ -3188,7 +3188,8 @@ static bool config_load_file(const char *path, settings_t *settings)
    recording_driver_update_streaming_url();
 
    if (!config_entry_exists(conf, "user_language"))
-      msg_hash_set_uint(MSG_HASH_USER_LANGUAGE, frontend_driver_get_user_language());
+		msg_hash_set_uint(MSG_HASH_USER_LANGUAGE, frontend_driver_get_user_language());
+	RARCH_WARN("MSG_HASH_USER_LANGUAGE: %d\n", msg_hash_get_uint(MSG_HASH_USER_LANGUAGE));
 
    /* If this is the first run of an existing installation
     * after the independent favourites playlist size limit was

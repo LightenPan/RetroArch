@@ -13,8 +13,8 @@ endif
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 
-INCDIR = libretro-common/include
-CFLAGS = -Wl,-q $(OPTIMIZE_LV) -I$(INCDIR) -std=gnu99 -mfloat-abi=hard -ffast-math -fsingle-precision-constant -mword-relocations
+INCDIR = libretro-common/include 
+CFLAGS = -Wl,-q $(OPTIMIZE_LV) -I$(INCDIR) -I. -std=gnu99 -mfloat-abi=hard -ffast-math -fsingle-precision-constant -mword-relocations
 ASFLAGS = $(CFLAGS)
 
 RARCH_DEFINES = -DVITA -DIS_SALAMANDER -DRARCH_CONSOLE
@@ -35,6 +35,7 @@ CFLAGS += $(RARCH_DEFINES)
 OBJS = frontend/frontend_salamander.o \
 		 frontend/frontend_driver.o \
 		 frontend/drivers/platform_psp.o \
+		 configuration.o \
 		 frontend/drivers/platform_null.o \
 		 libretro-common/file/file_path.o \
 		 libretro-common/string/stdstring.o \

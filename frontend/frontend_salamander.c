@@ -39,7 +39,7 @@ struct defaults g_defaults;
 /*We need to set libretro to the first entry in the cores
  * directory so that it will be saved to the config file
  */
-static void find_first_libretro_core(char *firsg_defaults.settings.menut_file,
+static void find_first_libretro_core(char *first_file,
    size_t size_of_first_file, const char *dir,
    const char * ext)
 {
