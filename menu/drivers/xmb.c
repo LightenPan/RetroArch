@@ -890,17 +890,26 @@ static void xmb_render_messagebox_internal(
 
    menu_display_blend_begin(video_info);
 
-   menu_display_draw_texture_slice(
-         video_info,
-         x - longest_width/2 - xmb->margins_dialog,
-         y + xmb->margins_slice - xmb->margins_dialog,
-         256, 256,
-         longest_width + xmb->margins_dialog * 2,
-         line_height * list->size + xmb->margins_dialog * 2,
-         width, height,
-         NULL,
-         xmb->margins_slice, 1.0,
-         xmb->textures.list[XMB_TEXTURE_DIALOG_SLICE]);
+	// vita 背景相似不正常，先去掉
+// 	int new_width = longest_width + xmb->margins_dialog * 2;
+// 	int new_height = line_height * list->size + xmb->margins_dialog * 2;
+// 	if (new_width > 256) {
+// 		new_width = 256;
+// 	}
+// 	if (new_height > 256) {
+// 		new_height = 256;
+// 	}
+//    menu_display_draw_texture_slice(
+//          video_info,
+//          x - longest_width/2 - xmb->margins_dialog,
+//          y + xmb->margins_slice - xmb->margins_dialog,
+//          256, 256,
+//          new_width,
+//          new_height,
+//          256, 256,
+//          NULL,
+//          xmb->margins_slice, 1.0,
+//          xmb->textures.list[XMB_TEXTURE_DIALOG_SLICE]);
 
    for (i = 0; i < list->size; i++)
    {
@@ -910,7 +919,7 @@ static void xmb_render_messagebox_internal(
          menu_display_draw_text(xmb->font, msg,
                x - longest_width/2.0,
                y + (i+0.75) * line_height,
-               width, height, 0x444444ff, TEXT_ALIGN_LEFT, 1.0f, false, 0, false);
+               width, height, 0xFF0000ff, TEXT_ALIGN_LEFT, 1.0f, false, 0, false);
    }
 
    if (menu_input_dialog_get_display_kb())
