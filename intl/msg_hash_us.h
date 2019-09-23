@@ -4704,7 +4704,9 @@ MSG_HASH(
 	 "Task failed"
 	 )
 MSG_HASH(MSG_ERROR_NO_MATCH_NINENUM,
-	 "no match game")
+	"no match game")
+MSG_HASH(MSG_ERROR_MISS_CORE_FILE,
+	"miss core file, please download first")
 MSG_HASH(
     MSG_EXTERNAL_APPLICATION_DIR,
     "External Application Dir"

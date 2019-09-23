@@ -299,6 +299,12 @@ static void frontend_switch_deinit(void *data)
 #ifdef HAVE_LIBNX
 static void frontend_switch_exec(const char *path, bool should_load_game)
 {
+	if (!path_is_valid(path)) {
+		RARCH_LOG("frontend_switch_exec content path: %s, rom: %s label: %s.\n",
+			path, path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+		return ;
+	}
+
 	char game_path[PATH_MAX-4];
 	char game_label[PATH_MAX-4];
    const char *arg_data[4];
@@ -347,7 +353,7 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
       }
 #endif
       char *argBuffer = (char *)malloc(PATH_MAX);
-      if (should_load_game)
+      if (should_load_game && path_is_valid(game_path))
 			snprintf(argBuffer, PATH_MAX, "%s \"%s\" \"%s\"", path, game_path, game_label);
       else
          snprintf(argBuffer, PATH_MAX, "%s", path);

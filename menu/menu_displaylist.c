@@ -6904,36 +6904,45 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      &cores_names_len, &cores_names_size);
 
             if (cores_names_size == 0)
-            {
-               if (!path_is_empty(RARCH_PATH_CORE))
-               {
-                  if (menu_entries_append_enum(info->list,
-                        path_get(RARCH_PATH_CORE),
-                        path_get(RARCH_PATH_CORE),
-                        MENU_ENUM_LABEL_DETECT_CORE_LIST_OK,
-                        FILE_TYPE_DIRECT_LOAD,
-                        0,
-                        0))
-                     count++;
-
-                  {
-                     struct retro_system_info *system = runloop_get_libretro_system_info();
-                     const char *core_name            = system ? system->library_name : NULL;
-
-                     if (!string_is_empty(core_name))
-                        file_list_set_alt_at_offset(info->list, 0,
-                              core_name);
-                  }
-               }
-               else
-               {
-                  menu_entries_append_enum(info->list,
-                        msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_CORES_AVAILABLE),
-                        msg_hash_to_str(MENU_ENUM_LABEL_NO_CORES_AVAILABLE),
-                        MENU_ENUM_LABEL_NO_CORES_AVAILABLE,
-                        0, 0, 0);
-                  info->download_core = true;
-               }
+				{
+					// 在根据扩展名获取支持的核心列表时，如果没有核心，使用默认核心的话，静态链接时会有问题
+					// switch静态链接找不到核心会挂掉
+					// 这里统一改为去下载核心
+					menu_entries_append_enum(info->list,
+						msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_CORES_AVAILABLE),
+						msg_hash_to_str(MENU_ENUM_LABEL_NO_CORES_AVAILABLE),
+						MENU_ENUM_LABEL_NO_CORES_AVAILABLE,
+						0, 0, 0);
+					info->download_core = true;
+//                if (!path_is_empty(RARCH_PATH_CORE))
+//                {
+//                   if (menu_entries_append_enum(info->list,
+//                         path_get(RARCH_PATH_CORE),
+//                         path_get(RARCH_PATH_CORE),
+//                         MENU_ENUM_LABEL_DETECT_CORE_LIST_OK,
+//                         FILE_TYPE_DIRECT_LOAD,
+//                         0,
+//                         0))
+//                      count++;
+// 
+//                   {
+//                      struct retro_system_info *system = runloop_get_libretro_system_info();
+//                      const char *core_name            = system ? system->library_name : NULL;
+// 
+//                      if (!string_is_empty(core_name))
+//                         file_list_set_alt_at_offset(info->list, 0,
+//                               core_name);
+//                   }
+//                }
+//                else
+//                {
+//                   menu_entries_append_enum(info->list,
+//                         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_CORES_AVAILABLE),
+//                         msg_hash_to_str(MENU_ENUM_LABEL_NO_CORES_AVAILABLE),
+//                         MENU_ENUM_LABEL_NO_CORES_AVAILABLE,
+//                         0, 0, 0);
+//                   info->download_core = true;
+//                }
             }
 
             if (cores_names_size != 0)

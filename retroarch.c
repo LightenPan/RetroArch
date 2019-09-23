@@ -3688,6 +3688,8 @@ static void command_event_disable_overrides(void)
 
 static void command_event_deinit_core(bool reinit)
 {
+	RARCH_LOG("command_event_deinit_core begin. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 #ifdef HAVE_CHEEVOS
    rcheevos_unload();
 #endif
@@ -3716,7 +3718,9 @@ static void command_event_deinit_core(bool reinit)
          || runloop_remaps_content_dir_active
          || runloop_remaps_game_active
       )
-      input_remapping_set_defaults(true);
+		input_remapping_set_defaults(true);
+	RARCH_LOG("command_event_deinit_core end. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 }
 
 static void command_event_init_cheats(void)
@@ -3873,9 +3877,6 @@ static bool event_init_content(void)
 
    if (!contentless)
       path_fill_names();
-
-	RARCH_LOG("event_init_content begin2. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
-
    if (!content_init())
    {
       runloop_core_running = false;
@@ -8704,6 +8705,9 @@ bool libretro_get_shared_context(void)
  **/
 static void uninit_libretro_symbols(struct retro_core_t *current_core)
 {
+	RARCH_LOG("uninit_libretro_symbols begin. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+
 #ifdef HAVE_DYNAMIC
    if (lib_handle)
       dylib_close(lib_handle);
@@ -8721,7 +8725,9 @@ static void uninit_libretro_symbols(struct retro_core_t *current_core)
    location_driver_active    = false;
 
    /* Performance counters no longer valid. */
-   performance_counters_clear();
+	performance_counters_clear();
+	RARCH_LOG("uninit_libretro_symbols end. rom: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 }
 
 #if defined(HAVE_RUNAHEAD)
@@ -22462,7 +22468,7 @@ static void retroarch_validate_cpu_features(void)
  **/
 bool retroarch_main_init(int argc, char *argv[])
 {
-	RARCH_LOG("retroarch_main_init begin");
+	RARCH_LOG("retroarch_main_init begin\n");
 
    bool init_failed  = false;
    global_t  *global = &g_extern;
@@ -22678,9 +22684,11 @@ bool retroarch_main_init(int argc, char *argv[])
    return true;
 
 error:
+	RARCH_LOG("content_init retroarch_main_init error. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    command_event(CMD_EVENT_CORE_DEINIT, NULL);
    rarch_is_inited         = false;
 
+	RARCH_LOG("content_init retroarch_main_init error end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    return false;
 }
 

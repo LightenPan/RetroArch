@@ -582,7 +582,7 @@ static void content_load_init_wrap(
  **/
 static bool content_load(content_ctx_info_t *info)
 {
-	RARCH_LOG("content_load begin");
+	RARCH_LOG("content_load begin\n");
 
    unsigned i                        = 0;
    int rarch_argc                    = 0;
@@ -1304,6 +1304,7 @@ static bool content_file_init(
       ret = false;
    }
 
+	RARCH_LOG("content_file_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    return ret;
 }
 
@@ -1914,7 +1915,7 @@ bool task_push_load_content_with_new_core_from_menu(
       void *user_data)
 {
 	RARCH_LOG("task_push_load_content_with_new_core_from_menu begin. "
-				 "core_path: %s, fullpath: %s, label: %s",
+				 "core_path: %s, fullpath: %s, label: %s\n",
 				 core_path, fullpath, label);
 
    content_information_ctx_t content_ctx;
@@ -2022,7 +2023,7 @@ end:
 static bool task_load_content_callback(content_ctx_info_t *content_info,
       bool loading_from_menu, bool loading_from_cli)
 {
-	RARCH_LOG("task_load_content_callback begin");
+	RARCH_LOG("task_load_content_callback begin\n");
 
    content_information_ctx_t content_ctx;
 
@@ -2598,5 +2599,6 @@ bool content_init(void)
       free(error_string);
    }
 
+	RARCH_LOG("content_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    return ret;
 }

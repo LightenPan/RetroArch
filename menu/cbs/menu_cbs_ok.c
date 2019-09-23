@@ -1770,6 +1770,17 @@ static int default_action_ok_load_content_with_core_from_menu(const char *_path,
 static int default_action_ok_load_content_from_playlist_from_menu(const char *_path,
       const char *path, const char *entry_label)
 {
+	RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu begin. core: %s, rom: %s, label: %s\n",
+		_path, path, entry_label);
+
+	if (!path_is_valid(_path)) {
+		runloop_msg_queue_push(
+			msg_hash_to_str(MSG_ERROR_MISS_CORE_FILE),
+			1, 100, true,
+			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
+		return -1;
+	}
+
    content_ctx_info_t content_info;
    content_info.argc                   = 0;
    content_info.argv                   = NULL;
@@ -2018,11 +2029,10 @@ static int action_ok_playlist_entry_collection(const char *path,
    }
    else
    {
-      strlcpy(new_core_path, entry->core_path, sizeof(new_core_path));
-       playlist_resolve_path(PLAYLIST_LOAD, new_core_path, sizeof(new_core_path));
+		strlcpy(new_core_path, entry->core_path, sizeof(new_core_path));
+		playlist_resolve_path(PLAYLIST_LOAD, new_core_path, sizeof(new_core_path));
    }
 
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    if (!playlist || !menu_content_playlist_load(playlist, selection_ptr))
    {
       runloop_msg_queue_push(
@@ -2038,7 +2048,6 @@ static int action_ok_playlist_entry_collection(const char *path,
    // strlcpy(new_path, entry->path, sizeof(new_path));
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
    playlist_resolve_path(PLAYLIST_LOAD, new_path, sizeof(new_path));
-   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu before. path: %s\n", new_path);
    return default_action_ok_load_content_from_playlist_from_menu(
             new_core_path, new_path, entry->label);
 }
