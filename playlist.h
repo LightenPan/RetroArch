@@ -29,40 +29,57 @@ RETRO_BEGIN_DECLS
 /* Default maximum playlist size */
 #define COLLECTION_SIZE 99999
 
-typedef struct content_playlist playlist_t;
-
 enum playlist_runtime_status
 {
-   PLAYLIST_RUNTIME_UNKNOWN = 0,
-   PLAYLIST_RUNTIME_MISSING,
-   PLAYLIST_RUNTIME_VALID
+	PLAYLIST_RUNTIME_UNKNOWN = 0,
+	PLAYLIST_RUNTIME_MISSING,
+	PLAYLIST_RUNTIME_VALID
 };
 
 enum playlist_file_mode
 {
-   PLAYLIST_LOAD = 0,
-   PLAYLIST_SAVE
+	PLAYLIST_LOAD = 0,
+	PLAYLIST_SAVE
 };
 
 enum playlist_label_display_mode
 {
-   LABEL_DISPLAY_MODE_DEFAULT = 0,
-   LABEL_DISPLAY_MODE_REMOVE_PARENTHESES,
-   LABEL_DISPLAY_MODE_REMOVE_BRACKETS,
-   LABEL_DISPLAY_MODE_REMOVE_PARENTHESES_AND_BRACKETS,
-   LABEL_DISPLAY_MODE_KEEP_REGION,
-   LABEL_DISPLAY_MODE_KEEP_DISC_INDEX,
-   LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX
+	LABEL_DISPLAY_MODE_DEFAULT = 0,
+	LABEL_DISPLAY_MODE_REMOVE_PARENTHESES,
+	LABEL_DISPLAY_MODE_REMOVE_BRACKETS,
+	LABEL_DISPLAY_MODE_REMOVE_PARENTHESES_AND_BRACKETS,
+	LABEL_DISPLAY_MODE_KEEP_REGION,
+	LABEL_DISPLAY_MODE_KEEP_DISC_INDEX,
+	LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX
 };
 
 enum playlist_thumbnail_mode
 {
-   PLAYLIST_THUMBNAIL_MODE_DEFAULT = 0,
-   PLAYLIST_THUMBNAIL_MODE_OFF,
-   PLAYLIST_THUMBNAIL_MODE_SCREENSHOTS,
-   PLAYLIST_THUMBNAIL_MODE_TITLE_SCREENS,
-   PLAYLIST_THUMBNAIL_MODE_BOXARTS
+	PLAYLIST_THUMBNAIL_MODE_DEFAULT = 0,
+	PLAYLIST_THUMBNAIL_MODE_OFF,
+	PLAYLIST_THUMBNAIL_MODE_SCREENSHOTS,
+	PLAYLIST_THUMBNAIL_MODE_TITLE_SCREENS,
+	PLAYLIST_THUMBNAIL_MODE_BOXARTS
 };
+
+struct content_playlist
+{
+	bool modified;
+	size_t size;
+	size_t cap;
+
+	enum playlist_label_display_mode label_display_mode;
+	enum playlist_thumbnail_mode right_thumbnail_mode;
+	enum playlist_thumbnail_mode left_thumbnail_mode;
+
+	char *conf_path;
+	char *default_core_path;
+	char *default_core_name;
+	struct playlist_entry *entries;
+	size_t last_select_ptr;
+};
+
+typedef struct content_playlist playlist_t;
 
 /* Note: We already have a left/right enum defined
  * in menu_thumbnail_path.h - but we can't include

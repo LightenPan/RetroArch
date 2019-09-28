@@ -67,6 +67,7 @@
 #include "../ui/ui_companion_driver.h"
 #include "../verbosity.h"
 #include "../tasks/task_powerstate.h"
+#include "../playlist.h"
 
 #define SCROLL_INDEX_SIZE          (2 * (26 + 2) + 1)
 
@@ -88,7 +89,7 @@ typedef struct menu_ctx_load_image
 //    0.00, 0.00, 0.00, 0.85,
 // };
 
-// ²»Í¸Ã÷¶È
+// ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½
 float osk_dark[16] =  {
 	0.00, 0.00, 0.00, 1,
 	0.00, 0.00, 0.00, 1,
@@ -239,7 +240,7 @@ struct menu_list
    file_list_t **menu_stack;
 	file_list_t **selection_buf;
 	size_t playlist_size;
-	size_t playlist_hashids[256][2];
+	size_t playlist_hashids[64][2];
 };
 
 #define menu_entries_need_refresh() ((!menu_entries_nonblocking_refresh) && menu_entries_need_refresh)
@@ -930,11 +931,7 @@ static menu_list_t *menu_list_new(void)
    list->menu_stack_size       = 1;
    list->selection_buf_size    = 1;
    list->selection_buf         = NULL;
-	// list->playlist_size         = 0;
-	// for (int i = 0; i < sizeof(list->playlist_list); ++i)
-	// {
-	// 	list->playlist_list[i] = NULL;
-	// }
+	list->playlist_size         = 0;
    list->menu_stack            = (file_list_t**)
       calloc(list->menu_stack_size, sizeof(*list->menu_stack));
 
@@ -1510,10 +1507,10 @@ size_t menu_entries_get_selection_ptr_old(char *playlist_name)
 		return 0;
 	}
 
-	// ¼ÆËãhashid
-	uint32_t playlist_hashid = msg_hash_calculate(playlist_name);
+	// è®¡ç®—hashid
+	uint32_t playlist_hashid = msg_hash_calculate(path_basename(playlist_name));
 
-	// ¼ì²éÊÇ·ñ´æÔÚ£¬²»´æÔÚÔòÌí¼Ó
+	// æ ¹æ®hashidæŸ¥æ‰¾ä¸Šæ¬¡çš„è®°å½•
 	int current_playlist = 0;
 	for (int i = 0; i < menu_list->playlist_size; ++i)
 	{
@@ -1531,7 +1528,7 @@ size_t menu_entries_get_selection_ptr_old(char *playlist_name)
 	return menu_list->playlist_hashids[current_playlist][1];
 }
 
-size_t menu_entries_set_selection_ptr_old(size_t select_ptr_old)
+void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 {
 	file_list_t *list        = NULL;
 	menu_list_t *menu_list         = menu_entries_list;
@@ -1542,10 +1539,10 @@ size_t menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 	playlist_t *cached_playlist = playlist_get_cached();
 	if (cached_playlist)
 	{
-		// ¸üĞÂ²¥·ÅÁĞ±í¶ÔÓ¦µÄÑ¡ÔñID
-		uint32_t playlist_hashid = msg_hash_calculate(cached_playlist->conf_path);
+		// è®¡ç®—hashid
+		uint32_t playlist_hashid = msg_hash_calculate(path_basename(cached_playlist->conf_path));
 
-		// ¼ì²éÊÇ·ñ´æÔÚ£¬²»´æÔÚÔòÌí¼Ó
+		// æ²¡æœ‰æ—¶åˆ›å»º
 		int current_playlist = 0;
 		for (int i = 0; i < menu_list->playlist_size; ++i)
 		{
@@ -1556,9 +1553,9 @@ size_t menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 			current_playlist++;
 		}
 
-		if (current_playlist < 256)
+		if (current_playlist < 64)
 		{
-			// Èç¹û²»´æÔÚ
+			// ä¿å­˜ä¸Šæ¬¡è®°å½•
 			if (current_playlist == menu_list->playlist_size)
 			{
 				menu_list->playlist_hashids[current_playlist][0] = playlist_hashid;
@@ -3041,7 +3038,7 @@ void menu_display_draw_keyboard_ninenum(
 		1.00, 1.00, 1.00, 1.00,
 	};
 
-	// ²»ÏÔÊ¾ºÚ¿ò£¬·½±ã¾Å¹¬¸ñËÑË÷
+	// ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ú¿ò£¬·ï¿½ï¿½ï¿½Å¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	// 	menu_display_draw_quad(
 	// 		video_info,
 	// 		0, height/2.0,

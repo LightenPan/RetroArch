@@ -1737,6 +1737,7 @@ static void menu_displaylist_set_new_playlist(
 		RARCH_LOG("menu_displaylist_set_new_playlist jump to select old. paylist: %s, select_ptr_old: %d\n",
 			path, playlist_select_ptr_old);
 	}
+	RARCH_LOG("menu_displaylist_set_new_playlist end. path: %s\n", path);
 }
 
 static int menu_displaylist_parse_horizontal_list(
@@ -7890,12 +7891,13 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                   count++;
             }
 
-            if (menu_entries_append_enum(info->list,
-                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PL_THUMBNAILS_UPDATER_LIST),
-                     msg_hash_to_str(MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST),
-                     MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,
-                     MENU_SETTING_ACTION, 0, 0))
-               count++;
+				// 取消批量下载图片功能
+				// if (menu_entries_append_enum(info->list,
+				//          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PL_THUMBNAILS_UPDATER_LIST),
+				//          msg_hash_to_str(MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST),
+				//          MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,
+				//          MENU_SETTING_ACTION, 0, 0))
+				//    count++;
             if (menu_entries_append_enum(info->list,
                      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_CORE_CONTENT),
                      msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT_DIRS),
@@ -7926,12 +7928,13 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                   count++;
             }
 
-            if (menu_entries_append_enum(info->list,
-                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PL_THUMBNAILS_UPDATER_LIST),
-                     msg_hash_to_str(MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST),
-                     MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,
-                     MENU_SETTING_ACTION, 0, 0))
-               count++;
+				// 取消批量下载图片功能
+				// if (menu_entries_append_enum(info->list,
+				//          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PL_THUMBNAILS_UPDATER_LIST),
+				//          msg_hash_to_str(MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST),
+				//          MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,
+				//          MENU_SETTING_ACTION, 0, 0))
+				//    count++;
 
             if (menu_entries_append_enum(info->list,
                      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_CORE_CONTENT),

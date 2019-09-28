@@ -40,23 +40,6 @@
 #define PLAYLIST_ENTRIES 6
 #endif
 
-struct content_playlist
-{
-   bool modified;
-   size_t size;
-   size_t cap;
-
-   enum playlist_label_display_mode label_display_mode;
-   enum playlist_thumbnail_mode right_thumbnail_mode;
-   enum playlist_thumbnail_mode left_thumbnail_mode;
-
-   char *conf_path;
-   char *default_core_path;
-   char *default_core_name;
-   struct playlist_entry *entries;
-	size_t last_select_ptr;
-};
-
 typedef struct
 {
    JSON_Parser parser;

@@ -17,6 +17,7 @@
 #include "utf8vector.h"
 #include "linereader.h"
 #include "../libretro-common/include/boolean.h"
+#include "../libretro-common/include/compat/strl.h"
 
 
 #if 0
