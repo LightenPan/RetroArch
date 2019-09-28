@@ -264,7 +264,8 @@ void playlist_set_default_core_path(playlist_t *playlist, const char *core_path)
 void playlist_set_default_core_name(playlist_t *playlist, const char *core_name);
 void playlist_set_label_display_mode(playlist_t *playlist, enum playlist_label_display_mode label_display_mode);
 void playlist_set_thumbnail_mode(
-      playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id, enum playlist_thumbnail_mode thumbnail_mode);
+		playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id, enum playlist_thumbnail_mode thumbnail_mode);
+void playlist_set_last_select_ptr(playlist_t *playlist, size_t select_ptr);
 
 RETRO_END_DECLS
 

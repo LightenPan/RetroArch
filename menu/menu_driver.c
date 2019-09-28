@@ -237,7 +237,9 @@ struct menu_list
    size_t menu_stack_size;
    size_t selection_buf_size;
    file_list_t **menu_stack;
-   file_list_t **selection_buf;
+	file_list_t **selection_buf;
+	size_t playlist_size;
+	size_t playlist_hashids[256][2];
 };
 
 #define menu_entries_need_refresh() ((!menu_entries_nonblocking_refresh) && menu_entries_need_refresh)
@@ -254,6 +256,8 @@ size_t menu_navigation_get_selection(void)
 
 void menu_navigation_set_selection(size_t val)
 {
+	size_t old_selection = menu_driver_selection_ptr;
+	menu_entries_set_selection_ptr_old(old_selection);
    menu_driver_selection_ptr = val;
 }
 
@@ -726,6 +730,8 @@ int menu_entry_select(uint32_t i)
 {
    menu_entry_t     entry;
 
+	size_t old_selection = menu_driver_selection_ptr;
+	menu_entries_set_selection_ptr_old(old_selection);
    menu_driver_selection_ptr = i;
 
    menu_entry_init(&entry);
@@ -924,6 +930,11 @@ static menu_list_t *menu_list_new(void)
    list->menu_stack_size       = 1;
    list->selection_buf_size    = 1;
    list->selection_buf         = NULL;
+	// list->playlist_size         = 0;
+	// for (int i = 0; i < sizeof(list->playlist_list); ++i)
+	// {
+	// 	list->playlist_list[i] = NULL;
+	// }
    list->menu_stack            = (file_list_t**)
       calloc(list->menu_stack_size, sizeof(*list->menu_stack));
 
@@ -1014,6 +1025,8 @@ static void menu_list_flush_stack(menu_list_t *list,
       if (!menu_list_pop_stack(list, idx, &new_selection_ptr, 1))
          break;
 
+		size_t old_selection = menu_driver_selection_ptr;
+		menu_entries_set_selection_ptr_old(old_selection);
       menu_driver_selection_ptr = new_selection_ptr;
 
       menu_list = menu_list_get(list, (unsigned)idx);
@@ -1130,7 +1143,9 @@ static bool menu_entries_refresh(file_list_t *list)
 
    if ((selection >= list_size) && list_size)
    {
-      size_t idx                = list_size - 1;
+		size_t idx                = list_size - 1;
+		size_t old_selection = menu_driver_selection_ptr;
+		menu_entries_set_selection_ptr_old(old_selection);
       menu_driver_selection_ptr = idx;
       menu_driver_navigation_set(true);
    }
@@ -1480,6 +1495,86 @@ size_t menu_entries_get_size(void)
       return 0;
    list                           = menu_list_get_selection(menu_list, 0);
    return list->size;
+}
+
+size_t menu_entries_get_selection_ptr_old(char *playlist_name)
+{
+	menu_list_t *menu_list = menu_entries_list;
+	if (!menu_list)
+	{
+		return 0;
+	}
+
+	if (!playlist_name)
+	{
+		return 0;
+	}
+
+	// 计算hashid
+	uint32_t playlist_hashid = msg_hash_calculate(playlist_name);
+
+	// 检查是否存在，不存在则添加
+	int current_playlist = 0;
+	for (int i = 0; i < menu_list->playlist_size; ++i)
+	{
+		if (menu_list->playlist_hashids[i][0] == playlist_hashid)
+		{
+			break;
+		}
+		current_playlist++;
+	}
+	if (current_playlist >= menu_list->playlist_size)
+	{
+		return 0;
+	}
+
+	return menu_list->playlist_hashids[current_playlist][1];
+}
+
+size_t menu_entries_set_selection_ptr_old(size_t select_ptr_old)
+{
+	file_list_t *list        = NULL;
+	menu_list_t *menu_list         = menu_entries_list;
+	if (!menu_list)
+		return;
+	list                           = menu_list_get_selection(menu_list, 0);
+
+	playlist_t *cached_playlist = playlist_get_cached();
+	if (cached_playlist)
+	{
+		// 更新播放列表对应的选择ID
+		uint32_t playlist_hashid = msg_hash_calculate(cached_playlist->conf_path);
+
+		// 检查是否存在，不存在则添加
+		int current_playlist = 0;
+		for (int i = 0; i < menu_list->playlist_size; ++i)
+		{
+			if (menu_list->playlist_hashids[i][0] == playlist_hashid)
+			{
+				break;
+			}
+			current_playlist++;
+		}
+
+		if (current_playlist < 256)
+		{
+			// 如果不存在
+			if (current_playlist == menu_list->playlist_size)
+			{
+				menu_list->playlist_hashids[current_playlist][0] = playlist_hashid;
+				menu_list->playlist_size++;
+			}
+			menu_list->playlist_hashids[current_playlist][1] = select_ptr_old;
+			RARCH_LOG("menu_entries_set_selection_ptr_old log playlist save old select ptr. path: %s, size: %d, "
+				"hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d\n",
+				cached_playlist->conf_path,
+				cached_playlist->size,
+				playlist_hashid,
+				current_playlist,
+				menu_list->playlist_size,
+				menu_list->playlist_hashids[current_playlist][1]);
+		}
+	}
 }
 
 bool menu_entries_ctl(enum menu_entries_ctl_state state, void *data)
@@ -3444,6 +3539,8 @@ bool menu_driver_list_get_size(menu_ctx_list_t *list)
 
 bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
 {
+// 	if (state != 28 && state != 16 && state != 11)
+// 		RARCH_LOG("menu_driver_ctl begin. state: %d\n", state);
    switch (state)
    {
       case RARCH_MENU_CTL_SET_PENDING_QUICK_MENU:
@@ -3719,7 +3816,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
          {
             bool *pending_push = (bool*)data;
 
-            /* Always set current selection to first entry */
+				/* Always set current selection to first entry */
+				size_t old_selection = menu_driver_selection_ptr;
+				menu_entries_set_selection_ptr_old(old_selection);
             menu_driver_selection_ptr = 0;
 
             /* menu_driver_navigation_set() will be called
@@ -3751,6 +3850,8 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
             {
                size_t idx  = menu_driver_selection_ptr + scroll_speed;
 
+					size_t old_selection = menu_driver_selection_ptr;
+					menu_entries_set_selection_ptr_old(old_selection);
                menu_driver_selection_ptr = idx;
                menu_driver_navigation_set(true);
             }
@@ -3789,7 +3890,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                   idx = 0;
             }
 
-            menu_driver_selection_ptr = idx;
+				size_t old_selection = menu_driver_selection_ptr;
+				menu_entries_set_selection_ptr_old(old_selection);
+				menu_driver_selection_ptr = idx;
             menu_driver_navigation_set(true);
 
             if (menu_driver_ctx->navigation_decrement)
@@ -3799,7 +3902,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
       case MENU_NAVIGATION_CTL_SET_LAST:
          {
             size_t menu_list_size     = menu_entries_get_size();
-            size_t new_selection      = menu_list_size - 1;
+				size_t new_selection      = menu_list_size - 1;
+				size_t old_selection = menu_driver_selection_ptr;
+				menu_entries_set_selection_ptr_old(old_selection);
             menu_driver_selection_ptr = new_selection;
 
             if (menu_driver_ctx->navigation_set_last)
@@ -3815,16 +3920,26 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                return false;
 
             if (menu_driver_selection_ptr == scroll_index_list[scroll_index_size - 1])
+				{
+					size_t old_selection = menu_driver_selection_ptr;
+					menu_entries_set_selection_ptr_old(old_selection);
                menu_driver_selection_ptr = menu_list_size - 1;
+				}
             else
             {
                while (i < scroll_index_size - 1
                      && scroll_index_list[i + 1] <= menu_driver_selection_ptr)
-                  i++;
+						i++;
+					size_t old_selection = menu_driver_selection_ptr;
+					menu_entries_set_selection_ptr_old(old_selection);
                menu_driver_selection_ptr = scroll_index_list[i + 1];
 
                if (menu_driver_selection_ptr >= menu_list_size)
+					{
+						size_t old_selection = menu_driver_selection_ptr;
+						menu_entries_set_selection_ptr_old(old_selection);
                   menu_driver_selection_ptr = menu_list_size - 1;
+					}
             }
 
             if (menu_driver_ctx->navigation_ascend_alphabet)
@@ -3848,7 +3963,11 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                i--;
 
             if (i > 0)
+				{
+					size_t old_selection = menu_driver_selection_ptr;
+					menu_entries_set_selection_ptr_old(old_selection);
                menu_driver_selection_ptr = scroll_index_list[i - 1];
+				}
 
             if (menu_driver_ctx->navigation_descend_alphabet)
                menu_driver_ctx->navigation_descend_alphabet(

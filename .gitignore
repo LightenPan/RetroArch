@@ -187,3 +187,4 @@ gfx/common/wayland/xdg-decoration-unstable-v1.c
 gfx/common/wayland/xdg-shell.c
 gfx/common/wayland/xdg-shell.h
 /pkg/msvc/RetroArch魔改-pc
+/pkg/msvc/RetroArchPc

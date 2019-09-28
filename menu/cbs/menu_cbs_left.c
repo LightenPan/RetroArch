@@ -217,6 +217,9 @@ static int action_left_scroll(unsigned type, const char *label,
 static int action_left_mainmenu(unsigned type, const char *label,
       bool wraparound)
 {
+	RARCH_LOG("action_left_mainmenu begin. type: %d, label: %s, wraparound: %d\n",
+		type, label, wraparound);
+
    menu_ctx_list_t list_info;
    unsigned        push_list = 0;
    menu_handle_t       *menu  = menu_driver_get_ptr();

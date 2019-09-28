@@ -1901,8 +1901,7 @@ static void xmb_list_switch(xmb_handle_t *xmb)
    if (xmb->categories_selection_ptr > xmb->categories_selection_ptr_old)
       dir = 1;
 
-   xmb_list_switch_old(xmb, xmb->selection_buf_old,
-         dir, xmb->selection_ptr_old);
+   xmb_list_switch_old(xmb, xmb->selection_buf_old, dir, xmb->selection_ptr_old);
 
    /* Check if we are to have horizontal animations. */
    if (settings->bools.menu_horizontal_animation)

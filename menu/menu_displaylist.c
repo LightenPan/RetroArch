@@ -1698,6 +1698,8 @@ end:
 static void menu_displaylist_set_new_playlist(
       menu_handle_t *menu, const char *path)
 {
+	RARCH_LOG("menu_displaylist_set_new_playlist begin. path: %s\n", path);
+
    unsigned playlist_size         = COLLECTION_SIZE;
    const char *playlist_file_name = path_basename(path);
    settings_t *settings           = config_get_ptr();
@@ -1725,6 +1727,16 @@ static void menu_displaylist_set_new_playlist(
             menu->db_playlist_file,
             path,
             sizeof(menu->db_playlist_file));
+
+	size_t playlist_select_ptr_old = menu_entries_get_selection_ptr_old(path);
+	if (playlist_select_ptr_old > 0)
+	{
+		// 切换列表时，优先切换到上次选择的项navigation_increment
+		menu_navigation_set_selection(playlist_select_ptr_old);
+		menu_driver_navigation_set(true);
+		RARCH_LOG("menu_displaylist_set_new_playlist jump to select old. paylist: %s, select_ptr_old: %d\n",
+			path, playlist_select_ptr_old);
+	}
 }
 
 static int menu_displaylist_parse_horizontal_list(

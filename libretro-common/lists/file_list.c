@@ -33,6 +33,8 @@
 
 bool file_list_reserve(file_list_t *list, size_t nitems)
 {
+	RARCH_LOG("file_list_reserve begin. nitems: %d, list_ptr: %d\n", nitems, list);
+
    const size_t item_size = sizeof(struct item_file);
    struct item_file *new_data;
 
@@ -48,6 +50,7 @@ bool file_list_reserve(file_list_t *list, size_t nitems)
 
    list->list     = new_data;
    list->capacity = nitems;
+	// list->select_ptr_old = 0;
 
    return true;
 }
@@ -200,6 +203,7 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
 
 void file_list_free(file_list_t *list)
 {
+	RARCH_LOG("file_list_free begin\n");
    size_t i;
 
    if (!list)

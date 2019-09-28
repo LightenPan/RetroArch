@@ -54,6 +54,7 @@ struct content_playlist
    char *default_core_path;
    char *default_core_name;
    struct playlist_entry *entries;
+	size_t last_select_ptr;
 };
 
 typedef struct
@@ -2309,6 +2310,7 @@ bool playlist_init_cached(const char *path, size_t size)
  **/
 playlist_t *playlist_init(const char *path, size_t size)
 {
+	RARCH_LOG("playlist_init begin. path: %s, size: %d\n", path, size);
    struct playlist_entry *entries = NULL;
    playlist_t           *playlist = (playlist_t*)malloc(sizeof(*playlist));
    if (!playlist)
@@ -2331,6 +2333,7 @@ playlist_t *playlist_init(const char *path, size_t size)
    playlist->label_display_mode   = LABEL_DISPLAY_MODE_DEFAULT;
    playlist->right_thumbnail_mode = PLAYLIST_THUMBNAIL_MODE_DEFAULT;
    playlist->left_thumbnail_mode  = PLAYLIST_THUMBNAIL_MODE_DEFAULT;
+	playlist->last_select_ptr      = 0;
 
    playlist_read_file(playlist, path);
 
@@ -2628,4 +2631,21 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
 			strlcpy(path, buf, size);
 		}
 	}
+}
+
+void playlist_set_last_select_ptr(playlist_t *playlist, size_t select_ptr)
+{
+	if (!playlist)
+		return ;
+
+	if (playlist->size == 0)
+		return ;
+
+	if (select_ptr > playlist->size)
+	{
+		playlist->last_select_ptr = playlist->size - 1;
+		return ;
+	}
+
+	playlist->last_select_ptr = select_ptr;
 }
