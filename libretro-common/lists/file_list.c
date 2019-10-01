@@ -73,6 +73,7 @@ bool file_list_insert(file_list_t *list,
       size_t entry_idx,
       size_t idx)
 {
+	RARCH_LOG("file_list_insert begin\n");
    int i;
 
    /* Expand file list if needed */

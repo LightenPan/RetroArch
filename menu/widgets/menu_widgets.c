@@ -1702,6 +1702,7 @@ void menu_widgets_frame(video_frame_info_t *video_info)
 
 bool menu_widgets_init(bool video_is_threaded)
 {
+	RARCH_LOG("menu_widgets_init begin\n");
    if (!menu_display_init_first_driver(video_is_threaded))
       goto error;
 

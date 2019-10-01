@@ -404,10 +404,10 @@ static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_JACK;
 static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_COREAUDIO;
 #elif defined(HAVE_COREAUDIO3)
 static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_COREAUDIO3;
-#elif defined(HAVE_XAUDIO)
-static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_XAUDIO;
 #elif defined(HAVE_DSOUND)
 static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_DSOUND;
+#elif defined(HAVE_XAUDIO)
+static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_XAUDIO;
 #elif defined(HAVE_WASAPI)
 static enum audio_driver_enum AUDIO_DEFAULT_DRIVER = AUDIO_WASAPI;
 #elif defined(HAVE_AL)
@@ -1204,7 +1204,7 @@ static struct config_path_setting *populate_settings_path(settings_t *settings, 
    SETTING_PATH("core_updater_buildbot_assets_url", settings->paths.network_buildbot_assets_url, false, NULL, true);
 
 	// 替换成基础地址，方便国外用户使用
-	char base_url[256] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro";
+	char base_url[256] = "http://wekafei.cn/cdn/RetroGame/libretro";
 	strreplace(settings->paths.network_buildbot_url, base_url, settings->paths.network_buildbot_base_url);
 	strreplace(settings->paths.network_buildbot_assets_url, base_url, settings->paths.network_buildbot_assets_url);
 #ifdef HAVE_NETWORKING
@@ -2155,7 +2155,7 @@ void config_set_defaults(void)
       }
    }
 
-	char base_url[256] = "http://retrogame.dynamic-dns.net:38080/cdn/RetroGame/libretro";
+	char base_url[256] = "http://wekafei.cn/cdn/RetroGame/libretro";
    strlcpy(settings->paths.network_buildbot_base_url, base_url,
          sizeof(settings->paths.network_buildbot_base_url));
    strlcpy(settings->paths.network_buildbot_url, buildbot_server_url,

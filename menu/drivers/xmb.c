@@ -5511,6 +5511,7 @@ static void xmb_list_free(file_list_t *list, size_t a, size_t b)
 static void xmb_list_deep_copy(const file_list_t *src, file_list_t *dst,
       size_t first, size_t last)
 {
+	RARCH_LOG("xmb_list_deep_copy begin\n");
    size_t i, j = 0;
    menu_animation_ctx_tag tag = (uintptr_t)dst;
 
@@ -5559,6 +5560,8 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
    file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
    size_t selection           = menu_navigation_get_selection();
    settings_t *settings       = config_get_ptr();
+
+	RARCH_LOG("xmb_list_cache begin. selection_buf_file_list_size: %u\n", selection_buf->size);
 
    if (!xmb)
       return;

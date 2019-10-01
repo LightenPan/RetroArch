@@ -845,6 +845,7 @@ static unsigned menu_displaylist_parse_system_info(menu_displaylist_info_t *info
 static int menu_displaylist_parse_playlist(menu_displaylist_info_t *info,
       playlist_t *playlist, const char *path_playlist, bool is_collection)
 {
+	RARCH_LOG("menu_displaylist_parse_playlist begin\n");
    unsigned i;
    char label_spacer[PL_LABEL_SPACER_MAXLEN];
    size_t           list_size        = playlist_size(playlist);
@@ -906,6 +907,9 @@ static int menu_displaylist_parse_playlist(menu_displaylist_info_t *info,
 
    /* Preallocate the file list */
    file_list_reserve(info->list, list_size);
+
+	// 设置当前列表个数，用来实现列表切换记住位置
+	menu_entries_set_current_playlist_item_size(list_size);
 
    switch (playlist_get_label_display_mode(playlist))
    {
@@ -1698,8 +1702,25 @@ end:
 static void menu_displaylist_set_new_playlist(
       menu_handle_t *menu, const char *path)
 {
-	RARCH_LOG("menu_displaylist_set_new_playlist begin. path: %s\n", path);
+	RARCH_LOG("menu_displaylist_set_new_playlist begin. path: %s"
+		", deferred_path: %s"
+		", scratch_buf: %s"
+		", scratch2_buf: %s"
+		", db_playlist_file: %s"
+		", filebrowser_label: %s"
+		", detect_content_path: %s"
+		"\n",
+		path,
+		menu->deferred_path,
+		menu->scratch_buf,
+		menu->scratch2_buf,
+		menu->db_playlist_file,
+		menu->filebrowser_label,
+		menu->detect_content_path
+		);
 
+	unsigned current_playlist_size = 0;
+	playlist_t *playlist_ptr       = NULL;
    unsigned playlist_size         = COLLECTION_SIZE;
    const char *playlist_file_name = path_basename(path);
    settings_t *settings           = config_get_ptr();
@@ -1723,21 +1744,31 @@ static void menu_displaylist_set_new_playlist(
    }
 
    if (playlist_init_cached(path, playlist_size))
+	{
       strlcpy(
             menu->db_playlist_file,
             path,
             sizeof(menu->db_playlist_file));
 
-	size_t playlist_select_ptr_old = menu_entries_get_selection_ptr_old(path);
+		// 计算hashid时，用路径和列表个数，避免进入子菜单时，出现列表错乱的问题
+		playlist_ptr = playlist_get_cached();
+		if (playlist_ptr)
+		{
+			current_playlist_size = playlist_ptr->size;
+			menu_entries_set_current_playlist_item_size(current_playlist_size);
+		}
+	}
+
+	size_t playlist_select_ptr_old = menu_entries_get_selection_ptr_old(path, current_playlist_size);
 	if (playlist_select_ptr_old > 0)
 	{
 		// 切换列表时，优先切换到上次选择的项navigation_increment
 		menu_navigation_set_selection(playlist_select_ptr_old);
 		menu_driver_navigation_set(true);
-		RARCH_LOG("menu_displaylist_set_new_playlist jump to select old. paylist: %s, select_ptr_old: %d\n",
-			path, playlist_select_ptr_old);
+		RARCH_LOG("menu_displaylist_set_new_playlist jump to select old. paylist_path: %s, current_playlist_size: %u, select_ptr_old: %d\n",
+			path, current_playlist_size, playlist_select_ptr_old);
 	}
-	RARCH_LOG("menu_displaylist_set_new_playlist end. path: %s\n", path);
+	// RARCH_LOG("menu_displaylist_set_new_playlist end. path: %s\n", path);
 }
 
 static int menu_displaylist_parse_horizontal_list(
@@ -2071,6 +2102,8 @@ static int menu_displaylist_parse_horizontal_content_actions(
       menu_handle_t *menu,
       menu_displaylist_info_t *info)
 {
+	RARCH_LOG("menu_displaylist_parse_horizontal_content_actions\n");
+
    bool content_loaded             = false;
    playlist_t *playlist            = playlist_get_cached();
    settings_t *settings            = config_get_ptr();
@@ -2081,7 +2114,6 @@ static int menu_displaylist_parse_horizontal_content_actions(
    if (playlist)
       playlist_get_index(playlist, idx, &entry);
 
-   RARCH_LOG("menu_displaylist_parse_horizontal_content_actions\n");
    content_loaded = !rarch_ctl(RARCH_CTL_IS_DUMMY_CORE, NULL)
 	   && string_is_equal(path_basename(menu->deferred_path), path_basename(fullpath));
 
@@ -2253,6 +2285,8 @@ static int menu_displaylist_parse_horizontal_content_actions(
    }
 #endif
 
+	menu_entries_set_current_playlist_item_size(info->list->size);
+	RARCH_LOG("menu_displaylist_parse_horizontal_content_actions end\n");
    return 0;
 }
 

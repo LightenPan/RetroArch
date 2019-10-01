@@ -2076,6 +2076,7 @@ static void ozone_list_insert(void *userdata,
 static void ozone_list_deep_copy(const file_list_t *src, file_list_t *dst,
       size_t first, size_t last)
 {
+	RARCH_LOG("ozone_list_deep_copy begin\n");
    size_t i, j = 0;
    menu_animation_ctx_tag tag = (uintptr_t)dst;
 

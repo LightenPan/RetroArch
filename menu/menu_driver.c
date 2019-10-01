@@ -239,8 +239,9 @@ struct menu_list
    size_t selection_buf_size;
    file_list_t **menu_stack;
 	file_list_t **selection_buf;
-	size_t playlist_size;
-	size_t playlist_hashids[64][2];
+	size_t playlist_hashids_size;
+	size_t playlist_hashids[256][2];
+	size_t current_playlist_item_size;
 };
 
 #define menu_entries_need_refresh() ((!menu_entries_nonblocking_refresh) && menu_entries_need_refresh)
@@ -931,7 +932,8 @@ static menu_list_t *menu_list_new(void)
    list->menu_stack_size       = 1;
    list->selection_buf_size    = 1;
    list->selection_buf         = NULL;
-	list->playlist_size         = 0;
+	list->playlist_hashids_size         = 0;
+	list->current_playlist_item_size = 0;
    list->menu_stack            = (file_list_t**)
       calloc(list->menu_stack_size, sizeof(*list->menu_stack));
 
@@ -1347,6 +1349,7 @@ bool menu_entries_append_enum(file_list_t *list, const char *path,
       enum msg_hash_enums enum_idx,
       unsigned type, size_t directory_ptr, size_t entry_idx)
 {
+	// RARCH_LOG("menu_entries_append_enum begin. path: %s, label: %s, file_list_size: %u\n", path, label, list->size);
    menu_ctx_list_t list_info;
    size_t idx;
    const char *menu_path           = NULL;
@@ -1494,8 +1497,9 @@ size_t menu_entries_get_size(void)
    return list->size;
 }
 
-size_t menu_entries_get_selection_ptr_old(char *playlist_name)
+size_t menu_entries_get_selection_ptr_old(char *playlist_name, size_t playlist_size)
 {
+	char calc_hashid_key[256] = {0};
 	menu_list_t *menu_list = menu_entries_list;
 	if (!menu_list)
 	{
@@ -1508,11 +1512,13 @@ size_t menu_entries_get_selection_ptr_old(char *playlist_name)
 	}
 
 	// 计算hashid
-	uint32_t playlist_hashid = msg_hash_calculate(path_basename(playlist_name));
+	char *basename = path_basename(playlist_name);
+	snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, playlist_size);
+	uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
 	// 根据hashid查找上次的记录
 	int current_playlist = 0;
-	for (int i = 0; i < menu_list->playlist_size; ++i)
+	for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
 	{
 		if (menu_list->playlist_hashids[i][0] == playlist_hashid)
 		{
@@ -1520,7 +1526,7 @@ size_t menu_entries_get_selection_ptr_old(char *playlist_name)
 		}
 		current_playlist++;
 	}
-	if (current_playlist >= menu_list->playlist_size)
+	if (current_playlist >= menu_list->playlist_hashids_size)
 	{
 		return 0;
 	}
@@ -1530,6 +1536,8 @@ size_t menu_entries_get_selection_ptr_old(char *playlist_name)
 
 void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 {
+	RARCH_LOG("menu_entries_set_selection_ptr_old begin\n");
+	char calc_hashid_key[256] = {0};
 	file_list_t *list        = NULL;
 	menu_list_t *menu_list         = menu_entries_list;
 	if (!menu_list)
@@ -1540,11 +1548,13 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 	if (cached_playlist)
 	{
 		// 计算hashid
-		uint32_t playlist_hashid = msg_hash_calculate(path_basename(cached_playlist->conf_path));
+		char *basename = path_basename(cached_playlist->conf_path);
+		snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
+		uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
 		// 没有时创建
 		int current_playlist = 0;
-		for (int i = 0; i < menu_list->playlist_size; ++i)
+		for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
 		{
 			if (menu_list->playlist_hashids[i][0] == playlist_hashid)
 			{
@@ -1556,22 +1566,32 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 		if (current_playlist < 64)
 		{
 			// 保存上次记录
-			if (current_playlist == menu_list->playlist_size)
+			if (current_playlist == menu_list->playlist_hashids_size)
 			{
 				menu_list->playlist_hashids[current_playlist][0] = playlist_hashid;
-				menu_list->playlist_size++;
+				menu_list->playlist_hashids_size++;
 			}
 			menu_list->playlist_hashids[current_playlist][1] = select_ptr_old;
 			RARCH_LOG("menu_entries_set_selection_ptr_old log playlist save old select ptr. path: %s, size: %d, "
-				"hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d\n",
+				"hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d, current_playlist_item_size: %u\n",
 				cached_playlist->conf_path,
 				cached_playlist->size,
 				playlist_hashid,
 				current_playlist,
-				menu_list->playlist_size,
-				menu_list->playlist_hashids[current_playlist][1]);
+				menu_list->playlist_hashids_size,
+				menu_list->playlist_hashids[current_playlist][1],
+				menu_list->current_playlist_item_size);
 		}
 	}
+}
+
+void menu_entries_set_current_playlist_item_size(size_t playlist_size)
+{
+	RARCH_LOG("menu_entries_set_current_playlist_item_size begin. playlist_size: %u\n", playlist_size);
+	menu_list_t *menu_list         = menu_entries_list;
+	if (!menu_list)
+		return;
+	menu_list->current_playlist_item_size = playlist_size;
 }
 
 bool menu_entries_ctl(enum menu_entries_ctl_state state, void *data)

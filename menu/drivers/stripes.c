@@ -3833,6 +3833,7 @@ static void stripes_list_free(file_list_t *list, size_t a, size_t b)
 static void stripes_list_deep_copy(const file_list_t *src, file_list_t *dst,
       size_t first, size_t last)
 {
+	RARCH_LOG("stripes_list_deep_copy begin\n");
    size_t i, j = 0;
    menu_animation_ctx_tag tag = (uintptr_t)dst;
 
