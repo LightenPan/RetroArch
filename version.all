@@ -9,5 +9,5 @@
 RARCH_VERSION="1.7.8 魔改(110)"
 #endif
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.7.8 魔改(110)"
+#define PACKAGE_VERSION "1.7.8 魔改(111)"
 #endif
