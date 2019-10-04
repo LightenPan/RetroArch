@@ -390,7 +390,7 @@ finish:
       free(body_copy);
 }
 
-void yun_save_rom_state(char *path)
+bool yun_save_rom_state(char *path)
 {
 	settings_t *settings = config_get_ptr();
 	bool isopen = settings->bools.network_on_demand_yunsavestate;
@@ -400,7 +400,7 @@ void yun_save_rom_state(char *path)
 
 	if (!isopen)
 	{
-		return;
+		return true;
 	}
 
 	const int64_t max_buf_size = 10*1024*1024;
@@ -458,7 +458,7 @@ finish:
 	if (file_buf)
 		free(file_buf);
 
-	return;
+	return true;
 }
 
 void yun_load_rom_state_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)

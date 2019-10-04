@@ -72,18 +72,21 @@ public final class UserPreferences
 		if (external != null)
 		{
 			String confPath = external + append_path;
+			Log.i("xxxxxxxxxxxxxx", "getDefaultConfigPath log external. confPath: " + confPath);
 			if (new File(confPath).exists())
 				return confPath;
 		}
 		else if (internal != null)
 		{
 			String confPath = internal + append_path;
+			Log.i("xxxxxxxxxxxxxx", "getDefaultConfigPath log internal. confPath: " + confPath);
 			if (new File(confPath).exists())
 				return confPath;
 		}
 		else
 		{
 			String confPath = "/mnt/extsd" + append_path;
+			Log.i("xxxxxxxxxxxxxx", "getDefaultConfigPath log else. confPath: " + confPath);
 			if (new File(confPath).exists())
 				return confPath;
 		}
