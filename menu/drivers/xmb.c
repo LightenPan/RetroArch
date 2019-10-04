@@ -2370,7 +2370,8 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_SAVE_STATE:
       case MENU_ENUM_LABEL_SAVESTATE_AUTO_SAVE:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
-      case MENU_ENUM_LABEL_LOAD_STATE:
+		case MENU_ENUM_LABEL_LOAD_STATE:
+		case MENU_ENUM_LABEL_YUN_LOAD_STATE:
       case MENU_ENUM_LABEL_CONFIGURATIONS:
       case MENU_ENUM_LABEL_GAME_SPECIFIC_OPTIONS:
       case MENU_ENUM_LABEL_REMAP_FILE_LOAD:
@@ -2682,7 +2683,8 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
          return xmb->textures.list[XMB_TEXTURE_CLOSE];
       case MENU_SETTING_ACTION_SAVESTATE:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
-      case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_YUNLOADSTATE:
          return xmb->textures.list[XMB_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
       case MENU_SETTING_ACTION_CORE_INFORMATION:

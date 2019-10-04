@@ -2143,7 +2143,8 @@ static uintptr_t stripes_icon_get_id(stripes_handle_t *stripes,
          return stripes->textures.list[STRIPES_TEXTURE_ACHIEVEMENT_LIST];
       case MENU_ENUM_LABEL_SAVE_STATE:
          return stripes->textures.list[STRIPES_TEXTURE_SAVESTATE];
-      case MENU_ENUM_LABEL_LOAD_STATE:
+		case MENU_ENUM_LABEL_LOAD_STATE:
+		case MENU_ENUM_LABEL_YUN_LOAD_STATE:
          return stripes->textures.list[STRIPES_TEXTURE_LOADSTATE];
       case MENU_ENUM_LABEL_PARENT_DIRECTORY:
       case MENU_ENUM_LABEL_UNDO_LOAD_STATE:
@@ -2224,7 +2225,8 @@ static uintptr_t stripes_icon_get_id(stripes_handle_t *stripes,
          return stripes->textures.list[STRIPES_TEXTURE_CLOSE];
       case MENU_SETTING_ACTION_SAVESTATE:
          return stripes->textures.list[STRIPES_TEXTURE_SAVESTATE];
-      case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_YUNLOADSTATE:
          return stripes->textures.list[STRIPES_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
       case MENU_SETTING_ACTION_CORE_INFORMATION:

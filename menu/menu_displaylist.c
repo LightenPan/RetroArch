@@ -1896,7 +1896,14 @@ static int menu_displaylist_parse_load_content_settings(
                   msg_hash_to_str(MENU_ENUM_LABEL_LOAD_STATE),
                   MENU_ENUM_LABEL_LOAD_STATE,
                   MENU_SETTING_ACTION_LOADSTATE, 0, 0);
-         }
+			}
+			{
+				menu_entries_append_enum(info->list,
+					msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE),
+					msg_hash_to_str(MENU_ENUM_LABEL_YUN_LOAD_STATE),
+					MENU_ENUM_LABEL_YUN_LOAD_STATE,
+					MENU_SETTING_ACTION_YUNLOADSTATE, 0, 0);
+			}
       }
 
       if (settings->bools.quick_menu_show_save_load_state &&
@@ -1911,7 +1918,7 @@ static int menu_displaylist_parse_load_content_settings(
                   msg_hash_to_str(MENU_ENUM_LABEL_UNDO_LOAD_STATE),
                   MENU_ENUM_LABEL_UNDO_LOAD_STATE,
                   MENU_SETTING_ACTION_LOADSTATE, 0, 0);
-         }
+			}
 
          menu_entries_append_enum(info->list,
                msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UNDO_SAVE_STATE),
@@ -4333,7 +4340,12 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
             if (menu_displaylist_parse_settings_enum(list,
                      MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
                      PARSE_ONLY_BOOL, false) != -1)
-               count++;
+							count++;
+
+				if (menu_displaylist_parse_settings_enum(list,
+					MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+					PARSE_ONLY_BOOL, false) != -1)
+					count++;
 
             if (menu_displaylist_parse_settings_enum(list,
                      MENU_ENUM_LABEL_UPDATER_SETTINGS,
@@ -8076,7 +8088,11 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
             if (menu_displaylist_parse_settings_enum(info->list,
                      MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
                      PARSE_ONLY_BOOL, false) != -1)
-               count++;
+							count++;
+				if (menu_displaylist_parse_settings_enum(info->list,
+					MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+					PARSE_ONLY_BOOL, false) != -1)
+					count++;
 #endif
          }
 

@@ -1633,13 +1633,17 @@ MSG_HASH(
     "Load Content"
     )
 MSG_HASH(MENU_ENUM_LABEL_VALUE_LOAD_DISC,
-      "Load Disc")
+	 "Load Disc")
 MSG_HASH(MENU_ENUM_LABEL_VALUE_DUMP_DISC,
-      "Dump Disc")
+	 "Dump Disc")
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_LOAD_STATE,
     "Load State"
-    )
+	 )
+MSG_HASH(
+	 MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
+	 "Load Cloud State"
+)
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_LOCATION_ALLOW,
     "Allow Location"
@@ -1951,11 +1955,19 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_THUMBNAILS,
     "On-Demand Thumbnail Downloads"
-    )
+	 )
+MSG_HASH(
+	 MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
+	 "On-Demand Cloud Save State"
+	 )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
     "Automatically download missing thumbnail images while browsing playlists. Has a severe performance impact."
-    )
+	 )
+MSG_HASH(
+	 MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+	 "Automatically upload cloud save state when finish save state. Has a severe performance impact."
+	 )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_NETWORK_SETTINGS,
     "Network"

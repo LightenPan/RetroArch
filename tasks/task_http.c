@@ -184,9 +184,9 @@ task_finished:
             free(tmp);
 
          if (task_get_cancelled(task))
-			 task_set_error(task, strdup("Task cancelled."));
-		 else if (http->handle && http->handle->status == 401 && !task->mute)
-			 task_set_error(task, strdup(msg_hash_to_str(MSG_DOWNLOAD_NOLOGIN)));
+				task_set_error(task, strdup("Task cancelled."));
+			else if (http->handle && http->handle->status == 401 && !task->mute)
+				task_set_error(task, strdup(msg_hash_to_str(MSG_DOWNLOAD_NOLOGIN)));
          else if (!task->mute)
             task_set_error(task, strdup("Download failed."));
       }

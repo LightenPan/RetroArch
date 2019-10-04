@@ -83,6 +83,30 @@ bool task_push_pl_entry_rom_download(
       unsigned idx,
       bool overwrite,
       bool mute);
+bool yun_save_rom_state(char *path);
+bool yun_load_rom_state(char *path);
+
+
+typedef struct
+{
+	intfstream_t *file;
+	char path[PATH_MAX_LENGTH];
+	void *data;
+	void *undo_data;
+	ssize_t size;
+	ssize_t undo_size;
+	ssize_t written;
+	ssize_t bytes_read;
+	bool load_to_backup_buffer;
+	bool autoload;
+	bool autosave;
+	bool undo_save;
+	bool mute;
+	int state_slot;
+	bool thumbnail_enable;
+	bool has_valid_framebuffer;
+} yun_load_state_task_state_t;
+
 #endif
 
 #endif

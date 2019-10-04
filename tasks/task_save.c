@@ -1047,11 +1047,16 @@ static void save_state_cb(retro_task_t *task,
 {
    settings_t     *settings = config_get_ptr();
    save_task_state_t *state = (save_task_state_t*)task_data;
-   char               *path = strdup(state->path);
+	char               *path = strdup(state->path);
+
+	RARCH_LOG("save_state_cb begin. path: %s\n", path);
 
    if (state->thumbnail_enable)
       take_screenshot(settings->paths.directory_screenshot,
             path, true, state->has_valid_framebuffer, false, true);
+
+	// ¿ªÆôÔÆ´æµµÈÎÎñ
+	yun_save_rom_state(path);
 
    free(path);
    free(state);

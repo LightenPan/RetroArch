@@ -102,9 +102,6 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
 	char *username = settings->arrays.retrogame_allinone_username;
 	char *password = settings->arrays.retrogame_allinone_password;
 	char *mcode = settings->arrays.retrogame_allinone_mcode;
-	uint8_t hash[16] = {0};
-	MD5_CTX ctx;
-	MD5_Init(&ctx);
 
 	// 1、获取password的md5: pwdmd5=md5(password)
 	char plain_pwd[1024] = {0};
@@ -129,9 +126,32 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
 
 	// 组合账号密码参数
 	char fmt[1024] = {0};
-	snprintf(fmt, sizeof(fmt), "?acc=%s&time=%u&sign=%s&mcode=%s", username, now, sign, mcode);
+	snprintf(fmt, sizeof(fmt), "acc=%s&time=%u&sign=%s&mcode=%s", username, now, sign, mcode);
 	strncpy(url_query, fmt, len);
 }
+
+char *genYunSaveStateUrl(char *savename, char *save_buf_md5)
+{
+	char save_state_url[PATH_MAX_LENGTH];
+	char acc_query_str[1024] = {0};
+	clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
+	snprintf(save_state_url, sizeof(save_state_url),
+		"%s?%s&savename=%s&save_buf_md5=%s",
+		"http://wekafei.cn/api/UserGameData/SaveState", acc_query_str, savename, save_buf_md5);
+	return strdup(save_state_url);
+}
+
+char *genYunLoadStateUrl(char *loadname)
+{
+	char load_state_url[PATH_MAX_LENGTH];
+	char acc_query_str[1024] = {0};
+	clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
+	snprintf(load_state_url, sizeof(load_state_url),
+		"%s?%s&loadname=%s",
+		"http://wekafei.cn/api/UserGameData/LoadState", acc_query_str, loadname);
+	return strdup(load_state_url);
+}
+
 /* Fetches local and remote paths for current thumbnail
  * of current type */
 static bool get_rom_paths(
@@ -215,7 +235,8 @@ static bool get_rom_paths(
    net_http_urlencode_full(url, raw_url, url_size);
 
    char url_query[1024] = {0};
-   clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+	strlcat(url, "?", url_size);
    strlcat(url, url_query, url_size);
 
    RARCH_LOG("get_rom_paths log result. url: %s, path: %s, url_query: %s\n", url, path, url_query);
@@ -253,9 +274,9 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
 			if (pl_thumb && pl_thumb->title)
 			{
 				strlcpy(transf->title, pl_thumb->title, sizeof(transf->title));
-				strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
+				// strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
 			}
-			RARCH_LOG("download_pl_rom. url: %s, path: %s, transf->path%s, path: %s, title: %s\n", url, path, transf->path, path, transf->title);
+			RARCH_LOG("download_pl_rom. url: %s, path: %s, title: %s\n", url, path, transf->title);
 
          /* Note: We don't actually care if this fails since that
           * just means the file is missing from the server, so it's
@@ -263,6 +284,270 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
          pl_thumb->http_task = (retro_task_t*)task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
       }
    }
+}
+
+void yun_save_rom_state_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
+{
+   http_transfer_data_t *data        = (http_transfer_data_t*)task_data;
+	char status[1024]						 = {0};
+	char message[1024]					 = {0};
+	char errmsg[1024]						 = {0};
+
+	// 遍历json的变量
+	char* body_copy                   = NULL;
+	char curr                         = 0;
+   int i                             = 0;
+   int start                         = -1;
+   char* found_string                = NULL;
+   int curr_state                    = 0;
+
+   if (!data || error)
+      goto finish;
+   
+   data->data = (char*)realloc(data->data, data->len + 1);
+   if (!data->data)
+      goto finish;
+
+   data->data[data->len] = '\0'; 
+
+   /* Parse JSON body for the image and sound data */
+   body_copy = strdup(data->data);
+   while (true)
+   {
+      curr = (char)*(body_copy+i);
+      if (curr == '\0')
+          break;
+      if (curr == '\"')
+      {
+         if (start == -1)
+            start = i;
+         else
+         {
+            found_string = (char*)malloc(i-start);
+            strncpy(found_string, body_copy+start+1, i-start-1);
+            *(found_string+i-start-1) = '\0';
+            if (curr_state == 1)
+				{
+					strncpy(status, found_string, sizeof(status));
+					curr_state = 0;
+            }
+            else if (curr_state == 2)
+				{
+					strncpy(message, found_string, sizeof(message));
+					curr_state = 0;
+            }
+            else if (strcmp(found_string, "status")==0)
+            {
+              curr_state = 1;
+              free(found_string);
+            }
+            else if (strcmp(found_string, "message")==0)
+            {
+              curr_state = 2;
+              free(found_string);
+            }
+            else
+              curr_state = 0;
+            start = -1;
+         }
+      }
+      i++;
+   }
+
+   if (found_string)
+       free(found_string);
+
+	if (strcmp(status, "SUCCESS") == 0)
+	{
+		runloop_msg_queue_push(
+			"云存档成功",
+			2, 180, true,
+			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
+	}
+	else
+	{
+		snprintf(errmsg, sizeof(errmsg), "云存档失败，服务器错误信息为：%s", message);
+		runloop_msg_queue_push(
+			errmsg,
+			2, 180, true,
+			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+	}
+
+finish:
+   if (error)
+      RARCH_ERR("%s: %s\n", msg_hash_to_str(MSG_DOWNLOAD_FAILED), error);
+  
+   if (data)
+   {
+      if (data->data)
+         free(data->data);
+      free(data);
+   }
+   if (user_data)
+      free(user_data);
+
+   if (body_copy)
+      free(body_copy);
+}
+
+void yun_save_rom_state(char *path)
+{
+	settings_t *settings = config_get_ptr();
+	bool isopen = settings->bools.network_on_demand_yunsavestate;
+	char *show_errmsg[1024] = {0};
+	char *savename = path_basename(path);
+	RARCH_LOG("yun_save_rom_state begin. savename: %s, savepath: %s, isopen: %d\n", savename, path, isopen);
+
+	if (!isopen)
+	{
+		return;
+	}
+
+	const int64_t max_buf_size = 10*1024*1024;
+	char *file_buf = NULL;
+	int64_t file_buf_size = 0;
+	char *b64_file_buf = NULL;
+	int b64_file_buf_len = 0;
+
+	if (!path_is_valid(path))
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "存档文件无效：%s", path);
+		return false;
+	}
+
+	filestream_read_file(path, (void**)&file_buf, &file_buf_size);
+	if (string_is_empty(file_buf) || file_buf_size == 0)
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "读取存档文件失败：%s", path);
+		goto finish;
+	}
+
+	if (file_buf_size > max_buf_size)
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "存档文件太大：%s", path);
+		goto finish;
+	}
+
+   b64_file_buf = base64((void *)file_buf, (int)file_buf_size, &b64_file_buf_len);
+   if (!b64_file_buf)
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "存档文件编码成Base64错误：%s", path);
+		goto finish;
+	}
+
+	// 计算存档MD5保证存档是正确的
+	char save_buf_md5[64] = {0};
+	md5_hexdigest(file_buf, file_buf_size, save_buf_md5, sizeof(save_buf_md5));
+
+	char *save_state_url = genYunSaveStateUrl(savename, save_buf_md5);
+	{
+		RARCH_LOG("yun_save_rom_state log info. url: %s, b64_len: %u\n", save_state_url, b64_file_buf_len);
+		task_push_http_post_transfer(save_state_url, b64_file_buf, false, NULL, yun_save_rom_state_cb, NULL);
+	}
+	free(save_state_url);
+
+finish:
+	if (strlen(show_errmsg) > 0)
+	{
+		runloop_msg_queue_push(show_errmsg,2, 180, true,
+			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+	}
+
+	if (b64_file_buf)
+		free(b64_file_buf);
+	if (file_buf)
+		free(file_buf);
+
+	return;
+}
+
+void yun_load_rom_state_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
+{
+	RARCH_LOG("yun_load_rom_state_cb bgein. error: %s\n", error);
+
+	char *show_errmsg[1024] = {0};
+	struct sram_block *blocks = NULL;
+	settings_t *settings = config_get_ptr();
+	bool resume = false;
+	file_transfer_t *transf = (file_transfer_t*)user_data;
+	http_transfer_data_t *data = (http_transfer_data_t*)task_data;
+
+	if (!transf && !transf->path)
+		goto finish;
+
+	if (error && strlen(error) > 0 && transf->title)
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "云存档%s下载失败", transf->title);
+		goto finish;
+	}
+
+	if (!data || !data->data)
+		goto finish;
+
+	RARCH_LOG("yun_load_rom_state_cb begin. savepath: %s, data_len: %u\n", transf->path, data->len);
+
+	// 保存存档文件
+	if (!filestream_write_file(transf->path, data->data, data->len))
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "保存存档文件失败：%s", transf->path);
+		goto finish;
+	}
+
+	// 处理加载存档逻辑
+	retro_ctx_serialize_info_t serial_info;
+   serial_info.data_const = data->data;
+   serial_info.size = data->len;
+   if (!core_unserialize(&serial_info))
+	{
+		snprintf(show_errmsg, sizeof(show_errmsg), "当前核心加载存档数据失败：%s", transf->path);
+		goto finish;
+	}
+
+	if (settings && settings->bools.menu_savestate_resume)
+	{
+		generic_action_ok_command(CMD_EVENT_RESUME);
+	}
+
+finish:
+	if (strlen(show_errmsg) > 0)
+	{
+		runloop_msg_queue_push(show_errmsg,2, 180, true,
+			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+	}
+
+	if (data)
+	{
+		if (data->data)
+			free(data->data);
+		free(data);
+	}
+
+	if (transf)
+		free(transf);
+}
+
+bool yun_load_rom_state(char *path)
+{
+	char *loadname = path_basename(path);
+	RARCH_LOG("yun_load_rom_state begin. loadname: %s, path: %s\n", loadname, path);
+
+	file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
+	if (!transf)
+	{
+		RARCH_ERR("yun_load_rom_state calloc failed. loadname: %s\n", loadname);
+		return false;
+	}
+	// 设置存档文件的保存文件路径
+	snprintf(transf->title, sizeof(transf->title), "%s", loadname);
+	strlcpy(transf->path, path, sizeof(transf->path));
+
+	char *load_state_url = genYunLoadStateUrl(loadname);
+	{
+		RARCH_LOG("yun_load_rom_state log http info. url: %s, loadname: %s, path: %s\n", load_state_url, loadname, path);
+		task_push_http_transfer(load_state_url, false, NULL, yun_load_rom_state_cb, transf);
+	}
+	free(load_state_url);
+	return true;
 }
 
 static void free_pl_rom_handle(pl_rom_handle_t *pl_thumb, bool free_playlist)

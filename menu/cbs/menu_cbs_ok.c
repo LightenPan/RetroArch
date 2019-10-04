@@ -3671,6 +3671,26 @@ static int action_ok_load_state(const char *path,
    return 0;
 }
 
+static int action_ok_yun_load_state(const char *path,
+										  const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+	RARCH_LOG("action_ok_yun_load_state begin. path: %s, label: %s\n", path, label);
+
+// 	settings_t *settings = config_get_ptr();
+// 	bool resume          = true;
+// 
+// 	if (settings)
+// 		resume = settings->bools.menu_savestate_resume;
+
+	if (generic_action_ok_command(CMD_EVENT_YUN_LOAD_STATE) == -1)
+		return menu_cbs_exit();
+
+// 	if (resume)
+// 		return generic_action_ok_command(CMD_EVENT_RESUME);
+
+	return 0;
+}
+
 static int action_ok_save_state(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6296,7 +6316,10 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_LOAD_STATE:
             BIND_ACTION_OK(cbs, action_ok_load_state);
-            break;
+				break;
+			case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+				BIND_ACTION_OK(cbs, action_ok_yun_load_state);
+				break;
          case MENU_ENUM_LABEL_UNDO_LOAD_STATE:
             BIND_ACTION_OK(cbs, action_ok_undo_load_state);
             break;

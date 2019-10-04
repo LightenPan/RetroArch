@@ -1999,7 +1999,11 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
         case MENU_ENUM_LABEL_LOAD_STATE:
             snprintf(s, len,
                      "Loads state.");
-            break;
+				break;
+		  case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+			  snprintf(s, len,
+				  "Loads cloud state.");
+			  break;
         case MENU_ENUM_LABEL_SAVE_STATE:
             snprintf(s, len,
                      "Saves state.");

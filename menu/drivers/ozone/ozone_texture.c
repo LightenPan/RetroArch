@@ -358,7 +358,8 @@ menu_texture_item ozone_entries_icon_get_texture(ozone_handle_t *ozone,
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_CLOSE];
       case MENU_SETTING_ACTION_SAVESTATE:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_SAVESTATE];
-      case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_LOADSTATE:
+		case MENU_SETTING_ACTION_YUNLOADSTATE:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
       case MENU_SETTING_ACTION_CORE_INFORMATION:
