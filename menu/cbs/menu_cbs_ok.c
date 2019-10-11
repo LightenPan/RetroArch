@@ -3744,7 +3744,9 @@ static void cb_decompressed(retro_task_t *task,
    decompress_task_data_t *dec = (decompress_task_data_t*)task_data;
 
    if (dec && !err)
-   {
+	{
+		succ_msg_queue_push("解压成功");
+
       unsigned type_hash = (unsigned)(uintptr_t)user_data;
 
       switch (type_hash)
@@ -3902,6 +3904,7 @@ void cb_generic_download(retro_task_t *task,
       void *task_data,
       void *user_data, const char *err)
 {
+	char parent_dir[PATH_MAX_LENGTH] = {0};
    char output_path[PATH_MAX_LENGTH];
    char buf[PATH_MAX_LENGTH];
 #if defined(HAVE_COMPRESSION) && defined(HAVE_ZLIB)
@@ -3952,12 +3955,12 @@ void cb_generic_download(retro_task_t *task,
       case MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS:
          dir_path = settings->paths.directory_overlay;
 		 break;
-	  case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
-		  dir_path = settings->paths.directory_system;
-		  break;
+		case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
+			dir_path = settings->paths.directory_system;
+			break;
       case MENU_ENUM_LABEL_CB_UPDATE_CHEATS:
-         dir_path = settings->paths.path_cheat_database;
-         break;
+			dir_path = settings->paths.path_cheat_database;
+			break;
       case MENU_ENUM_LABEL_CB_UPDATE_SHADERS_CG:
       case MENU_ENUM_LABEL_CB_UPDATE_SHADERS_GLSL:
       case MENU_ENUM_LABEL_CB_UPDATE_SHADERS_SLANG:
@@ -3998,8 +4001,12 @@ void cb_generic_download(retro_task_t *task,
       }
       case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
 		  break;
-	  case MENU_ENUM_LABEL_CB_SINGLE_ROM:
+		case MENU_ENUM_LABEL_CB_SINGLE_ROM:
 		  extract = false;
+		  break;
+		case MENU_ENUM_LABEL_CB_SINGLE_ZIPROM:
+		  extract = true;
+		  break;
       default:
          RARCH_WARN("Unknown transfer type '%s' bailing out.\n",
                msg_hash_to_str(transf->enum_idx));
@@ -4022,6 +4029,12 @@ void cb_generic_download(retro_task_t *task,
        * already built from the task */
       strlcpy(output_path, transf->path, sizeof(output_path));
    }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+   {
+      /* In this particular case we have the whole path
+		* already built from the task */
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
 
    /* Make sure the directory exists
     * This function is horrible. It mutates the original path
@@ -4030,7 +4043,7 @@ void cb_generic_download(retro_task_t *task,
     */
    path_basedir_wrapper(output_path);
 
-   // RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
+   RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
    if (!path_mkdir(output_path))
    {
       err = msg_hash_to_str(MSG_FAILED_TO_CREATE_THE_DIRECTORY);
@@ -4052,8 +4065,19 @@ void cb_generic_download(retro_task_t *task,
        * already built from the task */
       strlcpy(output_path, transf->path, sizeof(output_path));
    }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+	{
+      /* In this particular case we have the whole path
+       * already built from the task */
+		strlcpy(output_path, transf->path, sizeof(output_path));
+		fill_pathname_basedir_noext(parent_dir, transf->path, sizeof(parent_dir));
+		char filename[256] = {0};
+		fill_pathname_base_noext(filename, transf->path, sizeof(filename));
+		fill_pathname_join(parent_dir, parent_dir, filename, sizeof(parent_dir));
+		dir_path = parent_dir;
+   }
 
-   // RARCH_LOG("cb_generic_download finsh. output_path: %s\n", output_path);
+	RARCH_LOG("cb_generic_download finish init. output_path: %s, dir_path: %s\n", output_path, dir_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))
@@ -4072,15 +4096,23 @@ void cb_generic_download(retro_task_t *task,
       goto finish;
    }
 
+	if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM
+		|| transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+	{
+		succ_msg_queue_push("下载成功");
+	}
+
 #if defined(HAVE_COMPRESSION) && defined(HAVE_ZLIB)
    if (!extract)
       goto finish;
 
+	RARCH_LOG("cb_generic_download hit zip. output_path: %s, dir_path: %s\n", output_path, dir_path);
    if (path_is_compressed_file(output_path))
    {
       void *frontend_userdata = task->frontend_userdata;
       task->frontend_userdata = NULL;
 
+		RARCH_LOG("cb_generic_download hit zip2. output_path: %s, dir_path: %s\n", output_path, dir_path);
       if (!task_push_decompress(output_path, dir_path,
                NULL, NULL, NULL,
                cb_decompressed, (void*)(uintptr_t)
@@ -4090,7 +4122,8 @@ void cb_generic_download(retro_task_t *task,
          err = msg_hash_to_str(MSG_DECOMPRESSION_FAILED);
          goto finish;
       }
-   }
+	}
+
 #else
    switch (transf->enum_idx)
    {
@@ -6045,7 +6078,7 @@ static int action_ok_pl_content_rom(const char *path,
          settings->paths.directory_playlist, label,
          sizeof(playlist_path));
 
-   task_push_pl_rom_download(path, playlist_path);
+   // task_push_pl_rom_download(path, playlist_path);
    return 0;
 #else
    return -1;
@@ -6079,6 +6112,7 @@ static int action_ok_pl_entry_content_thumbnails(const char *path,
 #endif
 
 #ifdef HAVE_NETWORKING
+// todo del
 static int action_ok_pl_entry_content_rom(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {

@@ -388,6 +388,9 @@ void runloop_msg_queue_push(const char *msg,
       char *title,
       enum message_queue_icon icon, enum message_queue_category category);
 
+void error_msg_queue_push(const char *msg);
+void succ_msg_queue_push(const char *msg);
+
 void runloop_get_status(bool *is_paused, bool *is_idle, bool *is_slowmotion,
       bool *is_perfcnt_enable);
 

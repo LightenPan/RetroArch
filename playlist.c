@@ -56,7 +56,7 @@ typedef struct
    char *current_meta_string;
    char **current_meta_val;
    enum playlist_label_display_mode *current_meta_label_display_mode_val;
-   enum playlist_thumbnail_mode *current_meta_thumbnail_mode_val;
+	enum playlist_thumbnail_mode *current_meta_thumbnail_mode_val;
    char *current_items_string;
    bool in_items;
    bool in_subsystem_roms;
@@ -1793,7 +1793,7 @@ static JSON_Parser_HandlerResult JSONNumberHandler(JSON_Parser parser, char *pVa
             if (pCtx->current_meta_label_display_mode_val)
                *pCtx->current_meta_label_display_mode_val = (enum playlist_label_display_mode)strtoul(pValue, NULL, 10);
             else if (pCtx->current_meta_thumbnail_mode_val)
-               *pCtx->current_meta_thumbnail_mode_val = (enum playlist_thumbnail_mode)strtoul(pValue, NULL, 10);
+					*pCtx->current_meta_thumbnail_mode_val = (enum playlist_thumbnail_mode)strtoul(pValue, NULL, 10);
             else
             {
                /* must be a value for an unknown member we aren't tracking, skip it */
@@ -1805,7 +1805,7 @@ static JSON_Parser_HandlerResult JSONNumberHandler(JSON_Parser parser, char *pVa
    pCtx->current_entry_int_val               = NULL;
    pCtx->current_entry_uint_val              = NULL;
    pCtx->current_meta_label_display_mode_val = NULL;
-   pCtx->current_meta_thumbnail_mode_val     = NULL;
+	pCtx->current_meta_thumbnail_mode_val     = NULL;
 
    return JSON_Parser_Continue;
 }
@@ -1913,7 +1913,7 @@ static JSON_Parser_HandlerResult JSONObjectMemberHandler(JSON_Parser parser, cha
             else if (string_is_equal(pValue, "right_thumbnail_mode"))
                pCtx->current_meta_thumbnail_mode_val = &pCtx->playlist->right_thumbnail_mode;
             else if (string_is_equal(pValue, "left_thumbnail_mode"))
-               pCtx->current_meta_thumbnail_mode_val = &pCtx->playlist->left_thumbnail_mode;
+					pCtx->current_meta_thumbnail_mode_val = &pCtx->playlist->left_thumbnail_mode;
             else
             {
                /* ignore unknown members */
@@ -2312,6 +2312,7 @@ playlist_t *playlist_init(const char *path, size_t size)
    playlist->conf_path            = strdup(path);
    playlist->default_core_name    = NULL;
    playlist->default_core_path    = NULL;
+	playlist->download_user_mgzip  = false;
    playlist->entries              = entries;
    playlist->label_display_mode   = LABEL_DISPLAY_MODE_DEFAULT;
    playlist->right_thumbnail_mode = PLAYLIST_THUMBNAIL_MODE_DEFAULT;
@@ -2608,10 +2609,25 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
 		char *basename = path_basename(entry->path);
 		fill_pathname_join(db_dir, settings->paths.directory_core_assets, path_remove_extension(db_name), sizeof(db_dir));
 		fill_pathname_join(buf, db_dir, basename, sizeof(buf));
-		RARCH_LOG("playlist_get_content_path. buf: %s\n", buf);
 		if (path_is_valid(buf))
 		{
+			RARCH_LOG("playlist_get_content_path hit download rom. buf: %s\n", buf);
 			strlcpy(path, buf, size);
+			return;
+		}
+
+		// 魔改压缩包，会单独生成对应的文件夹，再多加一个文件夹判断一下
+		char basename2[256] = {0};
+		strlcpy(basename2, basename, sizeof(basename2));
+		char *filename = path_remove_extension(basename2);
+		char name_with_dir[1024] = {0};
+		fill_pathname_join(name_with_dir, db_dir, filename, sizeof(name_with_dir));
+		fill_pathname_join(name_with_dir, name_with_dir, basename, sizeof(name_with_dir));
+		if (path_is_valid(name_with_dir))
+		{
+			RARCH_LOG("playlist_get_content_path hit mgzip download rom. buf: %s\n", name_with_dir);
+			strlcpy(path, name_with_dir, size);
+			return;
 		}
 	}
 }

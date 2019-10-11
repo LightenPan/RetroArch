@@ -226,8 +226,8 @@ static bool get_rom_paths(
    strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
-   strlcat(raw_url, "/", sizeof(raw_url));
-   strlcat(raw_url, img_name, sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, img_name, sizeof(raw_url));
 
    if (string_is_empty(raw_url))
       return false;
@@ -550,398 +550,21 @@ bool yun_load_rom_state(char *path)
 	return true;
 }
 
-static void free_pl_rom_handle(pl_rom_handle_t *pl_thumb, bool free_playlist)
+void task_push_rom_download(bool iszip, const char *title, const char *url, const char *savepath)
 {
-   if (!pl_thumb)
-      return;
-
-   if (!string_is_empty(pl_thumb->system))
-   {
-      free(pl_thumb->system);
-      pl_thumb->system = NULL;
-   }
-
-   if (!string_is_empty(pl_thumb->playlist_path))
-   {
-      free(pl_thumb->playlist_path);
-      pl_thumb->playlist_path = NULL;
-   }
-
-   if (!string_is_empty(pl_thumb->dir_thumbnails))
-   {
-      free(pl_thumb->dir_thumbnails);
-      pl_thumb->dir_thumbnails = NULL;
-   }
-
-   if (pl_thumb->playlist && free_playlist)
-   {
-      playlist_free(pl_thumb->playlist);
-      pl_thumb->playlist = NULL;
-   }
-
-   if (pl_thumb->thumbnail_path_data)
-   {
-      free(pl_thumb->thumbnail_path_data);
-      pl_thumb->thumbnail_path_data = NULL;
-   }
-
-   free(pl_thumb);
-   pl_thumb = NULL;
-}
-
-/*******************************/
-/* Playlist Thumbnail Download */
-/*******************************/
-
-static void task_pl_rom_download_handler(retro_task_t *task)
-{
-   pl_rom_handle_t *pl_thumb = NULL;
-
-   if (!task)
-      goto task_finished;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-
-   if (!pl_thumb)
-      goto task_finished;
-
-   if (task_get_cancelled(task))
-      goto task_finished;
-
-   switch (pl_thumb->status)
-   {
-      case PL_ROM_BEGIN:
-         {
-            /* Load playlist */
-            if (!path_is_valid(pl_thumb->playlist_path))
-               goto task_finished;
-
-            pl_thumb->playlist = playlist_init(pl_thumb->playlist_path, COLLECTION_SIZE);
-
-            if (!pl_thumb->playlist)
-               goto task_finished;
-
-            pl_thumb->list_size = playlist_size(pl_thumb->playlist);
-
-            if (pl_thumb->list_size < 1)
-               goto task_finished;
-
-            /* Initialise thumbnail path data */
-            pl_thumb->thumbnail_path_data = menu_thumbnail_path_init();
-
-            if (!pl_thumb->thumbnail_path_data)
-               goto task_finished;
-
-            if (!menu_thumbnail_set_system(
-                  pl_thumb->thumbnail_path_data, pl_thumb->system, pl_thumb->playlist))
-               goto task_finished;
-
-            /* All good - can start iterating */
-            pl_thumb->status = PL_ROM_ITERATE_ENTRY;
-         }
-         break;
-      case PL_ROM_ITERATE_ENTRY:
-         {
-            /* Set current thumbnail content */
-            if (menu_thumbnail_set_content_playlist(
-                  pl_thumb->thumbnail_path_data, pl_thumb->playlist, pl_thumb->list_index))
-            {
-               const char *label = NULL;
-
-               /* Update progress display */
-               task_free_title(task);
-               if (menu_thumbnail_get_label(pl_thumb->thumbnail_path_data, &label))
-                  task_set_title(task, strdup(label));
-               else
-                  task_set_title(task, strdup(""));
-               // task_set_progress(task, (pl_thumb->list_index * 100) / pl_thumb->list_size);
-
-               /* Start iterating over thumbnail type */
-               pl_thumb->type_idx = 1;
-               pl_thumb->status = PL_ROM_ITERATE_TYPE;
-            }
-            else
-            {
-               /* Current playlist entry is broken - advance to
-                * the next one */
-               pl_thumb->list_index++;
-               if (pl_thumb->list_index >= pl_thumb->list_size)
-                  pl_thumb->status = PL_ROM_END;
-            }
-         }
-         break;
-      case PL_ROM_ITERATE_TYPE:
-         {
-            /* Ensure that we only enqueue one transfer
-             * at a time... */
-            if (pl_thumb->http_task)
-            {
-               if (task_get_finished(pl_thumb->http_task))
-                  pl_thumb->http_task = NULL;
-               else
-                  break;
-            }
-
-            /* Check whether all thumbnail types have been processed */
-            if (pl_thumb->type_idx > 1)
-            {
-               /* Time to move on to the next entry */
-               pl_thumb->list_index++;
-               if (pl_thumb->list_index < pl_thumb->list_size)
-                  pl_thumb->status = PL_ROM_ITERATE_ENTRY;
-               else
-                  pl_thumb->status = PL_ROM_END;
-               break;
-            }
-
-            /* Download current thumbnail */
-            if (pl_thumb)
-               download_pl_rom(pl_thumb);
-
-            /* Increment thumbnail type */
-            pl_thumb->type_idx++;
-         }
-         break;
-      case PL_ROM_END:
-      default:
-         // task_set_progress(task, 100);
-         goto task_finished;
-         break;
-   }
-
-   return;
-
-task_finished:
-
-   if (task)
-      task_set_finished(task, true);
-
-   free_pl_rom_handle(pl_thumb, true);
-}
-
-static bool task_pl_rom_finder(retro_task_t *task, void *user_data)
-{
-   pl_rom_handle_t *pl_thumb = NULL;
-
-   if (!task || !user_data)
-      return false;
-
-   if (task->handler != task_pl_rom_download_handler)
-      return false;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-   if (!pl_thumb)
-      return false;
-
-   return string_is_equal((const char*)user_data, pl_thumb->playlist_path);
-}
-
-bool task_push_pl_rom_download(
-      const char *system, const char *playlist_path)
-{
-   task_finder_data_t find_data;
-   settings_t *settings          = config_get_ptr();
-   retro_task_t *task            = task_init();
-   pl_rom_handle_t *pl_thumb   = (pl_rom_handle_t*)calloc(1, sizeof(pl_rom_handle_t));
-   const char *playlist_file     = path_basename(playlist_path);
-
-   /* Sanity check */
-   if (!settings || !task || !pl_thumb)
-      goto error;
-
-   if (string_is_empty(system) ||
-       string_is_empty(playlist_path) ||
-       string_is_empty(playlist_file) ||
-       string_is_empty(settings->paths.directory_thumbnails))
-      goto error;
-
-   /* Only parse supported playlist types */
-   if (string_is_equal(playlist_file, file_path_str(FILE_PATH_CONTENT_HISTORY)) ||
-       string_is_equal(playlist_file, file_path_str(FILE_PATH_CONTENT_FAVORITES)) ||
-       string_is_equal(playlist_file, file_path_str(FILE_PATH_CONTENT_MUSIC_HISTORY)) ||
-       string_is_equal(playlist_file, file_path_str(FILE_PATH_CONTENT_VIDEO_HISTORY)) ||
-       string_is_equal(playlist_file, file_path_str(FILE_PATH_CONTENT_IMAGE_HISTORY)) ||
-       string_is_equal(system, "history") ||
-       string_is_equal(system, "favorites") ||
-       string_is_equal(system, "images_history"))
-      goto error;
-
-   /* Concurrent download of thumbnails for the same
-    * playlist is not allowed */
-   find_data.func                = task_pl_rom_finder;
-   find_data.userdata            = (void*)playlist_path;
-
-   if (task_queue_find(&find_data))
-      goto error;
-
-   /* Configure task */
-   task->handler                 = task_pl_rom_download_handler;
-   task->state                   = pl_thumb;
-   task->title                   = strdup(system);
-   task->alternative_look        = true;
-   task->progress                = 0;
-
-   /* Configure handle */
-   pl_thumb->system              = strdup(system);
-   pl_thumb->playlist_path       = strdup(playlist_path);
-   pl_thumb->dir_thumbnails      = strdup(settings->paths.directory_thumbnails);
-   pl_thumb->playlist            = NULL;
-   pl_thumb->thumbnail_path_data = NULL;
-   pl_thumb->http_task           = NULL;
-   pl_thumb->list_size           = 0;
-   pl_thumb->list_index          = 0;
-   pl_thumb->type_idx            = 1;
-   pl_thumb->overwrite           = false;
-   pl_thumb->status              = PL_ROM_BEGIN;
-
-   task_queue_push(task);
-
-   return true;
-
-error:
-
-   if (task)
-   {
-      free(task);
-      task = NULL;
-   }
-
-   if (pl_thumb)
-   {
-      free(pl_thumb);
-      pl_thumb = NULL;
-   }
-
-   return false;
-}
-
-static void task_pl_entry_rom_free(retro_task_t *task)
-{
-   pl_rom_handle_t *pl_thumb = NULL;
-
-   if (!task)
-      return;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-
-   free_pl_rom_handle(pl_thumb, false);
-}
-
-static void task_pl_entry_rom_download_handler(retro_task_t *task)
-{
-   pl_rom_handle_t *pl_thumb = NULL;
-
-   if (!task)
-      return;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-
-   if (!pl_thumb)
-      goto task_finished;
-
-   if (task_get_cancelled(task))
-      goto task_finished;
-
-   switch (pl_thumb->status)
-   {
-      case PL_ROM_BEGIN:
-         {
-            const char *label                = NULL;
-            const char *right_thumbnail_path = NULL;
-            const char *left_thumbnail_path  = NULL;
-
-            /* Initialise thumbnail path data */
-            pl_thumb->thumbnail_path_data = menu_thumbnail_path_init();
-
-            if (!pl_thumb->thumbnail_path_data)
-               goto task_finished;
-
-            if (!menu_thumbnail_set_system(
-                  pl_thumb->thumbnail_path_data, pl_thumb->system, pl_thumb->playlist))
-               goto task_finished;
-
-            if (!menu_thumbnail_set_content_playlist(
-                  pl_thumb->thumbnail_path_data, pl_thumb->playlist, pl_thumb->list_index))
-               goto task_finished;
-
-            /* Set task title */
-            task_free_title(task);
-            if (menu_thumbnail_get_label(pl_thumb->thumbnail_path_data, &label))
-               task_set_title(task, strdup(label));
-            else
-               task_set_title(task, strdup(""));
-            // task_set_progress(task, 0);
-
-            /* All good - can start iterating */
-            pl_thumb->status = PL_ROM_ITERATE_TYPE;
-         }
-         break;
-      case PL_ROM_ITERATE_TYPE:
-         {
-            /* Ensure that we only enqueue one transfer
-             * at a time... */
-            if (pl_thumb->http_task)
-            {
-               if (task_get_finished(pl_thumb->http_task))
-                  pl_thumb->http_task = NULL;
-               else
-                  break;
-            }
-
-            /* Check whether all thumbnail types have been processed */
-            if (pl_thumb->type_idx > 1)
-            {
-               pl_thumb->status = PL_ROM_END;
-               break;
-            }
-
-            /* Update progress */
-            // task_set_progress(task, ((pl_thumb->type_idx - 1) * 100));
-
-            /* Download current thumbnail */
-            if (pl_thumb)
-               download_pl_rom(pl_thumb);
-
-            /* Increment thumbnail type */
-            pl_thumb->type_idx++;
-         }
-         break;
-      case PL_ROM_END:
-      default:
-         // task_set_progress(task, 100);
-         goto task_finished;
-         break;
-   }
-
-   return;
-
-task_finished:
-
-   if (task)
-      task_set_finished(task, true);
-}
-
-static bool task_pl_entry_rom_finder(retro_task_t *task, void *user_data)
-{
-   pl_entry_rom_id_t *entry_id     = NULL;
-   pl_rom_handle_t *pl_thumb = NULL;
-
-   if (!task || !user_data)
-      return false;
-
-   if (task->handler != task_pl_entry_rom_download_handler)
-      return false;
-
-   entry_id = (pl_entry_rom_id_t*)user_data;
-   if (!entry_id)
-      return false;
-
-   pl_thumb = (pl_rom_handle_t*)task->state;
-   if (!pl_thumb)
-      return false;
-
-   return (entry_id->idx == pl_thumb->list_index) &&
-          string_is_equal(entry_id->playlist_path, pl_thumb->playlist_path);
+   file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
+   if (!transf)
+      return; /* If this happens then everything is broken anyway... */
+
+   transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
+	if (iszip) {
+		transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ZIPROM;
+	}
+	strlcpy(transf->path, savepath, sizeof(transf->path));
+	strlcpy(transf->title, title, sizeof(transf->title));
+	// strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
+	RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
+	task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
 }
 
 bool task_push_pl_entry_rom_download(
@@ -951,110 +574,94 @@ bool task_push_pl_entry_rom_download(
       bool overwrite,
       bool mute)
 {
-   task_finder_data_t find_data;
-   settings_t *settings          = config_get_ptr();
-   retro_task_t *task            = task_init();
-   pl_rom_handle_t *pl_thumb   = (pl_rom_handle_t*)calloc(1, sizeof(pl_rom_handle_t));
-   pl_entry_rom_id_t *entry_id       = (pl_entry_rom_id_t*)calloc(1, sizeof(pl_entry_rom_id_t));
-   char *playlist_path           = NULL;
-
-   RARCH_LOG("task_push_pl_entry_rom_download start\n");
+	RARCH_LOG("task_push_pl_entry_rom_download start\n");
+	settings_t *settings = config_get_ptr();
+	if (!settings)
+		return false;
 
    /* Sanity check */
-   if (!settings || !task || !pl_thumb || !playlist || !entry_id)
-      goto error;
+	if (!playlist)
+		return false;
 
-   if (string_is_empty(system) ||
-       string_is_empty(settings->paths.directory_thumbnails) ||
-       string_is_empty(playlist_get_conf_path(playlist)))
-      goto error;
+   if (string_is_empty(system))
+		 return false;
 
-   if (idx >= playlist_size(playlist))
-      goto error;
+	if (idx >= playlist_size(playlist))
+		return false;
 
    /* Only parse supported playlist types */
    if (string_is_equal(system, "images_history") ||
        string_is_equal(system, "music_history") ||
-       string_is_equal(system, "video_history"))
-      goto error;
+		 string_is_equal(system, "video_history"))
+		 return false;
 
-   /* Copy playlist path
-    * (required for task finder and menu refresh functionality) */
-   playlist_path = strdup(playlist_get_conf_path(playlist));
+	struct playlist_entry *p_playlist_entry = NULL;
+	playlist_get_index(playlist, idx, &p_playlist_entry);
+	if (p_playlist_entry == NULL)
+	{
+		return false;
+	}
 
-   /* Concurrent download of thumbnails for the same
-    * playlist entry is not allowed */
-   entry_id->playlist_path       = playlist_path;
-   entry_id->idx                 = idx;
+	// 如果文件存在，就不需要再下载
+	if (path_is_valid(p_playlist_entry->path))
+	{
+		succ_msg_queue_push("游戏已下载");
+		return true;
+	}
 
-   find_data.func                = task_pl_entry_rom_finder;
-   find_data.userdata            = (void*)entry_id;
+	// 一些常量初始化
+	char db_name[1024] = {0};
+	strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
+	char *system_name = path_remove_extension(db_name);
+	char *basename = path_basename(p_playlist_entry->path);
+	char url_query[1024] = {0};
+	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
 
-   if (task_queue_find(&find_data))
-      goto error;
+	// 获取本地文件地址
+	char tmp_buf[1024] = {0};
+	char local_rom_path[1024] = {0};
+	fill_pathname_join(tmp_buf, settings->paths.directory_core_assets, system_name, sizeof(tmp_buf));
+	if (!path_is_valid(tmp_buf))
+	{
+		path_mkdir(tmp_buf);
+	}
 
-   free(entry_id);
-   entry_id = NULL;
+	// 如果扩展名是.cue，需要去下载mgzip包，并解压到子文件夹
+	bool iszip = false;
+	char new_basename[256] = {0};
+	if (strcmp(path_get_extension(basename), "cue") == 0)
+	{
+		// mgzip解压后最终目录是，两个文件名的目录
+		// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+		char filename_buf[256] = {0};
+		strlcpy(filename_buf, basename, sizeof(filename_buf));
+		char *filename = path_remove_extension(filename_buf);
+		strlcpy(new_basename, filename, sizeof(new_basename));
+		strlcat(new_basename, ".zip", sizeof(new_basename));
+		iszip = true;
+	}
+	else
+	{
+		strlcpy(new_basename, basename, sizeof(new_basename));
+	}
+	fill_pathname_join(local_rom_path, tmp_buf, new_basename, sizeof(local_rom_path));
+	RARCH_LOG("task_push_pl_entry_rom_download log info. basename: %s, system_name: %s, local_rom_path: %s\n",
+		basename, system_name, local_rom_path);
 
-   /* Configure task */
-   task->handler                 = task_pl_entry_rom_download_handler;
-   task->state                   = pl_thumb;
-   task->title                   = strdup(system);
-   task->alternative_look        = true;
-   task->mute                    = mute;
-   task->progress                = 0;
-   task->callback                = NULL;
-   task->cleanup                 = task_pl_entry_rom_free;
-
-   /* Configure handle */
-   pl_thumb->system              = strdup(system);
-   pl_thumb->playlist_path       = playlist_path;
-   pl_thumb->dir_thumbnails      = strdup(settings->paths.directory_core_assets);
-   pl_thumb->playlist            = playlist;
-   pl_thumb->thumbnail_path_data = NULL;
-   pl_thumb->http_task           = NULL;
-   pl_thumb->list_size           = playlist_size(playlist);
-   pl_thumb->list_index          = idx;
-   pl_thumb->type_idx            = 1;
-   pl_thumb->overwrite           = overwrite;
-   pl_thumb->status              = PL_ROM_BEGIN;
-
-   struct playlist_entry *p_playlist_entry = NULL;
-   playlist_get_index(playlist, idx, &p_playlist_entry);
-   if (p_playlist_entry != NULL)
-   {
-	   pl_thumb->title = p_playlist_entry->label;
-   }
-
-   task_queue_push(task);
-
+	// 获取正常rom下载地址
+	char raw_url[1024] = {0};
+	strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, system_name, sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, new_basename, sizeof(raw_url));
+	strlcat(raw_url, "?", sizeof(raw_url));
+	strlcat(raw_url, url_query, sizeof(raw_url));
+	if (!string_is_empty(raw_url))
+	{
+		RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
+			iszip, new_basename, system_name, local_rom_path, raw_url);
+		task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
+	}
    return true;
-
-error:
-
-   if (task)
-   {
-      free(task);
-      task = NULL;
-   }
-
-   if (pl_thumb)
-   {
-      free(pl_thumb);
-      pl_thumb = NULL;
-   }
-
-   if (entry_id)
-   {
-      free(entry_id);
-      entry_id = NULL;
-   }
-
-   if (!string_is_empty(playlist_path))
-   {
-      free(playlist_path);
-      playlist_path = NULL;
-   }
-
-   return false;
 }

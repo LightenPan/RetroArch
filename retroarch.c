@@ -23845,6 +23845,18 @@ void runloop_msg_queue_push(const char *msg,
    runloop_msg_queue_unlock();
 }
 
+void error_msg_queue_push(const char *msg)
+{
+	runloop_msg_queue_push(msg, 2, 180, true,
+		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+}
+
+void succ_msg_queue_push(const char *msg)
+{
+	runloop_msg_queue_push(msg, 2, 180, true,
+		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
+}
+
 void runloop_get_status(bool *is_paused, bool *is_idle,
       bool *is_slowmotion, bool *is_perfcnt_enable)
 {
