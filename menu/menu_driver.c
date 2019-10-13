@@ -97,87 +97,95 @@ float osk_dark[16] =  {
 	0.00, 0.00, 0.00, 1,
 };
 
+// /* Menu drivers */
+// static const menu_ctx_driver_t *menu_ctx_drivers[] = {
+// #if defined(HAVE_MATERIALUI)
+//    &menu_ctx_mui,
+// #endif
+// #if defined(HAVE_OZONE)
+//    &menu_ctx_ozone,
+// #endif
+// #if defined(HAVE_RGUI)
+//    &menu_ctx_rgui,
+// #endif
+// #if defined(HAVE_STRIPES)
+//    &menu_ctx_stripes,
+// #endif
+// #if defined(HAVE_XMB)
+//    &menu_ctx_xmb,
+// #endif
+// #if defined(HAVE_XUI)
+//    &menu_ctx_xui,
+// #endif
+//    &menu_ctx_null,
+//    NULL
+// };
+
 /* Menu drivers */
 static const menu_ctx_driver_t *menu_ctx_drivers[] = {
-#if defined(HAVE_MATERIALUI)
-   &menu_ctx_mui,
-#endif
-#if defined(HAVE_OZONE)
-   &menu_ctx_ozone,
-#endif
-#if defined(HAVE_RGUI)
-   &menu_ctx_rgui,
-#endif
-#if defined(HAVE_STRIPES)
-   &menu_ctx_stripes,
-#endif
 #if defined(HAVE_XMB)
-   &menu_ctx_xmb,
+	&menu_ctx_xmb,
 #endif
-#if defined(HAVE_XUI)
-   &menu_ctx_xui,
-#endif
-   &menu_ctx_null,
-   NULL
+	NULL
 };
 
 /* Menu display drivers */
 static menu_display_ctx_driver_t *menu_display_ctx_drivers[] = {
 #ifdef HAVE_D3D8
-   &menu_display_ctx_d3d8,
+	&menu_display_ctx_d3d8,
 #endif
 #ifdef HAVE_D3D9
-   &menu_display_ctx_d3d9,
+	&menu_display_ctx_d3d9,
 #endif
 #ifdef HAVE_D3D10
-   &menu_display_ctx_d3d10,
+	&menu_display_ctx_d3d10,
 #endif
 #ifdef HAVE_D3D11
-   &menu_display_ctx_d3d11,
+	&menu_display_ctx_d3d11,
 #endif
 #ifdef HAVE_D3D12
-   &menu_display_ctx_d3d12,
+	&menu_display_ctx_d3d12,
 #endif
 #ifdef HAVE_OPENGL
-   &menu_display_ctx_gl,
+	&menu_display_ctx_gl,
 #endif
 #ifdef HAVE_OPENGL1
-   &menu_display_ctx_gl1,
+	&menu_display_ctx_gl1,
 #endif
 #ifdef HAVE_OPENGL_CORE
-   &menu_display_ctx_gl_core,
+	&menu_display_ctx_gl_core,
 #endif
 #ifdef HAVE_VULKAN
-   &menu_display_ctx_vulkan,
+	&menu_display_ctx_vulkan,
 #endif
 #ifdef HAVE_METAL
-   &menu_display_ctx_metal,
+	&menu_display_ctx_metal,
 #endif
 #ifdef HAVE_VITA2D
-   &menu_display_ctx_vita2d,
+	&menu_display_ctx_vita2d,
 #endif
 #ifdef _3DS
-   &menu_display_ctx_ctr,
+	&menu_display_ctx_ctr,
 #endif
 #ifdef WIIU
-   &menu_display_ctx_wiiu,
+	&menu_display_ctx_wiiu,
 #endif
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
 #ifdef HAVE_GDI
-   &menu_display_ctx_gdi,
+	&menu_display_ctx_gdi,
 #endif
 #endif
 #ifdef DJGPP
-   &menu_display_ctx_vga,
+	&menu_display_ctx_vga,
 #endif
 #ifdef HAVE_SIXEL
-   &menu_display_ctx_sixel,
+	&menu_display_ctx_sixel,
 #endif
 #ifdef HAVE_CACA
-   &menu_display_ctx_caca,
+	&menu_display_ctx_caca,
 #endif
-   &menu_display_ctx_null,
-   NULL,
+	&menu_display_ctx_null,
+	NULL,
 };
 
 uintptr_t menu_display_white_texture;
@@ -3552,6 +3560,14 @@ bool menu_driver_list_get_size(menu_ctx_list_t *list)
    }
    list->size = menu_driver_ctx->list_get_size(menu_userdata, list->type);
    return true;
+}
+
+void menu_driver_set_horizontal_list_uiinfo(const char *path, const char *title, const char *logoname, const char *content_logoname)
+{
+	RARCH_LOG("menu_driver_set_horizontal_list_uiinfo begin. path: %s, title: %s, logoname: %s, content_logoname: %s\n",
+		path, title, logoname, content_logoname);
+	if (menu_driver_ctx && menu_driver_ctx->set_horizontal_list_uiinfo)
+		menu_driver_ctx->set_horizontal_list_uiinfo(menu_userdata, path, title, logoname, content_logoname);
 }
 
 bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)

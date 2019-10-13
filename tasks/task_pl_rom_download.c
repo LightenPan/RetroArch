@@ -602,8 +602,13 @@ bool task_push_pl_entry_rom_download(
 		return false;
 	}
 
+	char real_rom_path[1024] = {0};
+	playlist_get_exist_rom_path(p_playlist_entry, real_rom_path, sizeof(real_rom_path));
+	RARCH_LOG("task_push_pl_entry_rom_download log path: %s, real_rom_path: %s\n",
+		p_playlist_entry->path, real_rom_path);
+
 	// 如果文件存在，就不需要再下载
-	if (path_is_valid(p_playlist_entry->path))
+	if (path_is_valid(real_rom_path))
 	{
 		succ_msg_queue_push("游戏已下载");
 		return true;

@@ -570,24 +570,26 @@ static enum location_driver_enum LOCATION_DEFAULT_DRIVER = LOCATION_ANDROID;
 static enum location_driver_enum LOCATION_DEFAULT_DRIVER = LOCATION_NULL;
 #endif
 
-#if defined(_3DS) && defined(HAVE_RGUI)
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
-#else
-#if defined(HAVE_XUI)
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XUI;
-#elif defined(HAVE_MATERIALUI) && defined(RARCH_MOBILE)
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_MATERIALUI;
-#elif defined(HAVE_OZONE) && (defined(HAVE_LIBNX) || TARGET_OS_TV)
-// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_OZONE;
+// #if defined(_3DS) && defined(HAVE_RGUI)
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
+// #else
+// #if defined(HAVE_XUI)
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XUI;
+// #elif defined(HAVE_MATERIALUI) && defined(RARCH_MOBILE)
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_MATERIALUI;
+// #elif defined(HAVE_OZONE) && (defined(HAVE_LIBNX) || TARGET_OS_TV)
+// // static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_OZONE;
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
+// #elif defined(HAVE_XMB) && !defined(_XBOX)
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
+// #elif defined(HAVE_RGUI)
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
+// #else
+// static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_NULL;
+// #endif
+// #endif
+
 static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
-#elif defined(HAVE_XMB) && !defined(_XBOX)
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
-#elif defined(HAVE_RGUI)
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
-#else
-static enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_NULL;
-#endif
-#endif
 
 #define GENERAL_SETTING(key, configval, default_enable, default_setting, type, handle_setting) \
 { \
@@ -1070,6 +1072,8 @@ const char *config_get_default_location(void)
  **/
 const char *config_get_default_menu(void)
 {
+	return "xmb";
+
 #ifdef HAVE_MENU
    enum menu_driver_enum default_driver = MENU_DEFAULT_DRIVER;
 

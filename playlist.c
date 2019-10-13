@@ -1274,7 +1274,55 @@ void playlist_write_file(playlist_t *playlist)
             : 0,
             JSON_UTF8);
       JSON_Writer_WriteComma(context.writer);
-      JSON_Writer_WriteNewLine(context.writer);
+		JSON_Writer_WriteNewLine(context.writer);
+
+		JSON_Writer_WriteSpace(context.writer, 2);
+		JSON_Writer_WriteString(context.writer, "label",
+			STRLEN_CONST("label"), JSON_UTF8);
+		JSON_Writer_WriteColon(context.writer);
+		JSON_Writer_WriteSpace(context.writer, 1);
+		JSON_Writer_WriteString(context.writer,
+			playlist->label
+			? playlist->label
+			: "",
+			playlist->label
+			? strlen(playlist->label)
+			: 0,
+			JSON_UTF8);
+		JSON_Writer_WriteComma(context.writer);
+		JSON_Writer_WriteNewLine(context.writer);
+
+		JSON_Writer_WriteSpace(context.writer, 2);
+		JSON_Writer_WriteString(context.writer, "logo",
+			STRLEN_CONST("logo"), JSON_UTF8);
+		JSON_Writer_WriteColon(context.writer);
+		JSON_Writer_WriteSpace(context.writer, 1);
+		JSON_Writer_WriteString(context.writer,
+			playlist->logo
+			? playlist->logo
+			: "",
+			playlist->logo
+			? strlen(playlist->logo)
+			: 0,
+			JSON_UTF8);
+		JSON_Writer_WriteComma(context.writer);
+		JSON_Writer_WriteNewLine(context.writer);
+
+		JSON_Writer_WriteSpace(context.writer, 2);
+		JSON_Writer_WriteString(context.writer, "logo_content",
+			STRLEN_CONST("logo_content"), JSON_UTF8);
+		JSON_Writer_WriteColon(context.writer);
+		JSON_Writer_WriteSpace(context.writer, 1);
+		JSON_Writer_WriteString(context.writer,
+			playlist->logo_content
+			? playlist->logo_content
+			: "",
+			playlist->logo_content
+			? strlen(playlist->logo_content)
+			: 0,
+			JSON_UTF8);
+		JSON_Writer_WriteComma(context.writer);
+		JSON_Writer_WriteNewLine(context.writer);
 
       uint_str[0] = '\0';
       snprintf(uint_str, sizeof(uint_str), "%u", playlist->label_display_mode);
@@ -1530,7 +1578,19 @@ void playlist_free(playlist_t *playlist)
 
    if (playlist->default_core_name != NULL)
       free(playlist->default_core_name);
-   playlist->default_core_name = NULL;
+	playlist->default_core_name = NULL;
+
+	if (playlist->label != NULL)
+		free(playlist->label);
+	playlist->label = NULL;
+
+	if (playlist->logo != NULL)
+		free(playlist->logo);
+	playlist->logo = NULL;
+
+	if (playlist->logo_content != NULL)
+		free(playlist->logo_content);
+	playlist->logo_content = NULL;
 
    for (i = 0; i < playlist->size; i++)
    {
@@ -1907,7 +1967,13 @@ static JSON_Parser_HandlerResult JSONObjectMemberHandler(JSON_Parser parser, cha
             if (string_is_equal(pValue, "default_core_path"))
                pCtx->current_meta_val = &pCtx->playlist->default_core_path;
             else if (string_is_equal(pValue, "default_core_name"))
-               pCtx->current_meta_val = &pCtx->playlist->default_core_name;
+					pCtx->current_meta_val = &pCtx->playlist->default_core_name;
+				else if (string_is_equal(pValue, "label"))
+					pCtx->current_meta_val = &pCtx->playlist->label;
+				else if (string_is_equal(pValue, "logo"))
+					pCtx->current_meta_val = &pCtx->playlist->logo;
+				else if (string_is_equal(pValue, "logo_content"))
+					pCtx->current_meta_val = &pCtx->playlist->logo_content;
             else if (string_is_equal(pValue, "label_display_mode"))
                pCtx->current_meta_label_display_mode_val = &pCtx->playlist->label_display_mode;
             else if (string_is_equal(pValue, "right_thumbnail_mode"))
@@ -2079,7 +2145,7 @@ json_cleanup:
       char buf[PLAYLIST_ENTRIES][1024] = {{0}};
       char metadata_line[1024];
       char default_core_path[1024];
-      char default_core_name[1024];
+		char default_core_name[1024];
       char metadata_char;
       size_t metadata_counter;
 
@@ -2088,7 +2154,7 @@ json_cleanup:
 
       metadata_line[0]     = '\0';
       default_core_path[0] = '\0';
-      default_core_name[0] = '\0';
+		default_core_name[0] = '\0';
       metadata_char        = 0;
       metadata_counter     = 0;
 
@@ -2140,7 +2206,7 @@ json_cleanup:
                metadata_line,
                STRLEN_CONST("default_core_name")) == 0)
          get_old_format_metadata_value(
-               metadata_line, default_core_name, sizeof(default_core_name));
+			metadata_line, default_core_name, sizeof(default_core_name));
 
       /* > Get label_display_mode */
       if (!filestream_gets(file, metadata_line, sizeof(metadata_line)))
@@ -2197,7 +2263,7 @@ json_cleanup:
 
             string_list_free(thumbnail_modes);
          }
-      }
+		}
 
       /* > Populate default core path/name, if required
        *   (if one is empty, the other should be ignored) */
@@ -2312,7 +2378,9 @@ playlist_t *playlist_init(const char *path, size_t size)
    playlist->conf_path            = strdup(path);
    playlist->default_core_name    = NULL;
    playlist->default_core_path    = NULL;
-	playlist->download_user_mgzip  = false;
+	playlist->label                = NULL;
+	playlist->logo                 = NULL;
+	playlist->logo_content         = NULL;
    playlist->entries              = entries;
    playlist->label_display_mode   = LABEL_DISPLAY_MODE_DEFAULT;
    playlist->right_thumbnail_mode = PLAYLIST_THUMBNAIL_MODE_DEFAULT;

@@ -324,7 +324,10 @@ typedef struct menu_ctx_driver
    int (*pointer_up)(void *data, unsigned x, unsigned y, unsigned ptr,
          menu_file_list_cbs_t *cbs,
          menu_entry_t *entry, unsigned action);
-   bool (*get_load_content_animation_data)(void *userdata, menu_texture_item *icon, char **playlist_name);
+	bool (*get_load_content_animation_data)(void *userdata, menu_texture_item *icon, char **playlist_name);
+	void (*set_horizontal_list_uiinfo)(
+		void *userdata, const char *path, const char *title,
+		const char *logoname, const char *content_logoname);
 } menu_ctx_driver_t;
 
 
@@ -543,6 +546,8 @@ bool menu_driver_list_get_selection(menu_ctx_list_t *list);
 bool menu_driver_list_get_entry(menu_ctx_list_t *list);
 
 bool menu_driver_list_get_size(menu_ctx_list_t *list);
+
+void menu_driver_set_horizontal_uiinfo(const char *path, const char *title, const char *logoname, const char *conent_logoname);
 
 size_t menu_navigation_get_selection(void);
 

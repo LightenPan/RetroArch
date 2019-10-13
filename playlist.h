@@ -77,7 +77,9 @@ struct content_playlist
 	char *default_core_name;
 	struct playlist_entry *entries;
 	size_t last_select_ptr;
-	bool download_user_mgzip;
+	char *label;
+	char *logo;
+	char *logo_content;
 };
 
 typedef struct content_playlist playlist_t;

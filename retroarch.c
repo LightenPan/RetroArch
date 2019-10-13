@@ -340,106 +340,182 @@ static const audio_driver_t *audio_drivers[] = {
 
 static const video_driver_t *video_drivers[] = {
 #ifdef HAVE_OPENGL
-   &video_gl2,
-#endif
-#if defined(HAVE_OPENGL_CORE)
-   &video_gl_core,
-#endif
-#ifdef HAVE_OPENGL1
-   &video_gl1,
+	&video_gl2,
 #endif
 #ifdef HAVE_VULKAN
-   &video_vulkan,
+	&video_vulkan,
 #endif
 #ifdef HAVE_METAL
-   &video_metal,
+	&video_metal,
 #endif
 #ifdef XENON
-   &video_xenon360,
-#endif
-#if defined(HAVE_D3D12)
-   &video_d3d12,
-#endif
-#if defined(HAVE_D3D11)
-   &video_d3d11,
-#endif
-#if defined(HAVE_D3D10)
-   &video_d3d10,
-#endif
-#if defined(HAVE_D3D9)
-   &video_d3d9,
-#endif
-#if defined(HAVE_D3D8)
-   &video_d3d8,
+	&video_xenon360,
 #endif
 #ifdef HAVE_VITA2D
-   &video_vita2d,
+	&video_vita2d,
 #endif
 #ifdef PSP
-   &video_psp1,
+	&video_psp1,
 #endif
 #ifdef PS2
-   &video_ps2,
+	&video_ps2,
 #endif
 #ifdef _3DS
-   &video_ctr,
+	&video_ctr,
 #endif
 #ifdef SWITCH
-   &video_switch,
+	&video_switch,
 #endif
 #ifdef HAVE_SDL
-   &video_sdl,
+	&video_sdl,
 #endif
 #ifdef HAVE_SDL2
-   &video_sdl2,
+	&video_sdl2,
 #endif
 #ifdef HAVE_XVIDEO
-   &video_xvideo,
+	&video_xvideo,
 #endif
 #ifdef GEKKO
-   &video_gx,
+	&video_gx,
 #endif
 #ifdef WIIU
-   &video_wiiu,
+	&video_wiiu,
 #endif
 #ifdef HAVE_VG
-   &video_vg,
+	&video_vg,
 #endif
 #ifdef HAVE_OMAP
-   &video_omap,
+	&video_omap,
 #endif
 #ifdef HAVE_EXYNOS
-   &video_exynos,
+	&video_exynos,
 #endif
 #ifdef HAVE_DISPMANX
-   &video_dispmanx,
+	&video_dispmanx,
 #endif
 #ifdef HAVE_SUNXI
-   &video_sunxi,
+	&video_sunxi,
 #endif
 #ifdef HAVE_PLAIN_DRM
-   &video_drm,
+	&video_drm,
 #endif
 #ifdef HAVE_XSHM
-   &video_xshm,
-#endif
-#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
-#ifdef HAVE_GDI
-   &video_gdi,
-#endif
+	&video_xshm,
 #endif
 #ifdef DJGPP
-   &video_vga,
+	&video_vga,
 #endif
 #ifdef HAVE_SIXEL
-   &video_sixel,
+	&video_sixel,
 #endif
 #ifdef HAVE_CACA
-   &video_caca,
+	&video_caca,
 #endif
-   &video_null,
-   NULL,
+	NULL,
 };
+
+// static const video_driver_t *video_drivers[] = {
+// #ifdef HAVE_OPENGL
+//    &video_gl2,
+// #endif
+// #if defined(HAVE_OPENGL_CORE)
+//    &video_gl_core,
+// #endif
+// #ifdef HAVE_OPENGL1
+//    &video_gl1,
+// #endif
+// #ifdef HAVE_VULKAN
+//    &video_vulkan,
+// #endif
+// #ifdef HAVE_METAL
+//    &video_metal,
+// #endif
+// #ifdef XENON
+//    &video_xenon360,
+// #endif
+// #if defined(HAVE_D3D12)
+//    &video_d3d12,
+// #endif
+// #if defined(HAVE_D3D11)
+//    &video_d3d11,
+// #endif
+// #if defined(HAVE_D3D10)
+//    &video_d3d10,
+// #endif
+// #if defined(HAVE_D3D9)
+//    &video_d3d9,
+// #endif
+// #if defined(HAVE_D3D8)
+//    &video_d3d8,
+// #endif
+// #ifdef HAVE_VITA2D
+//    &video_vita2d,
+// #endif
+// #ifdef PSP
+//    &video_psp1,
+// #endif
+// #ifdef PS2
+//    &video_ps2,
+// #endif
+// #ifdef _3DS
+//    &video_ctr,
+// #endif
+// #ifdef SWITCH
+//    &video_switch,
+// #endif
+// #ifdef HAVE_SDL
+//    &video_sdl,
+// #endif
+// #ifdef HAVE_SDL2
+//    &video_sdl2,
+// #endif
+// #ifdef HAVE_XVIDEO
+//    &video_xvideo,
+// #endif
+// #ifdef GEKKO
+//    &video_gx,
+// #endif
+// #ifdef WIIU
+//    &video_wiiu,
+// #endif
+// #ifdef HAVE_VG
+//    &video_vg,
+// #endif
+// #ifdef HAVE_OMAP
+//    &video_omap,
+// #endif
+// #ifdef HAVE_EXYNOS
+//    &video_exynos,
+// #endif
+// #ifdef HAVE_DISPMANX
+//    &video_dispmanx,
+// #endif
+// #ifdef HAVE_SUNXI
+//    &video_sunxi,
+// #endif
+// #ifdef HAVE_PLAIN_DRM
+//    &video_drm,
+// #endif
+// #ifdef HAVE_XSHM
+//    &video_xshm,
+// #endif
+// #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
+// #ifdef HAVE_GDI
+//    &video_gdi,
+// #endif
+// #endif
+// #ifdef DJGPP
+//    &video_vga,
+// #endif
+// #ifdef HAVE_SIXEL
+//    &video_sixel,
+// #endif
+// #ifdef HAVE_CACA
+//    &video_caca,
+// #endif
+//    &video_null,
+//    NULL,
+// };
 
 static const gfx_ctx_driver_t *gfx_ctx_drivers[] = {
 #if defined(ORBIS)

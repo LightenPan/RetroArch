@@ -1756,6 +1756,9 @@ static void menu_displaylist_set_new_playlist(
 		{
 			current_playlist_size = playlist_ptr->size;
 			menu_entries_set_current_playlist_item_size(current_playlist_size);
+
+			// 这里替换列表的标题和图标，用json格式数据
+			menu_driver_set_horizontal_list_uiinfo(path, playlist_ptr->label, playlist_ptr->logo, playlist_ptr->logo_content);
 		}
 	}
 
