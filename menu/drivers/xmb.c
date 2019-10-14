@@ -1244,7 +1244,7 @@ static void xmb_set_horizontal_list_logo(void *data, const char *path, const cha
 	ti.supports_rgba = video_driver_supports_rgba();
 
 	// 图片存在，并且不是当前logo
-	if (path_is_valid(texturepath) && strcmp(node->iconname, logoname) != 0)
+	if (path_is_valid(texturepath))
 	{
 		RARCH_LOG("xmb_set_horizontal_list_logo load logo. logoname: %s, texturepath: %s\n", logoname, texturepath);
 		if (image_texture_load(&ti, texturepath))
@@ -1253,9 +1253,6 @@ static void xmb_set_horizontal_list_logo(void *data, const char *path, const cha
 			{
 				video_driver_texture_unload(&node->icon);
 				video_driver_texture_load(&ti, TEXTURE_FILTER_MIPMAP_LINEAR, &node->icon);
-
-				// 加载成功，更新logo名字
-				strlcpy(node->iconname, logoname, sizeof(node->iconname));
 			}
 
 			image_texture_free(&ti);
@@ -1269,7 +1266,7 @@ static void xmb_set_horizontal_list_logo(void *data, const char *path, const cha
 		PATH_MAX_LENGTH * sizeof(char));
 
 	// 图片存在，并且不是当前logo
-	if (path_is_valid(content_texturepath) && strcmp(node->content_iconname, content_logoname) != 0)
+	if (path_is_valid(content_texturepath))
 	{
 		RARCH_LOG("xmb_set_horizontal_list_logo load content logo. content_logoname: %s, content_texturepath: %s\n",
 			content_logoname, content_texturepath);
@@ -1279,9 +1276,6 @@ static void xmb_set_horizontal_list_logo(void *data, const char *path, const cha
 			{
 				video_driver_texture_unload(&node->content_icon);
 				video_driver_texture_load(&ti, TEXTURE_FILTER_MIPMAP_LINEAR, &node->content_icon);
-
-				// 加载成功，更新logo名字
-				strlcpy(node->content_iconname, content_logoname, sizeof(node->content_iconname));
 			}
 
 			image_texture_free(&ti);

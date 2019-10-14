@@ -1163,8 +1163,20 @@ void font_driver_init_osd(
    if (video_font_driver)
       return;
 
-   video_font_driver = font_driver_init_first(video_data,
-         *settings->paths.path_font ? settings->paths.path_font : NULL,
+	char font_path[PATH_MAX_LENGTH] = {0};
+	if (!settings->paths.path_font || settings->paths.path_font[0] == '\0')
+	{
+		char ozone_path[PATH_MAX_LENGTH] = {0};
+		fill_pathname_join(
+			ozone_path,
+			settings->paths.directory_assets,
+			"ozone",
+			sizeof(ozone_path)
+			);
+		fill_pathname_join(font_path, ozone_path, "regular.ttf", sizeof(font_path));
+	}
+
+   video_font_driver = font_driver_init_first(video_data, font_path,
          settings->floats.video_font_size, threading_hint, is_threaded, api);
 
    if (!video_font_driver)
