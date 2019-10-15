@@ -2,7 +2,9 @@ package com.retroarch.browser.mainmenu;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarch.browser.retroactivity.RetroActivityFuture;
+import com.retroarch.browser.retroactivity.RetroActivityPast;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -41,16 +43,13 @@ public final class MainMenuActivity extends PreferenceActivity
 
 	private boolean addPermission(List<String> permissionsList, String permission)
 	{
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
 		{
-			if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
-			{
-				permissionsList.add(permission);
+			permissionsList.add(permission);
 
-				// Check for Rationale Option
-				if (!shouldShowRequestPermissionRationale(permission))
-					return false;
-			}
+			// Check for Rationale Option
+			if (!shouldShowRequestPermissionRationale(permission))
+				return false;
 		}
 
 		return true;
@@ -58,7 +57,8 @@ public final class MainMenuActivity extends PreferenceActivity
 
 	public void checkRuntimePermissions()
 	{
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		final Context ctx = this;
+		if (android.os.Build.VERSION.SDK_INT >= 23)
 		{
 			// Android 6.0+ needs runtime permission checks
 			List<String> permissionsNeeded = new ArrayList<String>();
@@ -91,13 +91,10 @@ public final class MainMenuActivity extends PreferenceActivity
 							{
 								if (which == AlertDialog.BUTTON_POSITIVE)
 								{
-									if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
-									{
-										requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
-											REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+									requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
+										REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
 
-										Log.i("MainMenuActivity", "User accepted request for external storage permissions.");
-									}
+									Log.i("MainMenuActivity", "User accepted request for external storage permissions.");
 								}
 							}
 						});
@@ -106,26 +103,33 @@ public final class MainMenuActivity extends PreferenceActivity
 				{
 					requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
 						REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
-
-					Log.i("MainMenuActivity", "Requested external storage permissions.");
 				}
 			}
 		}
 
 		if (!checkPermissions)
 		{
-			finalStartup();
+			finalStartup(true);
 		}
 	}
 
-	public void finalStartup()
+	public void finalStartup(boolean redirect_external)
 	{
 		final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		Intent retro = new Intent(this, RetroActivityFuture.class);
+		Intent retro;
+
+		if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB))
+		{
+			retro = new Intent(this, RetroActivityFuture.class);
+		}
+		else
+		{
+			retro = new Intent(this, RetroActivityPast.class);
+		}
 
 		retro.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-		String config = UserPreferences.getDefaultConfigPath(this);
+		String config = UserPreferences.getDefaultConfigPath(this, redirect_external);
 		Log.i("xxxxxxxxxxxxxx", "finalStartup. config: " + config);
 		startRetroActivity(
 				retro,
@@ -145,11 +149,13 @@ public final class MainMenuActivity extends PreferenceActivity
 		switch (requestCode)
 		{
 			case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
+				int granted_count = 0;
 				for (int i = 0; i < permissions.length; i++)
 				{
 					if(grantResults[i] == PackageManager.PERMISSION_GRANTED)
 					{
 						Log.i("MainMenuActivity", "Permission: " + permissions[i] + " was granted.");
+						granted_count++;
 					}
 					else
 					{
@@ -157,13 +163,16 @@ public final class MainMenuActivity extends PreferenceActivity
 					}
 				}
 
+				if (granted_count == permissions.length) {
+					UserPreferences.updateConfigFile(this, true);
+					finalStartup(true);
+				}
+
 				break;
 			default:
 				super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 				break;
 		}
-
-		finalStartup();
 	}
 
 	public static void startRetroActivity(Intent retro, String contentPath, String corePath,
@@ -191,8 +200,6 @@ public final class MainMenuActivity extends PreferenceActivity
 
 		// Bind audio stream to hardware controls.
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
-		UserPreferences.updateConfigFile(this);
 
 		checkRuntimePermissions();
 	}

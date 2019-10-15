@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
@@ -35,6 +36,11 @@ public final class UserPreferences
 	 */
 	public static String getDefaultConfigPath(Context ctx)
 	{
+		return getDefaultConfigPath(ctx, false);
+	}
+
+	public static String getDefaultConfigPath(Context ctx, Boolean redirect_external)
+	{
 		// Internal/External storage dirs.
 		final String internal = ctx.getFilesDir().getAbsolutePath();
 		String external = null;
@@ -44,6 +50,13 @@ public final class UserPreferences
 		if (android.os.Environment.MEDIA_MOUNTED.equals(state)) {
 			File extsd = ctx.getExternalFilesDir(null);
 			external = extsd.getAbsolutePath();
+
+		}
+
+		if (redirect_external) {
+			if (Environment.getExternalStorageDirectory().getAbsolutePath().length() > 0) {
+				external = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArch";
+			}
 		}
 
 		// Native library directory and data directory for this front-end.
@@ -66,7 +79,9 @@ public final class UserPreferences
 		}
 		else // Using global config.
 		{
-			append_path = File.separator + "retroarch.cfg";
+			String pname = ctx.getPackageName();
+			pname = pname.replace("com.retroarch.", "");
+			append_path = File.separator + pname + "_retroarch.cfg";
 		}
 
 		if (external != null)
@@ -119,9 +134,9 @@ public final class UserPreferences
 	 * 
 	 * @param ctx the current {@link Context}.
 	 */
-	public static void updateConfigFile(Context ctx)
+	public static void updateConfigFile(Context ctx, Boolean redirect_external)
 	{
-		String path = getDefaultConfigPath(ctx);
+		String path = getDefaultConfigPath(ctx, redirect_external);
 		ConfigFile config = new ConfigFile(path);
 
 		Log.i(TAG, "Writing config to: " + path);
@@ -136,13 +151,14 @@ public final class UserPreferences
 
 		try
 		{
-			int version							= ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionCode;
+			int version						= ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionCode;
 			final String dst_path			= dataDir;
 			final String dst_path_subdir	= "assets";
 
 			Log.i(TAG, "dst dir is: " + dst_path);
 			Log.i(TAG, "dst subdir is: " + dst_path_subdir);
 
+            config.setString("bundle_assets_extract_enable", "true");
 			config.setString("bundle_assets_src_path", ctx.getApplicationInfo().sourceDir);
 			config.setString("bundle_assets_dst_path", dst_path);
 			config.setString("bundle_assets_dst_path_subdir", dst_path_subdir);
