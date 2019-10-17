@@ -109,11 +109,12 @@ public final class MainMenuActivity extends PreferenceActivity
 
 		if (!checkPermissions)
 		{
-			finalStartup(true);
+            UserPreferences.updateConfigFile(this, false);
+			finalStartup();
 		}
 	}
 
-	public void finalStartup(boolean redirect_external)
+	public void finalStartup()
 	{
 		final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		Intent retro;
@@ -129,7 +130,7 @@ public final class MainMenuActivity extends PreferenceActivity
 
 		retro.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-		String config = UserPreferences.getDefaultConfigPath(this, redirect_external);
+		String config = UserPreferences.getDefaultConfigPath(this, true);
 		Log.i("xxxxxxxxxxxxxx", "finalStartup. config: " + config);
 		startRetroActivity(
 				retro,
@@ -165,7 +166,7 @@ public final class MainMenuActivity extends PreferenceActivity
 
 				if (granted_count == permissions.length) {
 					UserPreferences.updateConfigFile(this, true);
-					finalStartup(true);
+					finalStartup();
 				}
 
 				break;

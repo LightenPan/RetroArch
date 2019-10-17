@@ -23,6 +23,7 @@
 #include <retro_miscellaneous.h>
 
 #include <queues/task_queue.h>
+#include "../../libretro-common/include/streams/interface_stream.h"
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"

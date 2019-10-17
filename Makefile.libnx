@@ -104,7 +104,7 @@ EXEFS_SRC := exefs_src
 #ROMFS := switch/romfs
 
 APP_TITLE := RetroArch
-APP_VERSION := $(RARCH_VERSION)
+APP_VERSION := $(RARCH_VERSIONS)
 APP_AUTHOR := libretro Team
 APP_ICON := pkg/libnx/retroarch.jpg
 

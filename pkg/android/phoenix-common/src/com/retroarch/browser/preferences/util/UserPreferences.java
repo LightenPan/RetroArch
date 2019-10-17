@@ -134,9 +134,9 @@ public final class UserPreferences
 	 * 
 	 * @param ctx the current {@link Context}.
 	 */
-	public static void updateConfigFile(Context ctx, Boolean redirect_external)
+	public static void updateConfigFile(Context ctx, Boolean force)
 	{
-		String path = getDefaultConfigPath(ctx, redirect_external);
+		String path = getDefaultConfigPath(ctx, true);
 		ConfigFile config = new ConfigFile(path);
 
 		Log.i(TAG, "Writing config to: " + path);
@@ -163,6 +163,9 @@ public final class UserPreferences
 			config.setString("bundle_assets_dst_path", dst_path);
 			config.setString("bundle_assets_dst_path_subdir", dst_path_subdir);
 			config.setInt("bundle_assets_extract_version_current", version);
+			if (force) {
+				config.setInt("bundle_assets_extract_last_version", 0);
+			}
 		}
 		catch (NameNotFoundException ignored)
 		{
