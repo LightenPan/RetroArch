@@ -197,6 +197,8 @@ static void download_pl_thumbnail(pl_thumb_handle_t *pl_thumb)
 
 static void free_pl_thumb_handle(pl_thumb_handle_t *pl_thumb, bool free_playlist)
 {
+	RARCH_LOG("free_pl_thumb_handle begin. free_playlist: %u\n", free_playlist);
+
    if (!pl_thumb)
       return;
 
@@ -674,6 +676,9 @@ bool task_push_pl_entry_thumbnail_download(
       bool overwrite,
       bool mute)
 {
+	RARCH_LOG("task_push_pl_entry_thumbnail_download begin. playlist: %s, system: %s, idx: %u\n",
+		playlist->conf_path, system, idx);
+
    task_finder_data_t find_data;
    settings_t *settings          = config_get_ptr();
    retro_task_t *task            = task_init();
@@ -741,10 +746,14 @@ bool task_push_pl_entry_thumbnail_download(
    pl_thumb->status              = PL_THUMB_BEGIN;
    
    task_queue_push(task);
-   
+
+	RARCH_LOG("task_push_pl_entry_thumbnail_download end. playlist: %s, system: %s, idx: %u\n",
+		playlist->conf_path, system, idx);
    return true;
    
 error:
+	RARCH_LOG("task_push_pl_entry_thumbnail_download error. playlist: %s, system: %s, idx: %u\n",
+		playlist->conf_path, system, idx);
    
    if (task)
    {
@@ -769,6 +778,8 @@ error:
       free(playlist_path);
       playlist_path = NULL;
    }
-   
+
+	RARCH_LOG("task_push_pl_entry_thumbnail_download error end. playlist: %s, system: %s, idx: %u\n",
+		playlist->conf_path, system, idx);
    return false;
 }

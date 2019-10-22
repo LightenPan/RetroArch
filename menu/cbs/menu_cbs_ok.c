@@ -1122,6 +1122,12 @@ static bool menu_content_playlist_load(playlist_t *playlist, size_t idx)
 
    playlist_get_index(playlist, idx, &entry);
 
+	// 如果是图片地址，这里不检查rom
+	if (entry && entry->path && !string_is_empty(entry->path) && strcmp(path_get_extension(entry->path), "png") == 0)
+	{
+		return true;
+	}
+
    path[0] = '\0';
    // strlcpy(path, entry->path, sizeof(path));
 
@@ -1773,7 +1779,7 @@ static int default_action_ok_load_content_from_playlist_from_menu(const char *_p
 	RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu begin. core: %s, rom: %s, label: %s\n",
 		_path, path, entry_label);
 
-	if (!path_is_valid(_path)) {
+	if (strcmp(path_basename(_path), "builtin") != 0 && !path_is_valid(_path)) {
 		runloop_msg_queue_push(
 			msg_hash_to_str(MSG_ERROR_MISS_CORE_FILE),
 			1, 100, true,
@@ -3911,7 +3917,7 @@ void cb_generic_download(retro_task_t *task,
    bool extract                          = true;
 #endif
    const char             *dir_path      = NULL;
-   file_transfer_t     *transf      = (file_transfer_t*)user_data;
+   file_transfer_t          *transf      = (file_transfer_t*)user_data;
    settings_t              *settings     = config_get_ptr();
    http_transfer_data_t        *data     = (http_transfer_data_t*)task_data;
 
@@ -3999,7 +4005,8 @@ void cb_generic_download(retro_task_t *task,
          dir_path = buf;
          break;
       }
-      case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
+		case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
+		  extract = false;
 		  break;
 		case MENU_ENUM_LABEL_CB_SINGLE_ROM:
 		  extract = false;
@@ -4013,7 +4020,6 @@ void cb_generic_download(retro_task_t *task,
          break;
    }
 
-   // RARCH_LOG("cb_generic_download 1. output_path: %s\n", output_path);
    if (!string_is_empty(dir_path))
       fill_pathname_join(output_path, dir_path,
             transf->path, sizeof(output_path));
@@ -4043,7 +4049,6 @@ void cb_generic_download(retro_task_t *task,
     */
    path_basedir_wrapper(output_path);
 
-   RARCH_LOG("cb_generic_download 2. output_path: %s\n", output_path);
    if (!path_mkdir(output_path))
    {
       err = msg_hash_to_str(MSG_FAILED_TO_CREATE_THE_DIRECTORY);
@@ -4075,9 +4080,9 @@ void cb_generic_download(retro_task_t *task,
 		fill_pathname_base_noext(filename, transf->path, sizeof(filename));
 		fill_pathname_join(parent_dir, parent_dir, filename, sizeof(parent_dir));
 		dir_path = parent_dir;
-   }
+	}
 
-	RARCH_LOG("cb_generic_download finish init. output_path: %s, dir_path: %s\n", output_path, dir_path);
+	RARCH_LOG("cb_generic_download begin. output_path: %s\n", output_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))
@@ -4139,6 +4144,8 @@ void cb_generic_download(retro_task_t *task,
 #endif
 
 finish:
+	RARCH_LOG("cb_generic_download end. output_path: %s\n", output_path);
+
    if (err)
    {
       RARCH_ERR("Download of '%s' failed: %s\n",
