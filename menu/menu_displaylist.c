@@ -7929,33 +7929,8 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      MENU_ENUM_LABEL_UPDATE_LAKKA,
                      MENU_SETTING_ACTION, 0, 0))
                count++;
-
-            if (settings->bools.menu_show_legacy_thumbnail_updater)
-            {
-               if (menu_entries_append_enum(info->list,
-                        msg_hash_to_str(MENU_ENUM_LABEL_VALUE_THUMBNAILS_UPDATER_LIST),
-                        msg_hash_to_str(MENU_ENUM_LABEL_THUMBNAILS_UPDATER_LIST),
-                        MENU_ENUM_LABEL_THUMBNAILS_UPDATER_LIST,
-                        MENU_SETTING_ACTION, 0, 0))
-                  count++;
-            }
-
-				// 取消批量下载图片功能
-				// if (menu_entries_append_enum(info->list,
-				//          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PL_THUMBNAILS_UPDATER_LIST),
-				//          msg_hash_to_str(MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST),
-				//          MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,
-				//          MENU_SETTING_ACTION, 0, 0))
-				//    count++;
-            if (menu_entries_append_enum(info->list,
-                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_CORE_CONTENT),
-                     msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT_DIRS),
-                     MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT_DIRS,
-                     MENU_SETTING_ACTION, 0, 0))
-               count++;
-#elif defined(HAVE_NETWORKING)
-#if defined(__WINRT__) || defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
-#else
+#endif
+#if defined(HAVE_NETWORKING)
 				RARCH_LOG("menu_displaylist_ctl log menu_show_core_updater: %d\n", settings->bools.menu_show_core_updater);
             if (settings->bools.menu_show_core_updater)
             {
@@ -8085,7 +8060,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
             }
 #endif
 #endif
-#endif
+// #endif
 
 #ifdef HAVE_NETWORKING
             if (menu_displaylist_parse_settings_enum(info->list,
