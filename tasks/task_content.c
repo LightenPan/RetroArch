@@ -1918,6 +1918,21 @@ bool task_push_load_content_with_new_core_from_menu(
 				 "core_path: %s, fullpath: %s, label: %s\n",
 				 core_path, fullpath, label);
 
+	// 如果是从文件打开，label可能为空
+	char show_label[1024] = {0};
+	if (label && !string_is_empty(label))
+	{
+		strncpy(show_label, label, sizeof(show_label));
+	}
+	
+	// 如果是从文件打开，这里需要使用pathname
+	if ((label && !string_is_empty(label) && 0 == strcmp(label, "detect_core_list_ok"))
+		|| !label)
+	{
+		char *bashename = path_basename(fullpath);
+		strncpy(show_label, bashename, sizeof(show_label));
+	}
+
    content_information_ctx_t content_ctx;
    bool ret                                   = true;
    char *error_string                         = NULL;
@@ -1953,9 +1968,9 @@ bool task_push_load_content_with_new_core_from_menu(
          content_ctx.name_ups                 = strdup(global->name.ups);
 
       global->name.label[0]                   = '\0';
-		if (label && !string_is_empty(label))
+		if (show_label && !string_is_empty(show_label))
 		{
-			strlcpy(global->name.label, label, sizeof(global->name.label));
+			strlcpy(global->name.label, show_label, sizeof(global->name.label));
 		}
    }
 
@@ -1964,7 +1979,7 @@ bool task_push_load_content_with_new_core_from_menu(
 
    path_set(RARCH_PATH_CONTENT, fullpath);
 	path_set(RARCH_PATH_CORE, core_path);
-	path_set(RARCH_PATH_LABEL, label);
+	path_set(RARCH_PATH_LABEL, show_label);
 
 #ifdef HAVE_DYNAMIC
    /* Load core */
