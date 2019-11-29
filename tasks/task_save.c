@@ -1056,7 +1056,8 @@ static void save_state_cb(retro_task_t *task,
             path, true, state->has_valid_framebuffer, false, true);
 
 	// ¿ªÆôÔÆ´æµµÈÎÎñ
-	yun_save_rom_state(path);
+	// yun_save_rom_state(path);
+	task_push_yun_save_rom_state(path);
 
    free(path);
    free(state);

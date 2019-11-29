@@ -22589,11 +22589,28 @@ bool retroarch_main_init(int argc, char *argv[])
 	{
 		RARCH_LOG("retroarch_main_init log argv[%d]: %s\n", i, argv[i]);
 	}
+
+	/*
 	if (argc >=3)
 	{
-		path_set(RARCH_PATH_LABEL, argv[2]);
-		RARCH_LOG("retroarch_main_init hit label: %s\n", argv[2]);
+      const char *fullpath = path_get(RARCH_PATH_CONTENT);
+      enum rarch_content_type cont_type = path_is_media_type(fullpath);
+      switch (cont_type)
+      {
+         case RARCH_CONTENT_MOVIE:
+         case RARCH_CONTENT_MUSIC:
+         case RARCH_CONTENT_IMAGE:
+         case RARCH_CONTENT_GONG:
+				break;
+			default:
+			{
+				path_set(RARCH_PATH_LABEL, argv[2]);
+				RARCH_LOG("retroarch_main_init hit label: %s\n", argv[2]);
+				break;
+			}
+		}
 	}
+	*/
 	RARCH_LOG("retroarch_main_init after retroarch_parse_input_and_config. rom: %s, label: %s\n",
 		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
