@@ -83,6 +83,25 @@ typedef struct yun_save_rom_state_handle
 	uint32_t fragment_buf_size;
 } yun_save_rom_state_handle_t;
 
+enum rom_download_status
+{
+	ROM_DOWNLOAD_BEGIN = 0,
+	ROM_DOWNLOAD_NORMAL,
+	ROM_DOWNLOAD_ZIP,
+	ROM_DOWNLOAD_P7Z,
+	ROM_DOWNLOAD_END
+};
+
+typedef struct rom_download_handle
+{
+	char rom_path[1024];
+	char label[1024];
+	char system[1024];
+	char download_dir[1024];
+	retro_task_t *http_task;
+	enum rom_download_status download_status;
+} rom_download_handle_t;
+
 /*********************/
 /* Utility Functions */
 /*********************/
@@ -491,7 +510,7 @@ void yun_load_rom_state_cb(retro_task_t *task, void *task_data, void *user_data,
 {
    RARCH_LOG("yun_load_rom_state_cb bgein. error: %s\n", error);
 
-   char *show_errmsg[1024] = {0};
+   char show_errmsg[1024] = {0};
    struct sram_block *blocks = NULL;
    settings_t *settings = config_get_ptr();
    bool resume = false;
@@ -593,7 +612,257 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
    task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
 }
 
+void task_push_rom_download_multi(rom_download_handle_t *pHandle, bool iszip, const char *basename)
+{
+	char local_save_path[1024] = {0};
+	fill_pathname_join(local_save_path, pHandle->download_dir, basename, sizeof(local_save_path));
+	// 获取rom下载地址
+	char url_query[1024] = {0};
+	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+	char raw_url[1024] = {0};
+	strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, pHandle->system, sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, basename, sizeof(raw_url));
+	strlcat(raw_url, "?", sizeof(raw_url));
+	strlcat(raw_url, url_query, sizeof(raw_url));
+
+	file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
+	if (!transf)
+		return; /* If this happens then everything is broken anyway... */
+
+	transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
+	if (iszip) {
+		transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ZIPROM;
+	}
+	strlcpy(transf->path, local_save_path, sizeof(transf->path));
+	strlcpy(transf->title, pHandle->label, sizeof(transf->title));
+	// strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
+	RARCH_LOG("task_push_rom_download_multi log info. "
+		"raw_url: %s, rom_path: %s, system: %s"
+		", download_dir: %s, iszip: %u, save_path: %s, title: %s\n",
+		raw_url, pHandle->rom_path, pHandle->system, pHandle->download_dir, iszip, local_save_path, transf->title);
+	task_push_http_transfer(raw_url, false, NULL, cb_generic_download, transf);
+}
+
+static void free_rom_download_handle(rom_download_handle_t *pHandle)
+{
+	if (!pHandle)
+		return;
+
+	free(pHandle);
+	pHandle = NULL;
+}
+
+static void task_rom_download_handler(retro_task_t *task)
+{
+	if (!task)
+		goto task_finished;
+
+	if (task_get_cancelled(task))
+		goto task_finished;
+
+	rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
+	if (!pHandle)
+		goto task_finished;
+
+	// 状态结束
+	if (pHandle->download_status == ROM_DOWNLOAD_END)
+	{
+		goto task_finished;
+	}
+
+	// 确保只有一个http任务在执行
+	if (pHandle->http_task && !task_get_finished(pHandle->http_task))
+	{
+		return;
+	}
+
+	bool iszip = false;
+	char new_basename[256] = {0};
+	const char *basename = path_basename(pHandle->rom_path);
+	if (strcmp(path_get_extension(basename), "cue") == 0)
+	{
+		iszip = true;
+	}
+
+	switch (pHandle->download_status)
+	{
+	case ROM_DOWNLOAD_BEGIN:
+		{
+			pHandle->download_status = ROM_DOWNLOAD_NORMAL;
+			if (iszip)
+			{
+				pHandle->download_status = ROM_DOWNLOAD_ZIP;
+			}
+		}
+		break;
+	case ROM_DOWNLOAD_NORMAL:
+		{
+			strlcpy(new_basename, basename, sizeof(new_basename));
+			task_push_rom_download_multi(pHandle, iszip, new_basename);
+			pHandle->download_status = ROM_DOWNLOAD_END;
+		}
+		break;
+	case ROM_DOWNLOAD_ZIP:
+		{
+			// zip解压后最终目录是，两个文件名的目录
+			// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+			char filename_buf[256] = {0};
+			strlcpy(filename_buf, basename, sizeof(filename_buf));
+			char *filename = path_remove_extension(filename_buf);
+			strlcpy(new_basename, filename, sizeof(new_basename));
+			strlcat(new_basename, ".zip", sizeof(new_basename));
+			task_push_rom_download_multi(pHandle, iszip, new_basename);
+			pHandle->download_status = ROM_DOWNLOAD_P7Z;
+		}
+		break;
+	case ROM_DOWNLOAD_P7Z:
+		{
+			// p7z解压后最终目录是，两个文件名的目录
+			// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+			char filename_buf[256] = {0};
+			strlcpy(filename_buf, basename, sizeof(filename_buf));
+			char *filename = path_remove_extension(filename_buf);
+			strlcpy(new_basename, filename, sizeof(new_basename));
+			strlcat(new_basename, ".7z", sizeof(new_basename));
+			task_push_rom_download_multi(pHandle, iszip, new_basename);
+			pHandle->download_status = ROM_DOWNLOAD_END;
+		}
+	case ROM_DOWNLOAD_END:
+	default:
+		break;
+	}
+	return;
+
+task_finished:
+	if (task)
+		task_set_finished(task, true);
+
+	free_rom_download_handle(pHandle);
+}
+
+static bool task_rom_download_finder(retro_task_t *task, void *user_data)
+{
+	if (!task || !user_data)
+		return false;
+
+	if (task->handler != task_rom_download_handler)
+		return false;
+
+	rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
+	if (!pHandle)
+		return false;
+
+	return string_is_equal((const char*)user_data, pHandle->rom_path);
+}
+
 bool task_push_pl_entry_rom_download(
+      const char *system,
+      playlist_t *playlist,
+      unsigned idx,
+      bool overwrite,
+      bool mute)
+{
+	RARCH_LOG("task_push_pl_entry_rom_download start\n");
+	settings_t *settings = config_get_ptr();
+	if (!settings)
+		return false;
+
+	/* Sanity check */
+	if (!playlist)
+		return false;
+
+	if (string_is_empty(system))
+		return false;
+
+	if (idx >= playlist_size(playlist))
+		return false;
+
+	/* Only parse supported playlist types */
+	if (string_is_equal(system, "images_history") ||
+		string_is_equal(system, "music_history") ||
+		string_is_equal(system, "video_history"))
+		return false;
+
+	struct playlist_entry *p_playlist_entry = NULL;
+	playlist_get_index(playlist, idx, &p_playlist_entry);
+	if (p_playlist_entry == NULL)
+	{
+		return false;
+	}
+
+	char real_rom_path[1024] = {0};
+	playlist_get_exist_rom_path(p_playlist_entry, real_rom_path, sizeof(real_rom_path));
+	RARCH_LOG("task_push_pl_entry_rom_download log path: %s, real_rom_path: %s\n",
+		p_playlist_entry->path, real_rom_path);
+
+	// 如果文件存在，就不需要再下载
+	if (path_is_valid(real_rom_path))
+	{
+		succ_msg_queue_push("游戏已下载");
+		return true;
+	}
+
+	// 一些常量初始化
+	char db_name[1024] = {0};
+	strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
+	char *system_name = path_remove_extension(db_name);
+	char *basename = path_basename(p_playlist_entry->path);
+	char url_query[1024] = {0};
+	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+
+	// 获取本地文件地址
+	char tmp_buf[1024] = {0};
+	char local_rom_path[1024] = {0};
+	fill_pathname_join(tmp_buf, settings->paths.directory_core_assets, system_name, sizeof(tmp_buf));
+	if (!path_is_valid(tmp_buf))
+	{
+		path_mkdir(tmp_buf);
+	}
+
+	// 如果扩展名是.cue，需要去下载mgzip包，并解压到子文件夹
+	bool iszip = false;
+	char new_basename[256] = {0};
+	if (strcmp(path_get_extension(basename), "cue") == 0)
+	{
+		// mgzip解压后最终目录是，两个文件名的目录
+		// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+		char filename_buf[256] = {0};
+		strlcpy(filename_buf, basename, sizeof(filename_buf));
+		char *filename = path_remove_extension(filename_buf);
+		strlcpy(new_basename, filename, sizeof(new_basename));
+		strlcat(new_basename, ".zip", sizeof(new_basename));
+		iszip = true;
+	}
+	else
+	{
+		strlcpy(new_basename, basename, sizeof(new_basename));
+	}
+	fill_pathname_join(local_rom_path, tmp_buf, new_basename, sizeof(local_rom_path));
+	RARCH_LOG("task_push_pl_entry_rom_download log info. basename: %s, system_name: %s, local_rom_path: %s\n",
+		basename, system_name, local_rom_path);
+
+	// 获取正常rom下载地址
+	char raw_url[1024] = {0};
+	strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, system_name, sizeof(raw_url));
+	strlcat(raw_url, "/", sizeof(raw_url));
+	strlcat(raw_url, new_basename, sizeof(raw_url));
+	strlcat(raw_url, "?", sizeof(raw_url));
+	strlcat(raw_url, url_query, sizeof(raw_url));
+	if (!string_is_empty(raw_url))
+	{
+		RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
+			iszip, new_basename, system_name, local_rom_path, raw_url);
+		task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
+	}
+	return true;
+}
+
+bool task_push_pl_entry_rom_download_new_with_p7z(
       const char *system,
       playlist_t *playlist,
       unsigned idx,
@@ -621,7 +890,7 @@ bool task_push_pl_entry_rom_download(
        string_is_equal(system, "video_history"))
        return false;
 
-   struct playlist_entry *p_playlist_entry = NULL;
+   const struct playlist_entry *p_playlist_entry = NULL;
    playlist_get_index(playlist, idx, &p_playlist_entry);
    if (p_playlist_entry == NULL)
    {
@@ -638,64 +907,78 @@ bool task_push_pl_entry_rom_download(
    {
       succ_msg_queue_push("游戏已下载");
       return true;
-   }
+	}
 
-   // 一些常量初始化
-   char db_name[1024] = {0};
-   strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
-   char *system_name = path_remove_extension(db_name);
-   char *basename = path_basename(p_playlist_entry->path);
-   char url_query[1024] = {0};
-   clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+	// 分配任务上下文
+	rom_download_handle_t *pHandle = (rom_download_handle_t*)malloc(sizeof(rom_download_handle_t));
+	if (!pHandle)
+	{
+		error_msg_queue_push("分配任务上下文失败：%s", real_rom_path);
+		goto error;
+	}
 
-   // 获取本地文件地址
-   char tmp_buf[1024] = {0};
-   char local_rom_path[1024] = {0};
-   fill_pathname_join(tmp_buf, settings->paths.directory_core_assets, system_name, sizeof(tmp_buf));
-   if (!path_is_valid(tmp_buf))
-   {
-      path_mkdir(tmp_buf);
-   }
+	// 获取该文件下载目录
+	char download_dir[1024] = {0};
+	char local_rom_path[1024] = {0};
+	fill_pathname_join(download_dir, settings->paths.directory_core_assets, system, sizeof(download_dir));
+	if (!path_is_valid(download_dir))
+	{
+		path_mkdir(download_dir);
+	}
 
-   // 如果扩展名是.cue，需要去下载mgzip包，并解压到子文件夹
-   bool iszip = false;
-   char new_basename[256] = {0};
-   if (strcmp(path_get_extension(basename), "cue") == 0)
-   {
-      // mgzip解压后最终目录是，两个文件名的目录
-      // 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
-      char filename_buf[256] = {0};
-      strlcpy(filename_buf, basename, sizeof(filename_buf));
-      char *filename = path_remove_extension(filename_buf);
-      strlcpy(new_basename, filename, sizeof(new_basename));
-      strlcat(new_basename, ".zip", sizeof(new_basename));
-      iszip = true;
-   }
-   else
-   {
-      strlcpy(new_basename, basename, sizeof(new_basename));
-   }
-   fill_pathname_join(local_rom_path, tmp_buf, new_basename, sizeof(local_rom_path));
-   RARCH_LOG("task_push_pl_entry_rom_download log info. basename: %s, system_name: %s, local_rom_path: %s\n",
-      basename, system_name, local_rom_path);
+	// 获取rom列表上的系统名
+	char db_name[1024] = {0};
+	strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
+	char *system_name = path_remove_extension(db_name);
 
-   // 获取正常rom下载地址
-   char raw_url[1024] = {0};
-   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
-   strlcat(raw_url, "/", sizeof(raw_url));
-   strlcat(raw_url, system_name, sizeof(raw_url));
-   strlcat(raw_url, "/", sizeof(raw_url));
-   strlcat(raw_url, new_basename, sizeof(raw_url));
-   strlcat(raw_url, "?", sizeof(raw_url));
-   strlcat(raw_url, url_query, sizeof(raw_url));
-   if (!string_is_empty(raw_url))
-   {
-      RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
-         iszip, new_basename, system_name, local_rom_path, raw_url);
-      task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
-   }
+	strncpy(pHandle->rom_path, real_rom_path, sizeof(pHandle->rom_path));
+	strncpy(pHandle->download_dir, download_dir, sizeof(pHandle->download_dir));
+	strncpy(pHandle->label, p_playlist_entry->label, sizeof(pHandle->label));
+	strncpy(pHandle->system, system_name, sizeof(pHandle->system));
+	pHandle->http_task = NULL;
+	pHandle->download_status = ROM_DOWNLOAD_BEGIN;
+
+   // 后台任务变量
+   task_finder_data_t find_data;
+   retro_task_t *task = task_init();
+
+   /* Concurrent download of thumbnails for the same
+    * playlist is not allowed */
+   find_data.func                = task_rom_download_finder;
+   find_data.userdata            = (void*)pHandle->rom_path;
+   if (task_queue_find(&find_data))
+      goto error;
+
+   /* Configure task */
+   task->handler                 = task_rom_download_handler;
+   task->state                   = pHandle;
+   task->title                   = strdup(pHandle->label);
+   task->alternative_look        = true;
+   task->progress                = 0;
+   task_queue_push(task);
    return true;
+
+error:
+   if (task)
+	{
+		if (task->title)
+		{
+			free(task->title);
+			task->title = NULL;
+		}
+
+      free(task);
+      task = NULL;
+   }
+
+   if (pHandle)
+   {
+      free(pHandle);
+      pHandle = NULL;
+   }
+   return false;
 }
+
 static void free_yun_save_rom_state_handle(yun_save_rom_state_handle_t *ysrsh)
 {
 	if (!ysrsh)

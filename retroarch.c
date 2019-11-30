@@ -23938,15 +23938,37 @@ void runloop_msg_queue_push(const char *msg,
    runloop_msg_queue_unlock();
 }
 
-void error_msg_queue_push(const char *msg)
+// void error_msg_queue_push(const char *msg)
+// {
+// 	runloop_msg_queue_push(msg, 2, 180, true,
+// 		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+// }
+
+void error_msg_queue_push(const char *format, ...)
 {
-	runloop_msg_queue_push(msg, 2, 180, true,
+	char errmsg[1024] = {0};
+	va_list arglist;
+	va_start(arglist, format);
+	vsnprintf(errmsg, sizeof(errmsg), format, arglist);
+	va_end(arglist);
+	runloop_msg_queue_push(errmsg, 2, 180, true,
 		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
 }
 
-void succ_msg_queue_push(const char *msg)
+// void succ_msg_queue_push(const char *msg)
+// {
+// 	runloop_msg_queue_push(msg, 2, 180, true,
+// 		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
+// }
+
+void succ_msg_queue_push(const char *format, ...)
 {
-	runloop_msg_queue_push(msg, 2, 180, true,
+	char errmsg[1024] = {0};
+	va_list arglist;
+	va_start(arglist, format);
+	vsnprintf(errmsg, sizeof(errmsg), format, arglist);
+	va_end(arglist);
+	runloop_msg_queue_push(errmsg, 2, 180, true,
 		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
 }
 

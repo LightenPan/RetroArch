@@ -305,8 +305,8 @@ static core_info_list_t *core_info_list_new(const char *path,
       config_file_t *conf   = core_info_list_iterate(base_path, path_basedir);
       if (conf)
 		{
-			RARCH_LOG("core_info_list_new hit conf. index: %d, base_path: %s, path_basedir: %s\n",
-				i, base_path, path_basedir);
+// 			RARCH_LOG("core_info_list_new hit conf. index: %d, base_path: %s, path_basedir: %s\n",
+// 				i, base_path, path_basedir);
 
          char *tmp           = NULL;
 

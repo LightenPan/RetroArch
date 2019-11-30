@@ -1580,15 +1580,15 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 				menu_list->playlist_hashids_size++;
 			}
 			menu_list->playlist_hashids[current_playlist][1] = select_ptr_old;
-			RARCH_LOG("menu_entries_set_selection_ptr_old log playlist save old select ptr. path: %s, size: %d, "
-				"hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d, current_playlist_item_size: %u\n",
-				cached_playlist->conf_path,
-				cached_playlist->size,
-				playlist_hashid,
-				current_playlist,
-				menu_list->playlist_hashids_size,
-				menu_list->playlist_hashids[current_playlist][1],
-				menu_list->current_playlist_item_size);
+// 			RARCH_LOG("menu_entries_set_selection_ptr_old log playlist save old select ptr. path: %s, size: %d, "
+// 				"hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d, current_playlist_item_size: %u\n",
+// 				cached_playlist->conf_path,
+// 				cached_playlist->size,
+// 				playlist_hashid,
+// 				current_playlist,
+// 				menu_list->playlist_hashids_size,
+// 				menu_list->playlist_hashids[current_playlist][1],
+// 				menu_list->current_playlist_item_size);
 		}
 	}
 }
