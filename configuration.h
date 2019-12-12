@@ -130,6 +130,7 @@ typedef struct settings
       bool input_overlay_hide_in_menu;
       bool input_overlay_show_physical_inputs;
       bool input_overlay_show_mouse_cursor;
+      bool input_overlay_auto_rotate;
       bool input_descriptor_label_show;
       bool input_descriptor_hide_unbound;
       bool input_all_users_control_menu;
@@ -160,7 +161,6 @@ typedef struct settings
       bool menu_pointer_enable;
       bool menu_navigation_wraparound_enable;
       bool menu_navigation_browser_filter_supported_extensions_enable;
-      bool menu_dpi_override_enable;
       bool menu_show_advanced_settings;
       bool menu_throttle_framerate;
       bool menu_linear_filter;
@@ -186,6 +186,9 @@ typedef struct settings
       bool menu_show_video_layout;
 #endif
       bool menu_materialui_icons_enable;
+      bool menu_materialui_auto_rotate_nav_bar;
+      bool menu_materialui_dual_thumbnail_list_view_enable;
+      bool menu_materialui_thumbnail_background_enable;
       bool menu_rgui_background_filler_thickness_enable;
       bool menu_rgui_border_filler_thickness_enable;
       bool menu_rgui_border_filler_enable;
@@ -267,8 +270,8 @@ typedef struct settings
 
       /* Network */
       bool network_buildbot_auto_extract_archive;
-		bool network_on_demand_thumbnails;
-		bool network_on_demand_yunsavestate;
+      bool network_on_demand_thumbnails;
+      bool network_on_demand_yunsavestate;
 
       /* UI */
       bool ui_menubar_enable;
@@ -303,6 +306,9 @@ typedef struct settings
       /* Bundle */
       bool bundle_finished;
       bool bundle_assets_extract_enable;
+
+      /* Driver */
+      bool driver_switch_enable;
 
       /* Misc. */
       bool discord_enable;
@@ -350,6 +356,7 @@ typedef struct settings
       bool ssh_enable;
       bool samba_enable;
       bool bluetooth_enable;
+      bool localap_enable;
 
       bool automatically_add_content_to_playlist;
       bool video_window_show_decorations;
@@ -369,6 +376,7 @@ typedef struct settings
       bool enable_device_vibration;
       bool ozone_collapse_sidebar;
       bool ozone_truncate_playlist_name;
+      bool ozone_scroll_content_metadata;
 
       bool log_to_file;
       bool log_to_file_timestamp;
@@ -376,6 +384,7 @@ typedef struct settings
       bool scan_without_core_match;
 
       bool ai_service_enable;
+      bool ai_service_pause;
    } bools;
 
    struct
@@ -393,6 +402,7 @@ typedef struct settings
       float video_msg_color_b;
       float video_msg_bgcolor_opacity;
 
+      float menu_scale_factor;
       float menu_wallpaper_opacity;
       float menu_framebuffer_opacity;
       float menu_footer_opacity;
@@ -455,7 +465,9 @@ typedef struct settings
 
       unsigned input_bind_timeout;
       unsigned input_bind_hold;
-
+#ifdef GEKKO
+      unsigned input_mouse_scale;
+#endif
       unsigned input_menu_toggle_gamepad_combo;
       unsigned input_keyboard_gamepad_mapping_type;
       unsigned input_poll_type_behavior;
@@ -513,19 +525,21 @@ typedef struct settings
       unsigned menu_thumbnail_upscale_threshold;
       unsigned menu_rgui_thumbnail_downscaler;
       unsigned menu_rgui_thumbnail_delay;
-      unsigned menu_dpi_override_value;
       unsigned menu_rgui_color_theme;
       unsigned menu_xmb_animation_opening_main_menu;
       unsigned menu_xmb_animation_horizontal_highlight;
       unsigned menu_xmb_animation_move_up_down;
       unsigned menu_xmb_layout;
       unsigned menu_xmb_shader_pipeline;
-      unsigned menu_xmb_scale_factor;
       unsigned menu_xmb_alpha_factor;
       unsigned menu_xmb_theme;
       unsigned menu_xmb_color_theme;
       unsigned menu_xmb_thumbnail_scale_factor;
       unsigned menu_materialui_color_theme;
+      unsigned menu_materialui_transition_animation;
+      unsigned menu_materialui_thumbnail_view_portrait;
+      unsigned menu_materialui_thumbnail_view_landscape;
+      unsigned menu_materialui_landscape_layout_optimization;
       unsigned menu_ozone_color_theme;
       unsigned menu_font_color_red;
       unsigned menu_font_color_green;
@@ -539,6 +553,7 @@ typedef struct settings
       unsigned playlist_entry_remove_enable;
       unsigned playlist_show_inline_core_name;
       unsigned playlist_sublabel_runtime_type;
+      unsigned playlist_sublabel_last_played_style;
 
       unsigned camera_width;
       unsigned camera_height;
@@ -597,10 +612,10 @@ typedef struct settings
       char menu_driver[32];
       char cheevos_username[32];
       char cheevos_password[32];
-		char cheevos_token[32];
-		char retrogame_allinone_username[32];
-		char retrogame_allinone_password[32];
-		char retrogame_allinone_mcode[256];
+      char cheevos_token[32];
+      char retrogame_allinone_username[32];
+      char retrogame_allinone_password[32];
+      char retrogame_allinone_mcode[256];
       char video_context_driver[32];
       char audio_driver[32];
       char audio_resampler[32];
@@ -637,10 +652,10 @@ typedef struct settings
       char username[32];
       char netplay_password[128];
       char netplay_spectate_password[128];
-		char netplay_server[255];
-		char network_buildbot_base_url[255];
+      char netplay_server[255];
+      char network_buildbot_base_url[255];
       char network_buildbot_url[255];
-		char network_buildbot_assets_url[255];
+      char network_buildbot_assets_url[255];
       char browse_url[4096];
       char path_stream_url[8192];
 
@@ -689,7 +704,7 @@ typedef struct settings
       char directory_playlist[PATH_MAX_LENGTH];
       char directory_runtime_log[PATH_MAX_LENGTH];
       char directory_core_assets[PATH_MAX_LENGTH];
-		char directory_assets[PATH_MAX_LENGTH];
+      char directory_assets[PATH_MAX_LENGTH];
       char directory_dynamic_wallpapers[PATH_MAX_LENGTH];
       char directory_thumbnails[PATH_MAX_LENGTH];
       char directory_menu_config[PATH_MAX_LENGTH];
@@ -797,7 +812,7 @@ const char *config_get_default_record(void);
  * Loads a config file and reads all the values into memory.
  *
  */
-void config_parse_file(void);
+void config_parse_file(void *data);
 
 /**
  * config_load_override:
@@ -866,7 +881,7 @@ bool config_replace(bool config_save_on_exit, char *path);
 
 bool config_overlay_enable_default(void);
 
-void config_set_defaults(void);
+void config_set_defaults(void *data);
 
 settings_t *config_get_ptr(void);
 

@@ -109,6 +109,34 @@ static void menu_action_setting_disp_set_label_cheat_num_passes(
    snprintf(s, len, "%u", cheat_manager_get_buf_size());
 }
 
+static void menu_action_setting_disp_set_label_cheevos_unsupported_entry(
+   file_list_t* list,
+   unsigned *w, unsigned type, unsigned i,
+   const char *label,
+   char *s, size_t len,
+   const char *path,
+   char *s2, size_t len2)
+{
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s,
+      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNSUPPORTED_ENTRY), len);
+}
+
+static void menu_action_setting_disp_set_label_cheevos_unofficial_entry(
+   file_list_t* list,
+   unsigned *w, unsigned type, unsigned i,
+   const char *label,
+   char *s, size_t len,
+   const char *path,
+   char *s2, size_t len2)
+{
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s,
+      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNOFFICIAL_ENTRY), len);
+}
+
 static void menu_action_setting_disp_set_label_cheevos_locked_entry(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -272,9 +300,9 @@ static void menu_action_setting_disp_set_label_shader_watch_for_changes(
    if (settings)
    {
       if (settings->bools.video_shader_watch_files)
-         snprintf(s, len, "%s", msg_hash_to_str(MENU_ENUM_LABEL_VALUE_TRUE));
+         strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_TRUE), len);
       else
-         snprintf(s, len, "%s", msg_hash_to_str(MENU_ENUM_LABEL_VALUE_FALSE));
+         strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_FALSE), len);
    }
 }
 
@@ -1092,7 +1120,7 @@ static void menu_action_setting_disp_set_label_playlist_associations(file_list_t
    core_name = playlist_get_default_core_name(playlist);
 
    if (!string_is_empty(core_name) &&
-       !string_is_equal(core_name, file_path_str(FILE_PATH_DETECT)))
+       !string_is_equal(core_name, "DETECT"))
       strlcpy(s, core_name, len);
    else
       strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NOT_AVAILABLE), len);
@@ -1454,8 +1482,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST:
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST_HARDCORE:
          case MENU_ENUM_LABEL_SAVE_STATE:
-			case MENU_ENUM_LABEL_LOAD_STATE:
-			case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+         case MENU_ENUM_LABEL_LOAD_STATE:
+         case MENU_ENUM_LABEL_YUN_LOAD_STATE:
             BIND_ACTION_GET_VALUE(cbs,
                   menu_action_setting_disp_set_label_menu_more);
             break;
@@ -1641,8 +1669,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          case MENU_SETTINGS_CUSTOM_BIND_ALL:
          case MENU_SETTINGS_CUSTOM_BIND_DEFAULT_ALL:
          case MENU_SETTING_ACTION:
-			case MENU_SETTING_ACTION_LOADSTATE:
-			case MENU_SETTING_ACTION_YUNLOADSTATE:
+         case MENU_SETTING_ACTION_LOADSTATE:
+         case MENU_SETTING_ACTION_YUNLOADSTATE:
          case 7:   /* Run */
          case MENU_SETTING_ACTION_DELETE_ENTRY:
          case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
@@ -1715,6 +1743,14 @@ int menu_cbs_init_bind_get_string_representation(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_CHEEVOS_LOCKED_ENTRY:
             BIND_ACTION_GET_VALUE(cbs,
                   menu_action_setting_disp_set_label_cheevos_locked_entry);
+            return 0;
+         case MENU_ENUM_LABEL_CHEEVOS_UNSUPPORTED_ENTRY:
+            BIND_ACTION_GET_VALUE(cbs,
+                  menu_action_setting_disp_set_label_cheevos_unsupported_entry);
+            return 0;
+         case MENU_ENUM_LABEL_CHEEVOS_UNOFFICIAL_ENTRY:
+            BIND_ACTION_GET_VALUE(cbs,
+                  menu_action_setting_disp_set_label_cheevos_unofficial_entry);
             return 0;
          case MENU_ENUM_LABEL_LOAD_CONTENT_HISTORY:
          case MENU_ENUM_LABEL_SYSTEM_INFORMATION:

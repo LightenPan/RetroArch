@@ -1047,17 +1047,17 @@ static void save_state_cb(retro_task_t *task,
 {
    settings_t     *settings = config_get_ptr();
    save_task_state_t *state = (save_task_state_t*)task_data;
-	char               *path = strdup(state->path);
+   char               *path = strdup(state->path);
 
-	RARCH_LOG("save_state_cb begin. path: %s\n", path);
+   RARCH_LOG("save_state_cb begin. path: %s\n", path);
 
    if (state->thumbnail_enable)
       take_screenshot(settings->paths.directory_screenshot,
             path, true, state->has_valid_framebuffer, false, true);
 
-	// 开启云存档任务
-	// yun_save_rom_state(path);
-	task_push_yun_save_rom_state(path);
+   // 开启云存档任务
+   // yun_save_rom_state(path);
+   task_push_yun_save_rom_state(path);
 
    free(path);
    free(state);
@@ -1602,8 +1602,7 @@ void path_init_savefile_rtc(const char *savefile_path)
    /* Infer .rtc save path from save ram path. */
    attr.i = RETRO_MEMORY_RTC;
    fill_pathname(savefile_name_rtc,
-         savefile_path,
-         file_path_str(FILE_PATH_RTC_EXTENSION),
+         savefile_path, ".rtc",
          PATH_MAX_LENGTH * sizeof(char));
    string_list_append(task_save_files, savefile_name_rtc, attr);
    free(savefile_name_rtc);

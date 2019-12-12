@@ -935,8 +935,14 @@ static void gl2_renderchain_recompute_pass_sizes(
             break;
 
          case RARCH_SCALE_VIEWPORT:
-            fbo_rect->img_width      = fbo_rect->max_img_width =
+            if (gl->rotation % 180 == 90)
+            {
+               fbo_rect->img_width      = fbo_rect->max_img_width =
+               fbo_scale->scale_x * vp_height;
+            } else {
+               fbo_rect->img_width      = fbo_rect->max_img_width =
                fbo_scale->scale_x * vp_width;
+            }
             break;
       }
 
@@ -953,8 +959,14 @@ static void gl2_renderchain_recompute_pass_sizes(
             break;
 
          case RARCH_SCALE_VIEWPORT:
+            if (gl->rotation % 180 == 90)
+            {
+               fbo_rect->img_height      = fbo_rect->max_img_height =
+               fbo_scale->scale_y * vp_width;
+            } else {
             fbo_rect->img_height     = fbo_rect->max_img_height =
                fbo_scale->scale_y * vp_height;
+            }
             break;
       }
 
@@ -3064,8 +3076,9 @@ static bool gl2_frame(void *data, const void *frame,
       font_driver_render_msg(video_info, NULL, msg, NULL);
    }
 
-   video_info->cb_update_window_title(
-         video_info->context_data, video_info);
+   if (video_info->cb_update_window_title)
+      video_info->cb_update_window_title(
+            video_info->context_data, video_info);
 
    /* Reset state which could easily mess up libretro core. */
    if (gl->hw_render_fbo_init)

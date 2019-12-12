@@ -157,6 +157,7 @@ ACHIEVEMENTS
 #endif
 
 #include "../libretro-common/formats/json/jsonsax.c"
+#include "../libretro-common/formats/cdfs/cdfs.c"
 #include "../network/net_http_special.c"
 
 #include "../cheevos-new/cheevos.c"
@@ -405,6 +406,7 @@ VIDEO DRIVER
 
 #ifdef HAVE_SDL2
 #include "../gfx/drivers/sdl2_gfx.c"
+#include "../gfx/common/sdl2_common.c"
 #endif
 
 #ifdef HAVE_VG
@@ -984,7 +986,6 @@ FILE
 #include "../libretro-common/media/media_detect_cd.c"
 #endif
 
-#include "../list_special.c"
 #include "../libretro-common/string/stdstring.c"
 #include "../libretro-common/file/nbio/nbio_stdio.c"
 #if defined(__linux__)
@@ -1274,6 +1275,7 @@ MENU
 #include "../menu/menu_displaylist.c"
 #include "../menu/menu_animation.c"
 #include "../menu/menu_thumbnail_path.c"
+#include "../menu/menu_thumbnail.c"
 
 #include "../menu/drivers/null.c"
 #include "../menu/drivers/menu_generic.c"
@@ -1487,7 +1489,10 @@ DEPENDENCIES
 /*============================================================
 XML
 ============================================================ */
+#ifdef HAVE_VIDEO_LAYOUT
 #include "../libretro-common/formats/xml/rxml.c"
+#include "../deps/yxml/yxml.c"
+#endif
 
 /*============================================================
  AUDIO UTILS

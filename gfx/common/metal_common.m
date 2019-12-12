@@ -1,8 +1,17 @@
-/*
- *  metal_common.m
- *  RetroArch_Metal
+/*  RetroArch - A frontend for libretro.
+ *  Copyright (C) 2018-2019 - Stuart Carnie
+ *  Copyright (C) 2011-2017 - Daniel De Matteis
  *
- *  Created by Stuart Carnie on 5/14/18.
+ *  RetroArch is free software: you can redistribute it and/or modify it under the terms
+ *  of the GNU General Public License as published by the Free Software Found-
+ *  ation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  RetroArch is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *  PURPOSE.  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with RetroArch.
+ *  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #import <Foundation/Foundation.h>
@@ -38,6 +47,24 @@
    if (__y != nil) \
       x = (__bridge __typeof__(x))(__bridge_retained void *)((NSObject *)__y); \
    }
+
+@implementation MetalView
+
+- (void)keyDown:(NSEvent*)theEvent
+{
+}
+
+/* Stop the annoying sound when pressing a key. */
+- (BOOL)acceptsFirstResponder
+{
+   return YES;
+}
+
+- (BOOL)isFlipped
+{
+   return YES;
+}
+@end
 
 #pragma mark - private categories
 
@@ -272,10 +299,11 @@
       [self _drawCore:video_info];
       [self _drawMenu:video_info];
 
+      id<MTLRenderCommandEncoder> rce = _context.rce;
+
 #ifdef HAVE_OVERLAY
       if (_overlay.enabled)
       {
-         id<MTLRenderCommandEncoder> rce = _context.rce;
          [rce pushDebugGroup:@"overlay"];
          [_context resetRenderViewport:_overlay.fullscreen ? kFullscreenViewport : kVideoViewport];
          [rce setRenderPipelineState:[_context getStockShader:VIDEO_SHADER_STOCK_BLEND blend:YES]];
@@ -292,19 +320,29 @@
 
          if (osd_params)
          {
+            [rce pushDebugGroup:@"video stats"];
             font_driver_render_msg(video_info, NULL, video_info->stat_text, osd_params);
+            [rce popDebugGroup];
          }
       }
 
 #ifdef HAVE_MENU
 #ifdef HAVE_MENU_WIDGETS
       if (video_info->widgets_inited)
+      {
+         [rce pushDebugGroup:@"menu widgets"];
          menu_widgets_frame(video_info);
+         [rce popDebugGroup];
+      }
 #endif
 #endif
 
       if (msg && *msg)
+      {
+         [rce pushDebugGroup:@"message"];
          [self _renderMessage:msg info:video_info];
+         [rce popDebugGroup];
+      }
 
       [self _endFrame];
    }
@@ -901,6 +939,7 @@ typedef struct MTLALIGN(16)
    }
 
    id<MTLCommandBuffer> cb = ctx.blitCommandBuffer;
+   [cb pushDebugGroup:@"shaders"];
 
    MTLRenderPassDescriptor *rpd = [MTLRenderPassDescriptor new];
    rpd.colorAttachments[0].loadAction = MTLLoadActionDontCare;
@@ -922,11 +961,10 @@ typedef struct MTLALIGN(16)
          rce = [cb renderCommandEncoderWithDescriptor:rpd];
       }
 
-#if DEBUG && METAL_DEBUG
-      rce.label = [NSString stringWithFormat:@"pass %d", i];
-#endif
-
       [rce setRenderPipelineState:_engine.pass[i]._state];
+
+      NSURL *shaderPath = [NSURL fileURLWithPath:_engine.pass[i]._state.label];
+      rce.label = shaderPath.lastPathComponent.stringByDeletingPathExtension;
 
       _engine.pass[i].frame_count = (uint32_t)_frameCount;
       if (_shader->pass[i].frame_count_mod)
@@ -999,6 +1037,8 @@ typedef struct MTLALIGN(16)
       _drawState = ViewDrawStateContext;
    else
       _drawState = ViewDrawStateAll;
+
+   [cb popDebugGroup];
 }
 
 - (void)_updateRenderTargets
@@ -1143,6 +1183,9 @@ typedef struct MTLALIGN(16)
    config_file_t         *conf = video_shader_read_preset(path.UTF8String);
    struct video_shader *shader = (struct video_shader *)calloc(1, sizeof(*shader));
 
+   settings_t *settings = config_get_ptr();
+   NSString *shadersPath = [NSString stringWithFormat:@"%s/", settings->paths.directory_video_shader];
+
    @try
    {
       unsigned i;
@@ -1218,7 +1261,9 @@ typedef struct MTLALIGN(16)
             vd.layouts[4].stepFunction = MTLVertexStepFunctionPerVertex;
 
             MTLRenderPipelineDescriptor *psd = [MTLRenderPipelineDescriptor new];
-            psd.label = [NSString stringWithFormat:@"pass %d", i];
+
+            psd.label = [[NSString stringWithUTF8String:shader->pass[i].source.path]
+                          stringByReplacingOccurrencesOfString:shadersPath withString:@""];
 
             MTLRenderPipelineColorAttachmentDescriptor *ca = psd.colorAttachments[0];
 

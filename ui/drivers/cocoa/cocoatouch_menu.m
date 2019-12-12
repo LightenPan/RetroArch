@@ -717,9 +717,11 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                    target:weakSelf
                    action:@selector(menuBack)];
 
-   [self set_rightbutton:BOXSTRING("Switch")
-                   target:[RetroArch_iOS get]
-                   action:@selector(showGameView)];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self set_rightbutton:BOXSTRING("Switch")
+                       target:[RetroArch_iOS get]
+                       action:@selector(showGameView)];
+    });
 }
 
 - (void) set_leftbutton:(NSString *)title target:(id)target action:(SEL)action
@@ -803,7 +805,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
    size_t selection   = menu_navigation_get_selection();
 
    menu_entry_get(&entry, 0, selection, NULL, false);
-   menu_entry_action(&entry, (unsigned int)selection, MENU_ACTION_CANCEL);
+   menu_entry_action(&entry, selection, MENU_ACTION_CANCEL);
 #endif
 }
 

@@ -102,9 +102,6 @@ enum rarch_ctl_state
    RARCH_CTL_UNSET_IPS_PREF,
 
    RARCH_CTL_IS_SRAM_USED,
-   RARCH_CTL_SET_SRAM_ENABLE,
-   RARCH_CTL_SET_SRAM_ENABLE_FORCE,
-   RARCH_CTL_UNSET_SRAM_ENABLE,
 
    RARCH_CTL_IS_SRAM_LOAD_DISABLED,
    RARCH_CTL_IS_SRAM_SAVE_DISABLED,
@@ -537,24 +534,6 @@ bool audio_driver_enable_callback(void);
 bool audio_driver_disable_callback(void);
 
 /**
- * audio_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to audio driver at index. Can be NULL
- * if nothing found.
- **/
-const void *audio_driver_find_handle(int index);
-
-/**
- * audio_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of audio driver at index. Can be NULL
- * if nothing found.
- **/
-const char *audio_driver_find_ident(int index);
-
-/**
  * config_get_audio_driver_options:
  *
  * Get an enumerated list of all audio driver names, separated by '|'.
@@ -759,24 +738,6 @@ extern const record_driver_t record_null;
  **/
 const char* config_get_record_driver_options(void);
 
-/**
- * record_driver_find_handle:
- * @idx                : index of driver to get handle to.
- *
- * Returns: handle to record driver at index. Can be NULL
- * if nothing found.
- **/
-const void *record_driver_find_handle(int idx);
-
-/**
- * record_driver_find_ident:
- * @idx                : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of record driver at index. Can be NULL
- * if nothing found.
- **/
-const char *record_driver_find_ident(int idx);
-
 bool recording_is_enabled(void);
 
 void streaming_set_state(bool state);
@@ -855,8 +816,10 @@ enum gfx_ctx_api
    GFX_CTX_OPENVG_API,
    GFX_CTX_VULKAN_API,
    GFX_CTX_SIXEL_API,
+   GFX_CTX_NETWORK_VIDEO_API,
    GFX_CTX_METAL_API,
    GFX_CTX_GDI_API,
+   GFX_CTX_FPGA_API,
    GFX_CTX_GX_API,
    GFX_CTX_GX2_API
 };
@@ -873,7 +836,8 @@ enum display_metric_types
 
 enum display_flags
 {
-   GFX_CTX_FLAGS_GL_CORE_CONTEXT = 0,
+   GFX_CTX_FLAGS_NONE            = 0,
+   GFX_CTX_FLAGS_GL_CORE_CONTEXT,
    GFX_CTX_FLAGS_MULTISAMPLING,
    GFX_CTX_FLAGS_CUSTOMIZABLE_SWAPCHAIN_IMAGES,
    GFX_CTX_FLAGS_HARD_SYNC,
@@ -1171,6 +1135,7 @@ typedef struct video_frame_info
    bool black_frame_insertion;
    bool hard_sync;
    bool fps_show;
+   bool memory_show;
    bool statistics_show;
    bool framecount_show;
    bool scale_integer;
@@ -1641,24 +1606,6 @@ void video_driver_set_video_cache_context_ack(void);
 bool video_driver_get_viewport_info(struct video_viewport *viewport);
 
 /**
- * video_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to video driver at index. Can be NULL
- * if nothing found.
- **/
-const void *video_driver_find_handle(int index);
-
-/**
- * video_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of video driver at index.
- * Can be NULL if nothing found.
- **/
-const char *video_driver_find_ident(int index);
-
-/**
  * config_get_video_driver_options:
  *
  * Get an enumerated list of all video driver names, separated by '|'.
@@ -1802,6 +1749,8 @@ bool video_driver_translate_coord_viewport(
       int16_t *res_x, int16_t *res_y, int16_t *res_screen_x,
       int16_t *res_screen_y);
 
+uintptr_t video_driver_display_userdata_get(void);
+
 uintptr_t video_driver_display_get(void);
 
 enum rarch_display_type video_driver_display_type_get(void);
@@ -1812,7 +1761,11 @@ void video_driver_display_type_set(enum rarch_display_type type);
 
 void video_driver_display_set(uintptr_t idx);
 
+void video_driver_display_userdata_set(uintptr_t idx);
+
 void video_driver_window_set(uintptr_t idx);
+
+uintptr_t video_driver_window_get(void);
 
 bool video_driver_texture_load(void *data,
       enum texture_filter_type  filter_type,
@@ -1822,7 +1775,7 @@ bool video_driver_texture_unload(uintptr_t *id);
 
 void video_driver_build_info(video_frame_info_t *video_info);
 
-void video_driver_reinit(void);
+void video_driver_reinit(int flags);
 
 void video_driver_get_window_title(char *buf, unsigned len);
 
@@ -1960,7 +1913,9 @@ extern video_driver_t video_xshm;
 extern video_driver_t video_caca;
 extern video_driver_t video_gdi;
 extern video_driver_t video_vga;
+extern video_driver_t video_fpga;
 extern video_driver_t video_sixel;
+extern video_driver_t video_network;
 extern video_driver_t video_null;
 
 extern const gfx_ctx_driver_t gfx_ctx_osmesa;
@@ -1982,9 +1937,12 @@ extern const gfx_ctx_driver_t gfx_ctx_emscripten;
 extern const gfx_ctx_driver_t gfx_ctx_opendingux_fbdev;
 extern const gfx_ctx_driver_t gfx_ctx_khr_display;
 extern const gfx_ctx_driver_t gfx_ctx_gdi;
+extern const gfx_ctx_driver_t gfx_ctx_fpga;
 extern const gfx_ctx_driver_t gfx_ctx_sixel;
+extern const gfx_ctx_driver_t gfx_ctx_network;
 extern const gfx_ctx_driver_t switch_ctx;
 extern const gfx_ctx_driver_t orbis_ctx;
+extern const gfx_ctx_driver_t vita_ctx;
 extern const gfx_ctx_driver_t gfx_ctx_null;
 
 extern const shader_backend_t gl_glsl_backend;
@@ -2028,24 +1986,6 @@ extern location_driver_t location_null;
  **/
 const char* config_get_location_driver_options(void);
 
-/**
- * location_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to location driver at index. Can be NULL
- * if nothing found.
- **/
-const void *location_driver_find_handle(int index);
-
-/**
- * location_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of location driver at index. Can be NULL
- * if nothing found.
- **/
-const char *location_driver_find_ident(int index);
-
 /* Camera */
 
 typedef struct camera_driver
@@ -2087,24 +2027,6 @@ extern camera_driver_t camera_null;
  **/
 const char* config_get_camera_driver_options(void);
 
-/**
- * camera_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to camera driver at index. Can be NULL
- * if nothing found.
- **/
-const void *camera_driver_find_handle(int index);
-
-/**
- * camera_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of camera driver at index. Can be NULL
- * if nothing found.
- **/
-const char *camera_driver_find_ident(int index);
-
 bool menu_driver_is_alive(void);
 
 void menu_driver_set_binding_state(bool on);
@@ -2114,6 +2036,8 @@ bool menu_driver_is_toggled(void);
 bool menu_driver_is_toggled(void);
 
 bool menu_widgets_ready(void);
+
+unsigned int retroarch_get_rotation(void);
 
 input_keyboard_line_t *get_input_keyboard_line(void);
 

@@ -15,6 +15,7 @@
 #include "../../switch_performance_profiles.h"
 #include "../../configuration.h"
 #include <unistd.h>
+#include <malloc.h>
 #else
 #include <libtransistor/nx.h>
 #include <libtransistor/ipc_helpers.h>
@@ -54,8 +55,6 @@
 
 static enum frontend_fork switch_fork_mode = FRONTEND_FORK_NONE;
 static const char *elf_path_cst = "/switch/retroarch_switch.nro";
-
-static uint64_t frontend_switch_get_mem_used(void);
 
 bool platform_switch_has_focus = true;
 
@@ -299,19 +298,19 @@ static void frontend_switch_deinit(void *data)
 #ifdef HAVE_LIBNX
 static void frontend_switch_exec(const char *path, bool should_load_game)
 {
-	if (!path_is_valid(path)) {
-		RARCH_LOG("frontend_switch_exec content path: %s, rom: %s label: %s.\n",
-			path, path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
-		return ;
-	}
+   if (!path_is_valid(path)) {
+      RARCH_LOG("frontend_switch_exec content path: %s, rom: %s label: %s.\n",
+      path, path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+      return ;
+   }
 
-	char game_path[PATH_MAX-4];
-	char game_label[PATH_MAX-4];
+   char game_path[PATH_MAX-4];
+   char game_label[PATH_MAX-4];
    const char *arg_data[4];
    int args           = 0;
 
-	game_path[0]       = NULL;
-	game_label[0]      = NULL;
+   game_path[0]       = NULL;
+   game_label[0]      = NULL;
    arg_data[0]        = NULL;
 
    arg_data[args]     = elf_path_cst;
@@ -321,17 +320,17 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
    RARCH_LOG("Attempt to load core: [%s].\n", path);
 #ifndef IS_SALAMANDER
    if (should_load_game && !path_is_empty(RARCH_PATH_CONTENT))
-	{
+   {
       strcpy(game_path, path_get(RARCH_PATH_CONTENT));
-		arg_data[args++] = game_path;
-		char *label = path_get(RARCH_PATH_LABEL);
-		if (label && !string_is_empty(label))
-		{
-			strcpy(game_label, label);
-			arg_data[args++] = game_label;
-		}
+      arg_data[args++] = game_path;
+      char *label = path_get(RARCH_PATH_LABEL);
+      if (label && !string_is_empty(label))
+      {
+         strcpy(game_label, label);
+         arg_data[args++] = game_label;
+      }
       arg_data[args] = NULL;
-		RARCH_LOG("frontend_switch_exec content path: [%s], label: [%s].\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+      RARCH_LOG("frontend_switch_exec content path: [%s], label: [%s].\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    }
 #endif
 
@@ -354,12 +353,12 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
 #endif
       char *argBuffer = (char *)malloc(PATH_MAX);
       if (should_load_game && path_is_valid(game_path))
-			snprintf(argBuffer, PATH_MAX, "%s \"%s\" \"%s\"", path, game_path, game_label);
+         snprintf(argBuffer, PATH_MAX, "%s \"%s\" \"%s\"", path, game_path, game_label);
       else
          snprintf(argBuffer, PATH_MAX, "%s", path);
 
-		envSetNextLoad(path, argBuffer);
-		RARCH_LOG("content envSetNextLoad argBuffer: %s.\n", argBuffer);
+      envSetNextLoad(path, argBuffer);
+      RARCH_LOG("content envSetNextLoad argBuffer: %s.\n", argBuffer);
    }
 }
 
@@ -830,21 +829,16 @@ static int frontend_switch_parse_drive_list(void *data, bool load_content)
    return 0;
 }
 
-static uint64_t frontend_switch_get_mem_total(void)
+static uint64_t frontend_switch_get_mem_free(void)
 {
-   uint64_t memoryTotal = 0;
-   svcGetInfo(&memoryTotal, 6, 0xffff8001, 0);
-   memoryTotal += frontend_switch_get_mem_used();
-
-   return memoryTotal;
+   struct mallinfo mem_info = mallinfo();
+   return mem_info.fordblks;
 }
 
-static uint64_t frontend_switch_get_mem_used(void)
+static uint64_t frontend_switch_get_mem_total(void)
 {
-   uint64_t memoryUsed = 0;
-   svcGetInfo(&memoryUsed, 7, 0xffff8001, 0);
-
-   return memoryUsed;
+   struct mallinfo mem_info = mallinfo();
+   return mem_info.usmblks;
 }
 
 static enum frontend_powerstate 
@@ -943,12 +937,12 @@ void frontend_switch_process_args(int *argc, char *argv[])
    {
       /* Ensure current Path is set, only works for the static dummy, likely a hbloader args Issue (?) */
       path_set(RARCH_PATH_CORE, argv[0]);
-	}
+   }
 
-	for (int i = 0; i < *argc; ++i)
-	{
-		RARCH_LOG("frontend_switch_process_args log args. argv[%d]: %s", i, argv[i]);
-	}
+   for (int i = 0; i < *argc; ++i)
+   {
+      RARCH_LOG("frontend_switch_process_args log args. argv[%d]: %s", i, argv[i]);
+   }
 #endif
 }
 
@@ -981,7 +975,7 @@ frontend_ctx_driver_t frontend_ctx_switch =
         frontend_switch_get_powerstate,
         frontend_switch_parse_drive_list,
         frontend_switch_get_mem_total,
-        frontend_switch_get_mem_used,
+        frontend_switch_get_mem_free,
         NULL, /* install_signal_handler */
         NULL, /* get_signal_handler_state */
         NULL, /* set_signal_handler_state */

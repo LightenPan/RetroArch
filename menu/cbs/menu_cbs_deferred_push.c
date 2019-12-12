@@ -430,16 +430,11 @@ static int general_push(menu_displaylist_info_t *info,
    {
       case PUSH_ARCHIVE_OPEN:
          {
-            struct retro_system_info *system      = runloop_get_libretro_system_info();
-            if (system && system->valid_extensions)
+            struct retro_system_info *system = 
+               runloop_get_libretro_system_info();
+            if (system)
             {
-               if (*system->valid_extensions)
-                  strlcpy(newstring2, system->valid_extensions,
-                        PATH_MAX_LENGTH * sizeof(char));
-            }
-            else
-            {
-               if (system)
+               if (!string_is_empty(system->valid_extensions))
                   strlcpy(newstring2, system->valid_extensions,
                         PATH_MAX_LENGTH * sizeof(char));
             }
@@ -449,21 +444,14 @@ static int general_push(menu_displaylist_info_t *info,
          {
             bool new_exts_allocated               = false;
             char *new_exts                        = NULL;
-            struct retro_system_info *system      = runloop_get_libretro_system_info();
 
             if (menu_setting_get_browser_selection_type(info->setting) == ST_DIR)
             {
             }
-            else if (system && system->valid_extensions)
-            {
-               if (*system->valid_extensions)
-               {
-                  new_exts           = strdup(system->valid_extensions);
-                  new_exts_allocated = true;
-               }
-            }
             else
             {
+               struct retro_system_info *system = 
+                  runloop_get_libretro_system_info();
                if (system && !string_is_empty(system->valid_extensions))
                {
                   new_exts           = strdup(system->valid_extensions);
@@ -515,7 +503,7 @@ static int general_push(menu_displaylist_info_t *info,
             newstring[0]                     = '\0';
             attr.i                           = 0;
 
-            if (system && system->valid_extensions)
+            if (system)
             {
                if (!string_is_empty(system->valid_extensions))
                {
@@ -1149,13 +1137,13 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
                break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_cheevos_list);
-			   break;
+               break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_YOUTUBE_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_youtube_list);
                break;
             case MENU_ENUM_LABEL_DEFERRED_ACCOUNTS_TWITCH_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_twitch_list);
-			   break;
+               break;
             case MENU_ENUM_LABEL_DEFERRED_ARCHIVE_ACTION_DETECT_CORE:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_archive_action_detect_core);
                break;
@@ -1479,7 +1467,7 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
                break;
             case MENU_LABEL_DEFERRED_ACCOUNTS_CHEEVOS_LIST:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_accounts_cheevos_list);
-			   break;
+               break;
             case MENU_LABEL_DEFERRED_ARCHIVE_ACTION_DETECT_CORE:
                BIND_ACTION_DEFERRED_PUSH(cbs, deferred_archive_action_detect_core);
                break;

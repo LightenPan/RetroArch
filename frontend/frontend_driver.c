@@ -370,12 +370,12 @@ uint64_t frontend_driver_get_total_memory(void)
    return frontend->get_total_mem();
 }
 
-uint64_t frontend_driver_get_used_memory(void)
+uint64_t frontend_driver_get_free_memory(void)
 {
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
-   if (!frontend || !frontend->get_used_mem)
+   if (!frontend || !frontend->get_free_mem)
       return 0;
-   return frontend->get_used_mem();
+   return frontend->get_free_mem();
 }
 
 void frontend_driver_install_signal_handler(void)
@@ -470,7 +470,7 @@ enum retro_language frontend_driver_get_user_language(void)
 {
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
    if (!frontend || !frontend->get_user_language)
-      return RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
+      return RETRO_LANGUAGE_CHINESE_SIMPLIFIED; // 默认使用中文
    return frontend->get_user_language();
 }
 #endif

@@ -30,7 +30,7 @@
 #if defined(_MSC_VER) && !defined(_XBOX)
 #if (_MSC_VER >= 1700 && _MSC_VER < 1910)
 /* https://support.microsoft.com/en-us/kb/980263 */
-// #pragma execution_character_set("utf-8")
+#pragma execution_character_set("utf-8")
 #endif
 #pragma warning(disable:4566)
 #endif
