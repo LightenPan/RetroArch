@@ -79,7 +79,7 @@ vpksend: $(TARGET).vpk
 	curl -T $(TARGET).vpk ftp://$(PSVITAIP):1337/ux0:/
 	@echo "Sent."
 
-PSVITAIP = 192.168.1.15
+PSVITAIP = 192.168.10.69
 
 send: eboot.bin
 	curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/$(TITLE_ID)/

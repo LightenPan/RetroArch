@@ -1514,7 +1514,7 @@ size_t menu_entries_get_size(void)
    return list->size;
 }
 
-size_t menu_entries_get_selection_ptr_old(char *playlist_name, size_t playlist_size)
+size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t playlist_size)
 {
 	char calc_hashid_key[256] = {0};
 	menu_list_t *menu_list = menu_entries_list;

@@ -1214,7 +1214,7 @@ struct string_list *string_list_new_special(enum string_list_type type,
          break;
       case STRING_LIST_SUPPORTED_CORES_PATHS:
          core_info_get_list(&core_info_list);
-
+         
          core_info_list_get_supported_cores(core_info_list,
                (const char*)data, &core_info, list_size);
 
@@ -1238,6 +1238,7 @@ struct string_list *string_list_new_special(enum string_list_type type,
          break;
       case STRING_LIST_SUPPORTED_CORES_NAMES:
          core_info_get_list(&core_info_list);
+      
          core_info_list_get_supported_cores(core_info_list,
                (const char*)data, &core_info, list_size);
 
@@ -24713,7 +24714,7 @@ bool retroarch_main_init(int argc, char *argv[])
       RARCH_LOG("retroarch_main_init log argv[%d]: %s\n", i, argv[i]);
    }
 
-   /*
+#if defined(VITA)
    if (argc >=3)
    {
       const char *fullpath = path_get(RARCH_PATH_CONTENT);
@@ -24733,7 +24734,8 @@ bool retroarch_main_init(int argc, char *argv[])
          }
       }
    }
-   */
+#endif
+   
    RARCH_LOG("retroarch_main_init after retroarch_parse_input_and_config. rom: %s, label: %s\n",
       path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 

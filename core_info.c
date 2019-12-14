@@ -220,7 +220,7 @@ static config_file_t *core_info_list_iterate(
          current_path,
          info_path_base_size);
 
-#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(VITA) && !defined(PS2) && !defined(HW_WUP))
+#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(PS2) && !defined(HW_WUP))
    {
       char *substr = strrchr(info_path_base, '_');
       if (substr)
@@ -237,6 +237,8 @@ static config_file_t *core_info_list_iterate(
    free(info_path_base);
    info_path_base = NULL;
 
+   // RARCH_LOG("core_info_list_iterate log result. current_path: %s, path_basedir: %s, info_path: %s\n",
+   //    current_path, path_basedir, info_path);
    if (path_is_valid(info_path))
       conf = config_file_new_from_path_to_string(info_path);
    free(info_path);
@@ -249,6 +251,8 @@ static core_info_list_t *core_info_list_new(const char *path,
       const char *exts,
       bool dir_show_hidden_files)
 {
+   // RARCH_LOG("core_info_list_new log req. path: %s, libretro_info_dir: %s, exts: %s, dir_show_hidden_files: %u\n",
+   //    path, libretro_info_dir, exts, dir_show_hidden_files);
    size_t i;
    core_info_t *core_info           = NULL;
    core_info_list_t *core_info_list = NULL;
@@ -300,9 +304,13 @@ static core_info_list_t *core_info_list_new(const char *path,
       const char *base_path = contents->elems[i].data;
       config_file_t *conf   = core_info_list_iterate(base_path,
             path_basedir);
+      // RARCH_LOG("core_info_list_new log conf. size: %u, base_path: %s, path_basedir: %s\n",
+      //    contents->size, base_path, path_basedir);
 
       if (conf)
       {
+         RARCH_LOG("core_info_list_new log conf. base_path: %s, path_basedir: %s\n",
+            base_path, path_basedir);
          char *tmp           = NULL;
 
          if (config_get_string(conf, "display_name", &tmp)
@@ -561,6 +569,7 @@ static core_info_t *core_info_find_internal(
 {
    size_t i;
    const char *core_path_basename = path_basename(core);
+   RARCH_LOG("core_info_find_internal log core_path_basename: %s\n", core_path_basename);
 
    for (i = 0; i < list->count; i++)
    {
@@ -568,6 +577,7 @@ static core_info_t *core_info_find_internal(
 
       if (!info || !info->path)
          continue;
+      // RARCH_LOG("core_info_find_internal log item info->path: %s\n", info->path);
       if (string_is_equal(path_basename(info->path), core_path_basename))
          return info;
    }
@@ -728,6 +738,7 @@ core_info_t *core_info_get(core_info_list_t *list, size_t i)
 void core_info_list_get_supported_cores(core_info_list_t *core_info_list,
       const char *path, const core_info_t **infos, size_t *num_infos)
 {
+   RARCH_LOG("core_info_list_get_supported_cores log req. path: %s\n", path);
    size_t i;
    size_t supported         = 0;
 #ifdef HAVE_COMPRESSION
@@ -753,6 +764,8 @@ void core_info_list_get_supported_cores(core_info_list_t *core_info_list,
    for (i = 0; i < core_info_list->count; i++, supported++)
    {
       const core_info_t *core = &core_info_list->list[i];
+      RARCH_LOG("core_info_list_get_supported_cores log core info. count: %u, path: %s, core_path: %s, core_name: %s, display_name: %s\n",
+         core_info_list->count, path, core->path, core->core_name, core->display_name);
 
       if (core_info_does_support_file(core, path))
          continue;
@@ -772,6 +785,112 @@ void core_info_list_get_supported_cores(core_info_list_t *core_info_list,
 
    *infos     = core_info_list->list;
    *num_infos = supported;
+}
+
+void core_info_list_get_supported_cores_core_name(core_info_list_t *core_info_list,
+      const char *path, struct string_list *s, int *len)
+{
+   RARCH_LOG("core_info_list_get_supported_cores_core_name log req. path: %s\n", path);
+   size_t i;
+   size_t supported         = 0;
+#ifdef HAVE_COMPRESSION
+   struct string_list *list = NULL;
+#endif
+
+   if (!core_info_list)
+      return;
+
+   core_info_tmp_path = path;
+
+#ifdef HAVE_COMPRESSION
+   if (path_is_compressed_file(path))
+      list = file_archive_get_file_list(path, NULL);
+   core_info_tmp_list = list;
+#endif
+   
+   union string_list_elem_attr attr;
+   attr.i = 0;
+
+   /* Let supported core come first in list so we can return
+    * a pointer to them. */
+   qsort(core_info_list->list, core_info_list->count,
+         sizeof(core_info_t), core_info_qsort_cmp);
+
+   for (i = 0; i < core_info_list->count; i++)
+   {
+      const core_info_t *core = &core_info_list->list[i];
+      if (!core_info_does_support_file(core, path))
+         continue;
+
+#ifdef HAVE_COMPRESSION
+      if (!core_info_does_support_any_file(core, list))
+         continue;
+#endif
+
+      RARCH_LOG("core_info_list_get_supported_cores_core_name log core info. count: %u, path: %s, core_path: %s, core_name: %s, display_name: %s, systemname: %s\n",
+         core_info_list->count, path, core->path, core->core_name, core->display_name, core->systemname);
+      
+      string_list_append(s, core->core_name, attr);
+      *len += strlen(core->core_name) + 1;
+   }
+
+#ifdef HAVE_COMPRESSION
+   if (list)
+      string_list_free(list);
+#endif
+}
+
+void core_info_list_get_supported_cores_path(core_info_list_t *core_info_list,
+      const char *path, struct string_list *s, int *len)
+{
+   RARCH_LOG("core_info_list_get_supported_cores_path log req. path: %s\n", path);
+   size_t i;
+   size_t supported         = 0;
+#ifdef HAVE_COMPRESSION
+   struct string_list *list = NULL;
+#endif
+
+   if (!core_info_list)
+      return;
+
+   core_info_tmp_path = path;
+
+#ifdef HAVE_COMPRESSION
+   if (path_is_compressed_file(path))
+      list = file_archive_get_file_list(path, NULL);
+   core_info_tmp_list = list;
+#endif
+   
+   union string_list_elem_attr attr;
+   attr.i = 0;
+
+   /* Let supported core come first in list so we can return
+    * a pointer to them. */
+   qsort(core_info_list->list, core_info_list->count,
+         sizeof(core_info_t), core_info_qsort_cmp);
+
+   for (i = 0; i < core_info_list->count; i++)
+   {
+      const core_info_t *core = &core_info_list->list[i];
+      if (!core_info_does_support_file(core, path))
+         continue;
+
+#ifdef HAVE_COMPRESSION
+      if (!core_info_does_support_any_file(core, list))
+         continue;
+#endif
+
+      RARCH_LOG("core_info_list_get_supported_cores_path log core info. count: %u, path: %s, core_path: %s, core_name: %s, display_name: %s, systemname: %s\n",
+         core_info_list->count, path, core->path, core->core_name, core->display_name, core->systemname);
+      
+      string_list_append(s, core->path, attr);
+      *len += strlen(core->path) + 1;
+   }
+
+#ifdef HAVE_COMPRESSION
+   if (list)
+      string_list_free(list);
+#endif
 }
 
 void core_info_get_name(const char *path, char *s, size_t len,

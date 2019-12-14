@@ -23,8 +23,8 @@ ifeq ($(GRIFFIN_BUILD), 1)
 		DEFINES += -DHAVE_NETLOGGER
 	endif
 	INCDIRS += -I. -Ideps/7zip -Ilibretro-common/include -Ilibretro-common/include/compat/zlib -Ideps/stb
+	
 else
-
 	HAVE_NEON		:= 1
 	HAVE_MATH_NEON		:= 1
 	HAVE_FILTERS_BUILTIN	:= 1
@@ -59,7 +59,12 @@ else
 	HAVE_LIBRETRODB		:= 1
 	HAVE_COMPRESSION	:= 1
 
-	DEFINES += -DHAVE_UPDATE_ASSETS -DHAVE_LIBRETRODB -DHAVE_COMPRESSION -DHAVE_STB_FONT
+	DEFINES += -DHAVE_ONLINE_UPDATER
+	DEFINES += -DHAVE_UPDATE_ASSETS
+	DEFINES += -DHAVE_UPDATE_CORES
+	DEFINES += -DHAVE_LIBRETRODB
+	DEFINES += -DHAVE_COMPRESSION
+	DEFINES += -DHAVE_STB_FONT
 
 	ifeq ($(DEBUG), 1)
 		HAVE_NETLOGGER = 1
@@ -178,7 +183,7 @@ clean_vita:
 	rm -f retroarch_vita.*
 
 # Useful for developers
-PSVITAIP=192.168.10.34
+PSVITAIP=192.168.10.69
 vpksend: $(TARGET).vpk
 	curl -T $< ftp://$(PSVITAIP):1337/ux0:/
 

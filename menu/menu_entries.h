@@ -164,7 +164,7 @@ size_t menu_entries_get_stack_size(size_t idx);
 
 size_t menu_entries_get_size(void);
 
-size_t menu_entries_get_selection_ptr_old(char *playlist_name, size_t playlist_size);
+size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t playlist_size);
 
 void menu_entries_set_selection_ptr_old(size_t select_ptr_old);
 

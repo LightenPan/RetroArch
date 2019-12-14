@@ -6521,5 +6521,6 @@ menu_ctx_driver_t menu_ctx_xmb = {
 #else
    NULL,
 #endif
-   generic_menu_entry_action
+   generic_menu_entry_action,
+   xmb_set_horizontal_list_uiinfo
 };

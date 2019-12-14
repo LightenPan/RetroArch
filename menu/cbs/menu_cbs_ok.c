@@ -1945,7 +1945,6 @@ static int action_ok_playlist_entry_collection(const char *path,
    if (     string_is_equal(entry->core_path, file_path_str(FILE_PATH_DETECT))
          && string_is_equal(entry->core_name, file_path_str(FILE_PATH_DETECT)))
    {
-      RARCH_LOG("action_ok_playlist_entry_collection hit detect.\n");
 
       core_info_ctx_find_t core_info;
       const char *entry_path                 = NULL;
@@ -1953,6 +1952,7 @@ static int action_ok_playlist_entry_collection(const char *path,
             playlist_get_default_core_path(playlist);
       bool found_associated_core             = false;
 
+		RARCH_LOG("action_ok_playlist_entry_collection default_core_path: %s\n", default_core_path);
       if (!string_is_empty(default_core_path))
       {
          strlcpy(new_core_path, default_core_path, sizeof(new_core_path));
