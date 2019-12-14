@@ -93,6 +93,10 @@
 #define DEFAULT_MAX_PADS 16
 #endif
 
+#if defined(GEKKO)
+#define DEFAULT_MOUSE_SCALE 1
+#endif
+
 #if defined(RARCH_MOBILE) || defined(HAVE_LIBNX)
 #define DEFAULT_POINTER_ENABLE true
 #else
@@ -110,8 +114,53 @@
 #endif
 
 #ifdef HAVE_MATERIALUI
+/* Show icons to the left of each menu entry */
 #define DEFAULT_MATERIALUI_ICONS_ENABLE true
 #endif
+
+/* Material UI colour theme */
+#define DEFAULT_MATERIALUI_THEME MATERIALUI_THEME_OZONE_DARK
+
+/* Type of animation to use when performing menu transitions
+ * > 'Auto' follows Material UI standards:
+ *   - Slide when switching between parent menus (tabs)
+ *   - Fade when changing levels in a menu
+ * Note: Not wrapping this with a HAVE_MATERIALUI ifdef
+ * because there's too much baggage involved... */
+#define DEFAULT_MATERIALUI_TRANSITION_ANIM MATERIALUI_TRANSITION_ANIM_AUTO
+
+/* Adjust menu padding etc. to better fit the
+ * screen when using landscape layouts */
+#if defined(RARCH_MOBILE)
+#define DEFAULT_MATERIALUI_LANDSCAPE_LAYOUT_OPTIMIZATION MATERIALUI_LANDSCAPE_LAYOUT_OPTIMIZATION_DISABLED
+#else
+#define DEFAULT_MATERIALUI_LANDSCAPE_LAYOUT_OPTIMIZATION MATERIALUI_LANDSCAPE_LAYOUT_OPTIMIZATION_ALWAYS
+#endif
+
+/* Reposition navigation bar to make better use
+ * of screen space when using landscape layouts */
+#define DEFAULT_MATERIALUI_AUTO_ROTATE_NAV_BAR true
+
+/* Default portrait/landscape playlist view modes
+ * (when thumbnails are enabled) */
+#define DEFAULT_MATERIALUI_THUMBNAIL_VIEW_PORTRAIT MATERIALUI_THUMBNAIL_VIEW_PORTRAIT_LIST_SMALL
+#define DEFAULT_MATERIALUI_THUMBNAIL_VIEW_LANDSCAPE MATERIALUI_THUMBNAIL_VIEW_LANDSCAPE_LIST_MEDIUM
+
+/* Enable second thumbnail when using 'list view'
+ * thumbnail views
+ * Note: Second thumbnail will only be drawn if
+ * display has sufficient horizontal real estate */
+#if defined(RARCH_MOBILE)
+#define DEFAULT_MATERIALUI_DUAL_THUMBNAIL_LIST_VIEW_ENABLE false
+#else
+#define DEFAULT_MATERIALUI_DUAL_THUMBNAIL_LIST_VIEW_ENABLE true
+#endif
+
+/* Draw solid colour 4:3 background when rendering
+ * thumbnails
+ * > Helps to unify menu appearance when viewing
+ *   thumbnails of different sizes */
+#define DEFAULT_MATERIALUI_THUMBNAIL_BACKGROUND_ENABLE true
 
 #define DEFAULT_CRT_SWITCH_RESOLUTION CRT_SWITCH_NONE
 
@@ -122,6 +171,8 @@
 #define DEFAULT_HISTORY_LIST_ENABLE true
 
 #define DEFAULT_PLAYLIST_ENTRY_RENAME true
+
+#define DEFAULT_DRIVER_SWITCH_ENABLE true
 
 #define DEFAULT_USER_LANGUAGE 12
 
@@ -152,7 +203,13 @@
 /* Fullscreen */
 
 /* To start in Fullscreen, or not. */
+
+#ifdef HAVE_STEAM
+/* Start in fullscreen mode for Steam build */
+#define DEFAULT_FULLSCREEN true
+#else
 #define DEFAULT_FULLSCREEN false
+#endif
 
 /* To use windowed mode or not when going fullscreen. */
 #define DEFAULT_WINDOWED_FULLSCREEN true
@@ -293,12 +350,7 @@
 
 #if defined(__CELLOS_LV2) || defined(_XBOX360)
 #define DEFAULT_ASPECT_RATIO_IDX ASPECT_RATIO_16_9
-#elif defined(PSP)
-#define DEFAULT_ASPECT_RATIO_IDX ASPECT_RATIO_CORE
-#elif defined(_3DS)
-/* Previously defaulted to ASPECT_RATIO_4_3.
- * Non-4:3 content looks dreadful when stretched
- * to 4:3 on the 3DS screen... */
+#elif defined(PSP) || defined(_3DS) || defined(HAVE_LIBNX) || defined(VITA)
 #define DEFAULT_ASPECT_RATIO_IDX ASPECT_RATIO_CORE
 #elif defined(RARCH_CONSOLE)
 #define DEFAULT_ASPECT_RATIO_IDX ASPECT_RATIO_4_3
@@ -322,6 +374,12 @@
 #define DEFAULT_INPUT_OVERLAY_OPACITY 0.7f
 #endif
 
+#if defined(RARCH_MOBILE)
+#define DEFAULT_OVERLAY_AUTO_ROTATE true
+#else
+#define DEFAULT_OVERLAY_AUTO_ROTATE false
+#endif
+
 #ifdef HAVE_MENU
 #include "menu/menu_driver.h"
 #include "menu/menu_animation.h"
@@ -335,6 +393,7 @@
 #ifdef HAVE_OZONE
 #define DEFAULT_OZONE_COLLAPSE_SIDEBAR false
 #define DEFAULT_OZONE_TRUNCATE_PLAYLIST_NAME true
+#define DEFAULT_OZONE_SCROLL_CONTENT_METADATA false
 #endif
 
 #define DEFAULT_SETTINGS_SHOW_DRIVERS true
@@ -407,6 +466,7 @@ static bool quick_menu_show_download_thumbnails         = true;
 
 static bool kiosk_mode_enable            = false;
 
+#define DEFAULT_MENU_HORIZONTAL_ANIMATION true
 static bool menu_horizontal_animation    = true;
 static bool menu_show_online_updater     = true;
 static bool menu_show_load_core          = true;
@@ -422,7 +482,7 @@ static bool menu_show_quit_retroarch     = true;
 static bool menu_show_restart_retroarch  = true;
 static bool menu_show_reboot             = true;
 static bool menu_show_shutdown           = true;
-#if defined(HAVE_LAKKA) || defined(_3DS)
+#if defined(HAVE_LAKKA) || defined(VITA) || defined(_3DS)
 static bool menu_show_core_updater       = false;
 #else
 static bool menu_show_core_updater       = true;
@@ -514,7 +574,8 @@ static bool rgui_extended_ascii = false;
 #define DEFAULT_BLOCK_CONFIG_READ false
 #endif
 
-#define DEFAULT_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST true
+/* TODO/FIXME - this setting is thread-unsafe right now and can corrupt the stack - default to off */
+#define DEFAULT_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST false
 
 static bool default_game_specific_options = true;
 static bool default_auto_overrides_enable = true;
@@ -863,6 +924,9 @@ static const unsigned playlist_show_inline_core_name = PLAYLIST_INLINE_CORE_DISP
 /* Specifies which runtime record to use on playlist sublabels */
 static const unsigned playlist_sublabel_runtime_type = PLAYLIST_RUNTIME_PER_CORE;
 
+/* Specifies time/date display format for runtime 'last played' data */
+#define DEFAULT_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE PLAYLIST_LAST_PLAYED_STYLE_YMD_HMS
+
 static const unsigned playlist_entry_remove_enable = PLAYLIST_ENTRY_REMOVE_ENABLE_ALL;
 #endif
 
@@ -881,15 +945,9 @@ static const bool playlist_fuzzy_archive_match = false;
 /* Show Menu start-up screen on boot. */
 static const bool default_menu_show_start_screen = true;
 
-#define DEFAULT_MENU_DPI_OVERRIDE_ENABLE false
-
-#ifdef RARCH_MOBILE
-#define DEFAULT_MENU_DPI_OVERRIDE_VALUE 72
-#elif defined(__CELLOS_LV2__)
-#define DEFAULT_MENU_DPI_OVERRIDE_VALUE 360
-#else
-#define DEFAULT_MENU_DPI_OVERRIDE_VALUE 200
-#endif
+/* Default scale factor for non-frambuffer-based menu
+ * drivers and menu widgets */
+#define DEFAULT_MENU_SCALE_FACTOR 1.0f
 
 /* Log level for the frontend */
 #define DEFAULT_FRONTEND_LOG_LEVEL 1
@@ -943,7 +1001,9 @@ static const unsigned menu_left_thumbnails_default = 0;
 
 static const unsigned menu_thumbnail_upscale_threshold = 0;
 
-static const unsigned menu_timedate_style = 5;
+#ifdef HAVE_MENU
+static const unsigned menu_timedate_style = MENU_TIMEDATE_STYLE_DM_HM;
+#endif
 
 static const bool xmb_vertical_thumbnails = false;
 
@@ -1114,6 +1174,8 @@ static char default_discord_app_id[] = "475456035851599874";
 #define DEFAULT_AI_SERVICE_TARGET_LANG 0
 
 #define DEFAULT_AI_SERVICE_ENABLE true
+
+#define DEFAULT_AI_SERVICE_PAUSE false
 
 #define DEFAULT_AI_SERVICE_MODE 1
 

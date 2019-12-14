@@ -31,26 +31,27 @@
 
 RETRO_BEGIN_DECLS
 
+
 struct http_socket_state_t
 {
-	int fd;
-	bool ssl;
-	void *ssl_ctx;
+    int fd;
+    bool ssl;
+    void *ssl_ctx;
 };
 
 struct http_t
 {
-	int status;
+    int status;
 
-	char part;
-	char bodytype;
-	bool error;
+    char part;
+    char bodytype;
+    bool error;
 
-	size_t pos;
-	size_t len;
-	size_t buflen;
-	char *data;
-	struct http_socket_state_t sock_state;
+    size_t pos;
+    size_t len;
+    size_t buflen;
+    char *data;
+    struct http_socket_state_t sock_state;
 };
 
 struct http_connection_t;
@@ -62,6 +63,8 @@ bool net_http_connection_iterate(struct http_connection_t *conn);
 bool net_http_connection_done(struct http_connection_t *conn);
 
 void net_http_connection_free(struct http_connection_t *conn);
+
+void net_http_connection_set_user_agent(struct http_connection_t* conn, const char* user_agent);
 
 const char *net_http_connection_url(struct http_connection_t *conn);
 

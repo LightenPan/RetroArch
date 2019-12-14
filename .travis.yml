@@ -1,3 +1,9 @@
+# This setting is to prevent travis to launch duplicate builds on PRs
+branches:
+  only:
+    - master
+    - /^v.*$/
+
 # Use 'generic' to be able to override CC/CXX for clang
 language: generic
 
@@ -37,6 +43,10 @@ matrix:
     - compiler: gcc
       env: DISABLE_CDROM=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
+      env: DISABLE_VIDEO_LAYOUT=1 CC=gcc-8 CXX=g++-8
+    - compiler: gcc
+      env: DISABLE_AUDIOMIXER=1 CC=gcc-8 CXX=g++-8
+    - compiler: gcc
       env: ENABLE_GLES=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: ENABLE_GLES=1 ENABLE_GLES3=1 CC=gcc-8 CXX=g++-8
@@ -53,9 +63,17 @@ matrix:
       script:
         - xcodebuild -target RetroArch -configuration Release -project pkg/apple/RetroArch.xcodeproj
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode11.2
       script:
+        - brew update-reset
         - brew install --force-bottle qt5
+        - security create-keychain -p travis build.keychain
+        - security default-keychain -s build.keychain
+        - security unlock-keychain -p travis build.keychain
+        - echo $OSX_CERT | base64 --decode > dev.p12
+        - security import dev.p12 -k build.keychain -P $OSX_CERT_PASS -T /usr/bin/codesign
+        - rm dev.p12
+        - security set-key-partition-list -S "apple-tool:,apple:,codesign:" -s -k travis build.keychain
         - xcodebuild -target RetroArchQt -configuration Release -project pkg/apple/RetroArch_Metal.xcodeproj
       deploy:
         skip_cleanup: true
@@ -111,6 +129,14 @@ script:
        ARGS="$ARGS --disable-cdrom"
      fi
   - |
+     if [ -n "$DISABLE_VIDEO_LAYOUT" ]; then
+       ARGS="$ARGS --disable-video_layout"
+     fi
+  - |
+     if [ -n "$DISABLE_AUDIOMIXER" ]; then
+       ARGS="$ARGS --disable-audiomixer"
+     fi
+  - |
      if [ -n "$ENABLE_GLES" ]; then
        ARGS="$ARGS --enable-opengles"
      fi
@@ -152,4 +178,4 @@ addons:
     build_command:   "make"
     branch_pattern: coverity_scan
 notifications:
-  email: false
+  email: true

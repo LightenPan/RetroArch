@@ -582,7 +582,7 @@ static void content_load_init_wrap(
  **/
 static bool content_load(content_ctx_info_t *info)
 {
-	RARCH_LOG("content_load begin\n");
+   RARCH_LOG("content_load begin\n");
 
    unsigned i                        = 0;
    int rarch_argc                    = 0;
@@ -591,41 +591,6 @@ static bool content_load(content_ctx_info_t *info)
    char **rarch_argv_ptr             = (char**)info->argv;
    int *rarch_argc_ptr               = (int*)&info->argc;
    struct rarch_main_wrap *wrap_args = NULL;
-   core_info_t core_info             = {0};
-   core_info_list_t *core_info_list  = NULL;
-   gfx_ctx_ident_t ident_info        = {0};
-
-   video_context_driver_get_ident(&ident_info);
-
-   /* only check for supported hw api on X11/GLX and Windows since that is where it is currently implemented */
-#ifdef HAVE_X11
-   if (!string_is_empty(ident_info.ident) && string_is_equal(ident_info.ident, "x"))
-#else
-#if defined(_WIN32) && !defined(_XBOX)
-   if (!string_is_empty(ident_info.ident) && string_is_equal(ident_info.ident, "wgl"))
-#endif
-#endif
-   {
-      core_info_get_list(&core_info_list);
-
-      if (core_info_list)
-      {
-         if (core_info_list_get_info(core_info_list, &core_info, path_get(RARCH_PATH_CORE)))
-         {
-            if (!core_info_hw_api_supported(&core_info))
-            {
-               RARCH_ERR("This core is not compatible with the current video driver.\n");
-               runloop_msg_queue_push(
-                     msg_hash_to_str(MSG_INCOMPATIBLE_CORE_FOR_VIDEO_DRIVER),
-                     100, 250, true, NULL,
-                     MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
-               return false;
-            }
-            else
-               RARCH_LOG("This core is compatible with the current video driver.\n");
-         }
-      }
-   }
 
    wrap_args = (struct rarch_main_wrap*)
       calloc(1, sizeof(*wrap_args));
@@ -658,9 +623,9 @@ static bool content_load(content_ctx_info_t *info)
          free(argv_copy[i]);
       free(wrap_args);
       return false;
-	}
-	RARCH_LOG("content_load after retroarch_main_init. rom: %s, label: %s\n",
-		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   }
+   RARCH_LOG("content_load after retroarch_main_init. rom: %s, label: %s\n",
+      path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
    if (pending_subsystem_init)
    {
@@ -673,18 +638,18 @@ static bool content_load(content_ctx_info_t *info)
 #endif
 
    command_event(CMD_EVENT_HISTORY_INIT, NULL);
-	rarch_favorites_init();
+   rarch_favorites_init();
    command_event(CMD_EVENT_RESUME, NULL);
-	command_event(CMD_EVENT_VIDEO_SET_ASPECT_RATIO, NULL);
+   command_event(CMD_EVENT_VIDEO_SET_ASPECT_RATIO, NULL);
 
    dir_check_defaults();
 
-	frontend_driver_process_args(rarch_argc_ptr, rarch_argv_ptr);
+   frontend_driver_process_args(rarch_argc_ptr, rarch_argv_ptr);
    frontend_driver_content_loaded();
 
    for (i = 0; i < ARRAY_SIZE(argv_copy); i++)
       free(argv_copy[i]);
-	free(wrap_args);
+   free(wrap_args);
    return true;
 }
 
@@ -941,7 +906,7 @@ static bool content_file_load(
       struct string_list *additional_path_allocs
       )
 {
-	RARCH_LOG("content_file_load begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   RARCH_LOG("content_file_load begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    unsigned i;
    retro_ctx_load_content_info_t load_info;
    bool used_vfs_fallback_copy = false;
@@ -1140,8 +1105,8 @@ retro_subsystem_info *content_file_init_subsystem(
       char **error_string,
       bool *ret)
 {
-	RARCH_LOG("content_file_init_subsystem begin. subsystem_current_count: %d, RARCH_PATH_SUBSYSTEM: %s",
-		subsystem_current_count, path_get(RARCH_PATH_SUBSYSTEM));
+   RARCH_LOG("content_file_init_subsystem begin. subsystem_current_count: %d, RARCH_PATH_SUBSYSTEM: %s",
+      subsystem_current_count, path_get(RARCH_PATH_SUBSYSTEM));
 
    size_t path_size                           = 1024 * sizeof(char);
    char *msg                                  = (char*)malloc(path_size);
@@ -1261,14 +1226,14 @@ static bool content_file_init(
       struct string_list *content,
       char **error_string)
 {
-	RARCH_LOG("content_file_init begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   RARCH_LOG("content_file_init begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 
    union string_list_elem_attr attr;
    struct retro_game_info               *info = NULL;
    bool subsystem_path_is_empty               = path_is_empty(RARCH_PATH_SUBSYSTEM);
    bool ret                                   = subsystem_path_is_empty;
    const struct retro_subsystem_info *special =
-     subsystem_path_is_empty 
+     subsystem_path_is_empty
      ? NULL : content_file_init_subsystem(content_ctx->subsystem.data,
            content_ctx->subsystem.size, error_string, &ret);
 
@@ -1304,7 +1269,7 @@ static bool content_file_init(
       ret = false;
    }
 
-	RARCH_LOG("content_file_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   RARCH_LOG("content_file_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    return ret;
 }
 
@@ -1450,18 +1415,18 @@ static void task_push_to_history_list(
          }
 
          if (global && !string_is_empty(global->name.label))
-			{
-				RARCH_LOG("task_push_to_history_list log label. global->name.label: %s\n", global->name.label);
+         {
+            RARCH_LOG("task_push_to_history_list log label. global->name.label: %s\n", global->name.label);
             label = global->name.label;
-			}
-			else
-			{
-				RARCH_LOG("task_push_to_history_list log label. path_get(RARCH_PATH_LABEL): %s\n", path_get(RARCH_PATH_LABEL));
-				label = path_get(RARCH_PATH_LABEL);
-			}
+         }
+         else
+         {
+            RARCH_LOG("task_push_to_history_list log label. path_get(RARCH_PATH_LABEL): %s\n", path_get(RARCH_PATH_LABEL));
+            label = path_get(RARCH_PATH_LABEL);
+         }
 
          if (
-              settings && settings->bools.history_list_enable 
+              settings && settings->bools.history_list_enable
                && playlist_hist)
          {
             char subsystem_name[PATH_MAX_LENGTH];
@@ -1482,7 +1447,8 @@ static void task_push_to_history_list(
             entry.subsystem_name  = (char*)subsystem_name;
             entry.subsystem_roms  = (struct string_list*)path_get_subsystem_list();
 
-				command_playlist_push_write(playlist_hist, &entry);
+            command_playlist_push_write(
+                  playlist_hist, &entry);
          }
       }
 
@@ -1496,7 +1462,7 @@ static bool command_event_cmd_exec(const char *data, const char *label,
       bool launched_from_cli,
       char **error_string)
 {
-	RARCH_LOG("command_event_cmd_exec data: %s, label: %s\n", data, label);
+   RARCH_LOG("command_event_cmd_exec data: %s, label: %s\n", data, label);
 
 #if defined(HAVE_DYNAMIC)
    content_ctx_info_t content_info;
@@ -1513,14 +1479,14 @@ static bool command_event_cmd_exec(const char *data, const char *label,
       path_clear(RARCH_PATH_CONTENT);
       if (!string_is_empty(data))
          path_set(RARCH_PATH_CONTENT, data);
-	}
+   }
 
-	if (path_get(RARCH_PATH_LABEL) != label)
-	{
-		path_clear(RARCH_PATH_LABEL);
-		if (!string_is_empty(label))
-			path_set(RARCH_PATH_LABEL, label);
-	}
+   if (path_get(RARCH_PATH_LABEL) != label)
+   {
+      path_clear(RARCH_PATH_LABEL);
+      if (!string_is_empty(label))
+         path_set(RARCH_PATH_LABEL, label);
+   }
 
 #if defined(HAVE_DYNAMIC)
    /* Loads content into currently selected core. */
@@ -1543,7 +1509,7 @@ static bool firmware_update_status(
    core_info_t *core_info     = NULL;
    size_t s_size              = PATH_MAX_LENGTH * sizeof(char);
    char *s                    = NULL;
-   
+
    core_info_get_current_core(&core_info);
 
    if (!core_info)
@@ -1761,7 +1727,7 @@ bool task_push_load_content_from_playlist_from_menu(
 #ifdef HAVE_DYNAMIC
    command_event(CMD_EVENT_LOAD_CORE, NULL);
 #ifdef HAVE_COCOATOUCH
-    /* This seems to be needed for iOS for some reason to show the 
+    /* This seems to be needed for iOS for some reason to show the
      * quick menu after the menu is shown */
    menu_driver_ctl(RARCH_MENU_CTL_SET_PENDING_QUICK_MENU, NULL);
 #endif
@@ -1907,31 +1873,31 @@ bool task_push_load_new_core(
 #ifdef HAVE_MENU
 bool task_push_load_content_with_new_core_from_menu(
       const char *core_path,
-		const char *fullpath,
-		const char *label,
+      const char *fullpath,
+      const char *label,
       content_ctx_info_t *content_info,
       enum rarch_core_type type,
       retro_task_callback_t cb,
       void *user_data)
 {
-	RARCH_LOG("task_push_load_content_with_new_core_from_menu begin. "
-				 "core_path: %s, fullpath: %s, label: %s\n",
-				 core_path, fullpath, label);
+   RARCH_LOG("task_push_load_content_with_new_core_from_menu begin. "
+             "core_path: %s, fullpath: %s, label: %s\n",
+             core_path, fullpath, label);
 
-	// 如果是从文件打开，label可能为空
-	char show_label[1024] = {0};
-	if (label && !string_is_empty(label))
-	{
-		strncpy(show_label, label, sizeof(show_label));
-	}
-	
-	// 如果是从文件打开，这里需要使用pathname
-	if ((label && !string_is_empty(label) && 0 == strcmp(label, "detect_core_list_ok"))
-		|| !label)
-	{
-		char *bashename = path_basename(fullpath);
-		strncpy(show_label, bashename, sizeof(show_label));
-	}
+   // 如果是从文件打开，label可能为空
+   char show_label[1024] = {0};
+   if (label && !string_is_empty(label))
+   {
+      strncpy(show_label, label, sizeof(show_label));
+   }
+
+   // 如果是从文件打开，这里需要使用pathname
+   if ((label && !string_is_empty(label) && 0 == strcmp(label, "detect_core_list_ok"))
+      || !label)
+   {
+      char *bashename = path_basename(fullpath);
+      strncpy(show_label, bashename, sizeof(show_label));
+   }
 
    content_information_ctx_t content_ctx;
    bool ret                                   = true;
@@ -1968,18 +1934,18 @@ bool task_push_load_content_with_new_core_from_menu(
          content_ctx.name_ups                 = strdup(global->name.ups);
 
       global->name.label[0]                   = '\0';
-		if (show_label && !string_is_empty(show_label))
-		{
-			strlcpy(global->name.label, show_label, sizeof(global->name.label));
-		}
+      if (show_label && !string_is_empty(show_label))
+      {
+         strlcpy(global->name.label, show_label, sizeof(global->name.label));
+      }
    }
 
    if (!string_is_empty(settings->paths.directory_system))
       content_ctx.directory_system            = strdup(settings->paths.directory_system);
 
    path_set(RARCH_PATH_CONTENT, fullpath);
-	path_set(RARCH_PATH_CORE, core_path);
-	path_set(RARCH_PATH_LABEL, show_label);
+   path_set(RARCH_PATH_CORE, core_path);
+   path_set(RARCH_PATH_LABEL, show_label);
 
 #ifdef HAVE_DYNAMIC
    /* Load core */
@@ -2038,7 +2004,7 @@ end:
 static bool task_load_content_callback(content_ctx_info_t *content_info,
       bool loading_from_menu, bool loading_from_cli)
 {
-	RARCH_LOG("task_load_content_callback begin\n");
+   RARCH_LOG("task_load_content_callback begin\n");
 
    content_information_ctx_t content_ctx;
 
@@ -2513,7 +2479,7 @@ void content_set_subsystem_info(void)
  * selected libretro core. */
 bool content_init(void)
 {
-	RARCH_LOG("content_init begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   RARCH_LOG("content_init begin. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    content_information_ctx_t content_ctx;
 
    bool ret                                   = true;
@@ -2614,6 +2580,6 @@ bool content_init(void)
       free(error_string);
    }
 
-	RARCH_LOG("content_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   RARCH_LOG("content_init end. rom: %s, label: %s\n", path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
    return ret;
 }

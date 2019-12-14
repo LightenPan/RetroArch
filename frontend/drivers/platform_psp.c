@@ -23,9 +23,11 @@
 #endif
 
 #ifdef VITA
+#include <psp2/system_param.h>
 #include <psp2/power.h>
 #include <psp2/sysmodule.h>
 #include <psp2/appmgr.h>
+#include <psp2/apputil.h>
 
 #include "../../bootstrap/vita/sbrk.c"
 #include "../../bootstrap/vita/threading.c"
@@ -86,18 +88,6 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    struct rarch_main_wrap *params = NULL;
 
    (void)args;
-
-#ifndef IS_SALAMANDER
-#if defined(HAVE_LOGGER)
-   logger_init();
-#elif defined(HAVE_FILE_LOGGER)
-#ifndef VITA
-   retro_main_log_file_init("ms0:/temp/retroarch-log.txt");
-#else
-   retro_main_log_file_init("ux0:/temp/retroarch-log.txt");
-#endif
-#endif
-#endif
 
 #ifdef VITA
    strlcpy(eboot_path, "app0:/", sizeof(eboot_path));
@@ -243,10 +233,6 @@ static void frontend_psp_deinit(void *data)
    (void)data;
 #ifndef IS_SALAMANDER
    verbosity_disable();
-#ifdef HAVE_FILE_LOGGER
-   command_event(CMD_EVENT_LOG_FILE_DEINIT, NULL);
-#endif
-
 #endif
 }
 
@@ -300,6 +286,12 @@ static void frontend_psp_init(void *data)
    scePowerSetGpuClockFrequency(222);
    scePowerSetGpuXbarClockFrequency(166);
    sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+   
+   SceAppUtilInitParam appUtilParam;
+   SceAppUtilBootParam appUtilBootParam;
+   memset(&appUtilParam, 0, sizeof(SceAppUtilInitParam));
+   memset(&appUtilBootParam, 0, sizeof(SceAppUtilBootParam));
+   sceAppUtilInit(&appUtilParam, &appUtilBootParam);
 #else
    (void)data;
    /* initialize debug screen */
@@ -506,6 +498,64 @@ static int frontend_psp_parse_drive_list(void *data, bool load_content)
    return 0;
 }
 
+#ifdef VITA
+enum retro_language psp_get_retro_lang_from_langid(int langid)
+{
+   switch (langid)
+   {
+   case SCE_SYSTEM_PARAM_LANG_JAPANESE:
+      return RETRO_LANGUAGE_JAPANESE;
+   case SCE_SYSTEM_PARAM_LANG_FRENCH:
+      return RETRO_LANGUAGE_FRENCH;
+   case SCE_SYSTEM_PARAM_LANG_SPANISH:
+      return RETRO_LANGUAGE_SPANISH;
+   case SCE_SYSTEM_PARAM_LANG_GERMAN:
+      return RETRO_LANGUAGE_GERMAN;
+   case SCE_SYSTEM_PARAM_LANG_ITALIAN:
+      return RETRO_LANGUAGE_ITALIAN;
+   case SCE_SYSTEM_PARAM_LANG_DUTCH:
+      return RETRO_LANGUAGE_DUTCH;
+   case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_PT:
+      return RETRO_LANGUAGE_PORTUGUESE_PORTUGAL;
+   case SCE_SYSTEM_PARAM_LANG_RUSSIAN:
+      return RETRO_LANGUAGE_RUSSIAN;
+   case SCE_SYSTEM_PARAM_LANG_KOREAN:
+      return RETRO_LANGUAGE_KOREAN;
+   case SCE_SYSTEM_PARAM_LANG_CHINESE_T:
+      return RETRO_LANGUAGE_CHINESE_TRADITIONAL;
+   case SCE_SYSTEM_PARAM_LANG_CHINESE_S:
+      return RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
+   case SCE_SYSTEM_PARAM_LANG_POLISH:
+      return RETRO_LANGUAGE_POLISH;
+   case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_BR:
+      return RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
+   case SCE_SYSTEM_PARAM_LANG_TURKISH:
+      return RETRO_LANGUAGE_TURKISH;
+   case SCE_SYSTEM_PARAM_LANG_ENGLISH_US:
+   case SCE_SYSTEM_PARAM_LANG_ENGLISH_GB:
+   default:
+      return RETRO_LANGUAGE_ENGLISH;
+   }
+}
+
+enum retro_language frontend_psp_get_user_language(void)
+{ 
+   int langid;
+   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
+   return psp_get_retro_lang_from_langid(langid);
+}
+
+static uint64_t frontend_psp_get_mem_total(void)
+{
+   return _newlib_heap_end - _newlib_heap_base;
+}
+
+static uint64_t frontend_psp_get_mem_used(void)
+{
+   return _newlib_heap_end - _newlib_heap_cur;
+}
+#endif
+
 frontend_ctx_driver_t frontend_ctx_psp = {
    frontend_psp_get_environment_settings,
    frontend_psp_init,
@@ -526,8 +576,13 @@ frontend_ctx_driver_t frontend_ctx_psp = {
    frontend_psp_get_architecture,
    frontend_psp_get_powerstate,
    frontend_psp_parse_drive_list,
+#ifdef VITA
+   frontend_psp_get_mem_total,
+   frontend_psp_get_mem_used,
+#else
    NULL,                         /* get_mem_total */
    NULL,                         /* get_mem_free */
+#endif
    NULL,                         /* install_signal_handler */
    NULL,                         /* get_sighandler_state */
    NULL,                         /* set_sighandler_state */
@@ -538,10 +593,11 @@ frontend_ctx_driver_t frontend_ctx_psp = {
    NULL,                         /* check_for_path_changes */
    NULL,                         /* set_sustained_performance_mode */
    NULL,                         /* get_cpu_model_name */
-   NULL,                         /* get_user_language */
 #ifdef VITA
+   frontend_psp_get_user_language,
    "vita",
 #else
+   NULL,                         /* get_user_language */
    "psp",
 #endif
 };

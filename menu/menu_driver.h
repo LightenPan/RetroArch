@@ -27,6 +27,7 @@
 #include <boolean.h>
 #include <retro_common_api.h>
 #include <gfx/math/matrix_4x4.h>
+#include <formats/image.h>
 #include <queues/task_queue.h>
 
 #include "menu_defines.h"
@@ -204,6 +205,7 @@ enum menu_settings_type
    MENU_SET_CDROM_LIST,
    MENU_SET_LOAD_CDROM_LIST,
    MENU_SET_CDROM_INFO,
+   MENU_SETTING_ACTION_DELETE_PLAYLIST,
 
    MENU_SETTINGS_LAST
 };
@@ -306,12 +308,9 @@ typedef struct menu_ctx_driver
    bool  (*load_image)(void *userdata, void *data, enum menu_image_type type);
    const char *ident;
    int (*environ_cb)(enum menu_environ_cb type, void *data, void *userdata);
-   int (*pointer_tap)(void *data, unsigned x, unsigned y, unsigned ptr,
-         menu_file_list_cbs_t *cbs,
-         menu_entry_t *entry, unsigned action);
    void (*update_thumbnail_path)(void *data, unsigned i, char pos);
    void (*update_thumbnail_image)(void *data);
-   void (*refresh_thumbnail_image)(void *data);
+   void (*refresh_thumbnail_image)(void *data, unsigned i);
    void (*set_thumbnail_system)(void *data, char* s, size_t len);
    void (*get_thumbnail_system)(void *data, char* s, size_t len);
    void (*set_thumbnail_content)(void *data, const char *s);
@@ -322,12 +321,16 @@ typedef struct menu_ctx_driver
          menu_file_list_cbs_t *cbs,
          menu_entry_t *entry, unsigned action);
    int (*pointer_up)(void *data, unsigned x, unsigned y, unsigned ptr,
+         enum menu_input_pointer_gesture gesture,
          menu_file_list_cbs_t *cbs,
          menu_entry_t *entry, unsigned action);
-	bool (*get_load_content_animation_data)(void *userdata, menu_texture_item *icon, char **playlist_name);
-	void (*set_horizontal_list_uiinfo)(
-		void *userdata, const char *path, const char *title,
-		const char *logoname, const char *content_logoname);
+   bool (*get_load_content_animation_data)(void *userdata, menu_texture_item *icon, char **playlist_name);
+   /* This will be invoked whenever a menu entry action
+    * (menu_entry_action()) is performed */
+   int (*entry_action)(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
+   void (*set_horizontal_list_uiinfo)(
+       void *userdata, const char *path, const char *title,
+       const char *logoname, const char *content_logoname);
 } menu_ctx_driver_t;
 
 
@@ -464,6 +467,7 @@ typedef struct menu_ctx_pointer
    unsigned y;
    unsigned ptr;
    unsigned action;
+   enum menu_input_pointer_gesture gesture;
    int retcode;
    menu_file_list_cbs_t *cbs;
    menu_entry_t *entry;
@@ -581,12 +585,15 @@ void menu_display_unset_viewport(unsigned width, unsigned height);
 bool menu_display_get_framebuffer_dirty_flag(void);
 void menu_display_set_framebuffer_dirty_flag(void);
 void menu_display_unset_framebuffer_dirty_flag(void);
-float menu_display_get_dpi(unsigned width, unsigned height);
+float menu_display_get_pixel_scale(unsigned width, unsigned height);
+float menu_display_get_dpi_scale(unsigned width, unsigned height);
 bool menu_display_init_first_driver(bool video_is_threaded);
 bool menu_display_restore_clear_color(void);
 void menu_display_clear_color(menu_display_ctx_clearcolor_t *color,
       video_frame_info_t *video_info);
 void menu_display_draw(menu_display_ctx_draw_t *draw,
+      video_frame_info_t *video_info);
+void menu_display_draw_blend(menu_display_ctx_draw_t *draw,
       video_frame_info_t *video_info);
 void menu_display_draw_keyboard(
       uintptr_t hover_texture,
@@ -691,6 +698,11 @@ bool menu_display_reset_textures_list(
       uintptr_t *item, enum texture_filter_type filter_type,
       unsigned *width, unsigned *height);
 
+bool menu_display_reset_textures_list_buffer(
+        uintptr_t *item, enum texture_filter_type filter_type,
+        void* buffer, unsigned buffer_len, enum image_type_enum image_type,
+        unsigned *width, unsigned *height);
+
 /* Returns the OSK key at a given position */
 int menu_display_osk_ptr_at_pos(void *data, int x, int y,
       unsigned width, unsigned height);
@@ -723,6 +735,7 @@ extern menu_display_ctx_driver_t menu_display_ctx_wiiu;
 extern menu_display_ctx_driver_t menu_display_ctx_caca;
 extern menu_display_ctx_driver_t menu_display_ctx_gdi;
 extern menu_display_ctx_driver_t menu_display_ctx_vga;
+extern menu_display_ctx_driver_t menu_display_ctx_fpga;
 extern menu_display_ctx_driver_t menu_display_ctx_switch;
 extern menu_display_ctx_driver_t menu_display_ctx_sixel;
 extern menu_display_ctx_driver_t menu_display_ctx_null;

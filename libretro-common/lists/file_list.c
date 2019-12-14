@@ -33,7 +33,7 @@
 
 bool file_list_reserve(file_list_t *list, size_t nitems)
 {
-	RARCH_LOG("file_list_reserve begin. nitems: %d, list_ptr: %d\n", nitems, list);
+   RARCH_LOG("file_list_reserve begin. nitems: %d, list_ptr: %d\n", nitems, list);
 
    const size_t item_size = sizeof(struct item_file);
    struct item_file *new_data;
@@ -50,7 +50,7 @@ bool file_list_reserve(file_list_t *list, size_t nitems)
 
    list->list     = new_data;
    list->capacity = nitems;
-	// list->select_ptr_old = 0;
+   // list->select_ptr_old = 0;
 
    return true;
 }
@@ -73,7 +73,7 @@ bool file_list_insert(file_list_t *list,
       size_t entry_idx,
       size_t idx)
 {
-	RARCH_LOG("file_list_insert begin\n");
+   RARCH_LOG("file_list_insert begin\n");
    int i;
 
    /* Expand file list if needed */
@@ -101,22 +101,22 @@ bool file_list_insert(file_list_t *list,
    list->list[idx].directory_ptr = directory_ptr;
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
-	list->list[idx].actiondata    = NULL;
-	list->list[idx].ninenum	      = NULL;
+   list->list[idx].actiondata    = NULL;
+   list->list[idx].ninenum         = NULL;
 
    if (label)
-		list->list[idx].label      = strdup(label);
+      list->list[idx].label      = strdup(label);
 
-	if (path)
-	{
-		list->list[idx].path       = strdup(path);
-		char ninenum[1024] = {0};
-		chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
-		if (strlen(ninenum) > 0)
-		{
-			list->list[idx].ninenum = strdup(ninenum);
-		}
-	}
+   if (path)
+   {
+      list->list[idx].path       = strdup(path);
+      char ninenum[1024] = {0};
+      chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
+      if (strlen(ninenum) > 0)
+      {
+         list->list[idx].ninenum = strdup(ninenum);
+      }
+   }
 
    list->size++;
 
@@ -128,7 +128,7 @@ bool file_list_append(file_list_t *list,
       unsigned type, size_t directory_ptr,
       size_t entry_idx)
 {
-	// RARCH_LOG("file_list_append log begin. path: %s, label: %s\n", path, label);
+   // RARCH_LOG("file_list_append log begin. path: %s, label: %s\n", path, label);
    unsigned idx = (unsigned)list->size;
    /* Expand file list if needed */
    if (idx >= list->capacity)
@@ -142,26 +142,26 @@ bool file_list_append(file_list_t *list,
    list->list[idx].directory_ptr = directory_ptr;
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
-	list->list[idx].actiondata    = NULL;
-	list->list[idx].ninenum			= NULL;
+   list->list[idx].actiondata    = NULL;
+   list->list[idx].ninenum         = NULL;
 
    if (label)
-		list->list[idx].label      = strdup(label);
+      list->list[idx].label      = strdup(label);
 
    if (path)
-	{
-		list->list[idx].path       = strdup(path);
-		char ninenum[1024] = {0};
-		chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
-		if (strlen(ninenum) > 0)
-		{
-			list->list[idx].ninenum = strdup(ninenum);
-		}
-	}
+   {
+      list->list[idx].path       = strdup(path);
+      char ninenum[1024] = {0};
+      chs_to_ninenum(list->list[idx].path, true, ninenum, sizeof(ninenum));
+      if (strlen(ninenum) > 0)
+      {
+         list->list[idx].ninenum = strdup(ninenum);
+      }
+   }
 
    list->size++;
 
-	// RARCH_LOG("file_list_append log end. path: %s, label: %s\n", path, label);
+   // RARCH_LOG("file_list_append log end. path: %s, label: %s\n", path, label);
    return true;
 }
 
@@ -192,10 +192,10 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
 
       if (list->list[list->size].label)
          free(list->list[list->size].label);
-		list->list[list->size].label = NULL;
-		if (list->list[list->size].ninenum)
-			free(list->list[list->size].ninenum);
-		list->list[list->size].ninenum = NULL;
+      list->list[list->size].label = NULL;
+      if (list->list[list->size].ninenum)
+         free(list->list[list->size].ninenum);
+      list->list[list->size].ninenum = NULL;
    }
 
    if (directory_ptr)
@@ -204,7 +204,7 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
 
 void file_list_free(file_list_t *list)
 {
-	RARCH_LOG("file_list_free begin\n");
+   RARCH_LOG("file_list_free begin\n");
    size_t i;
 
    if (!list)
@@ -221,11 +221,11 @@ void file_list_free(file_list_t *list)
 
       if (list->list[i].label)
          free(list->list[i].label);
-		list->list[i].label = NULL;
+      list->list[i].label = NULL;
 
-		if (list->list[i].ninenum)
-			free(list->list[i].ninenum);
-		list->list[i].ninenum = NULL;
+      if (list->list[i].ninenum)
+         free(list->list[i].ninenum);
+      list->list[i].ninenum = NULL;
 
       if (list->list[i].alt)
          free(list->list[i].alt);
@@ -252,11 +252,11 @@ void file_list_clear(file_list_t *list)
 
       if (list->list[i].label)
          free(list->list[i].label);
-		list->list[i].label = NULL;
+      list->list[i].label = NULL;
 
-		if (list->list[i].ninenum)
-			free(list->list[i].ninenum);
-		list->list[i].ninenum = NULL;
+      if (list->list[i].ninenum)
+         free(list->list[i].ninenum);
+      list->list[i].ninenum = NULL;
 
       if (list->list[i].alt)
          free(list->list[i].alt);
@@ -274,10 +274,10 @@ void file_list_set_label_at_offset(file_list_t *list, size_t idx,
 
    if (list->list[idx].label)
       free(list->list[idx].label);
-	list->list[idx].alt      = NULL;
+   list->list[idx].alt      = NULL;
 
    if (label)
-		list->list[idx].label = strdup(label);
+      list->list[idx].label = strdup(label);
 }
 
 void file_list_get_label_at_offset(const file_list_t *list, size_t idx,
@@ -454,38 +454,40 @@ bool file_list_search(const file_list_t *list, const char *needle, size_t *idx)
    return ret;
 }
 
-
 /**
- *�ж����ַ���str�ǲ�����start��ʼ
+ * 判断是否以某个字符串开始
  */
 int is_start_with(const char *str, char *start)
 {
-	if (NULL == str || NULL == start)
-	{
-		return -1;
-	}
+   if (NULL == str || NULL == start)
+   {
+      return -1;
+   }
 
-	int str_len = strlen(str);
-	int start_len = strlen(start);
-	if (str_len < start_len || str_len == 0 || start_len == 0)
-	{
-		return -1;
-	}
+   int str_len = strlen(str);
+   int start_len = strlen(start);
+   if (str_len < start_len || str_len == 0 || start_len == 0)
+   {
+      return -1;
+   }
 
-	char *p = start;
-	int i = 0;
-	while(*p != '\0')
-	{
-		if (str[i] != *p)
-		{
-			return -1;
-		}
-		++p;
-		++i;
-	}
-	return 0;
+   char *p = start;
+   int i = 0;
+   while(*p != '\0')
+   {
+      if (str[i] != *p)
+      {
+         return -1;
+      }
+      ++p;
+      ++i;
+   }
+   return 0;
 }
 
+/**
+ * 九宫格查找
+ */
 bool file_list_search_quickkid(const file_list_t *list, const char *needle, size_t *idx)
 {
    size_t i;
@@ -494,42 +496,42 @@ bool file_list_search_quickkid(const file_list_t *list, const char *needle, size
    if (!list)
       return false;
 
-	// ��һ��ƥ������
-	static int last_search_idx = 0;
-	static char last_search_needle[256] = {0};
-	RARCH_LOG("file_list_search_quickkid log static info. needle: %s, last_search_needle: %s, last_search_idx: %d\n",
-		needle, last_search_needle, last_search_idx);
+   // 记录上次匹配位置
+   static int last_search_idx = 0;
+   static char last_search_needle[256] = {0};
+   RARCH_LOG("file_list_search_quickkid log static info. needle: %s, last_search_needle: %s, last_search_idx: %d\n",
+      needle, last_search_needle, last_search_idx);
 
    for (i = 0; i < list->size; i++)
-	{
-		const char *ninenum = list->list[i].ninenum;
+   {
+      const char *ninenum = list->list[i].ninenum;
 
-		if (!ninenum || string_is_empty(ninenum))
-		{
-			continue;
-		}
+      if (!ninenum || string_is_empty(ninenum))
+      {
+         continue;
+      }
 
-		if (strstr(ninenum, needle))
-		{
-			// �ظ����룬�����ϴμ�����id
-			if (0 == strcmp(needle, last_search_needle) && i <= last_search_idx)
-			{
-				continue;
-			}
+      if (strstr(ninenum, needle))
+      {
+         // 过滤上次匹配位置
+         if (0 == strcmp(needle, last_search_needle) && i <= last_search_idx)
+         {
+            continue;
+         }
 
-			*idx = i;
-			ret  = true;
-			last_search_idx = i;
-			strncpy(last_search_needle, needle, sizeof(last_search_needle));
-			RARCH_LOG("file_list_search_quickkid log hit. idx: %d, ninenum: %s, needle: %s\n", i, ninenum, needle);
-			break;
-		}
+         *idx = i;
+         ret  = true;
+         last_search_idx = i;
+         strncpy(last_search_needle, needle, sizeof(last_search_needle));
+         RARCH_LOG("file_list_search_quickkid log hit. idx: %d, ninenum: %s, needle: %s\n", i, ninenum, needle);
+         break;
+      }
    }
 
-	if (!ret) {
-		last_search_idx = 0;
-		last_search_needle[0] = '\0';
-	}
+   if (!ret) {
+      last_search_idx = 0;
+      last_search_needle[0] = '\0';
+   }
 
    return ret;
 }

@@ -15,6 +15,8 @@ cat << EOF > "$TEMP_C"
 int main(void) { puts("Hai world!"); return 0; }
 EOF
 
+printf %s 'Checking for suitable working C compiler ... '
+
 cc_works=0
 add_opt CC no
 if [ "$CC" ]; then
@@ -40,7 +42,7 @@ elif [ -z "$CC" ]; then
 	cc_status='not found'
 fi
 
-printf %s\\n "Checking for suitable working C compiler ... $CC $cc_status"
+printf %s\\n "$CC $cc_status"
 
 if [ "$cc_works" = '0' ] && [ "$USE_LANG_C" = 'yes' ]; then
 	die 1 'Error: Cannot proceed without a working C compiler.'
@@ -51,6 +53,8 @@ cat << EOF > "$TEMP_CXX"
 #include <iostream>
 int main() { std::cout << "Hai guise" << std::endl; return 0; }
 EOF
+
+printf %s 'Checking for suitable working C++ compiler ... '
 
 cxx_works=0
 add_opt CXX no
@@ -77,33 +81,30 @@ elif [ -z "$CXX" ]; then
 	cxx_status='not found'
 fi
 
-printf %s\\n "Checking for suitable working C++ compiler ... $CXX $cxx_status"
+printf %s\\n "$CXX $cxx_status"
 
 if [ "$cxx_works" = '0' ] && [ "$USE_LANG_CXX" = 'yes' ]; then
 	die : 'Warning: A working C++ compiler was not found, C++ features will be disabled.'
 fi
 
 if [ "$OS" = "Win32" ]; then
-	echobuf="Checking for windres"
-	if [ -z "$WINDRES" ]; then
-		WINDRES="$(exists "${CROSS_COMPILE}windres")" || WINDRES=""
-		[ -z "$WINDRES" ] && die 1 "$echobuf ... Not found. Exiting."
+	printf %s 'Checking for windres ... '
+
+	WINDRES="${WINDRES:-$(exists "${CROSS_COMPILE}windres" || :)}"
+
+	printf %s\\n "${WINDRES:=none}"
+
+	if [ "$WINDRES" = none ]; then
+		die 1 'Error: Cannot proceed without windres.'
 	fi
-	printf %s\\n "$echobuf ... $WINDRES"
 fi
 
-if [ -z "$PKG_CONF_PATH" ]; then
-	PKG_CONF_PATH="none"
-	for pkgconf in pkgconf pkg-config; do
-		PKGCONF="$(exists "${CROSS_COMPILE}${pkgconf}")" || PKGCONF=""
-		[ "$PKGCONF" ] && {
-			PKG_CONF_PATH="$PKGCONF"
-			break
-		}
-	done
-fi
+printf %s 'Checking for pkg-config ... '
 
-printf %s\\n "Checking for pkg-config ... $PKG_CONF_PATH"
+PKG_CONF_PATH="${PKG_CONF_PATH:-$(exists "${CROSS_COMPILE}pkgconf" ||
+	exists "${CROSS_COMPILE}pkg-config" || :)}"
+
+printf %s\\n "${PKG_CONF_PATH:=none}"
 
 if [ "$PKG_CONF_PATH" = "none" ]; then
 	die : 'Warning: pkg-config not found, package checks will fail.'

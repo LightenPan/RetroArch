@@ -430,10 +430,12 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_BLOCK_SRAM_OVERWRITE,
     "Απενεργοποίηση αντικατάστασης SaveRAM κατά την φάση φόρτωσης κατάστασης αποθήκευσης"
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_BLUETOOTH_ENABLE,
     "Ενεργοποίηση Bluetooth"
     )
+#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_BUILDBOT_ASSETS_URL,
     "Σύνδεσμος Εργαλείων του Buildbot"
@@ -507,10 +509,6 @@ MSG_HASH(
     "Εμβλήματα Επιτευγμάτων"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_CHEEVOS_LOCKED_ACHIEVEMENTS,
-    "Κλειδωμένα Επιτεύγματα:"
-    )
-MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CHEEVOS_LOCKED_ENTRY,
     "Κλειδωμένο"
     )
@@ -521,10 +519,6 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CHEEVOS_TEST_UNOFFICIAL,
     "Δοκιμή Ανεπίσημων Επιτευγμάτων"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ACHIEVEMENTS,
-    "Ξεκλειδωμένα Επιτεύγματα:"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ENTRY,
@@ -769,14 +763,6 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DOWNLOAD_CORE_CONTENT,
     "Λήψη Περιεχομένου"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DPI_OVERRIDE_ENABLE,
-    "DPI Override Enable"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DPI_OVERRIDE_VALUE,
-    "DPI Override"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DRIVER_SETTINGS,
@@ -1414,10 +1400,12 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_JOYPAD_DRIVER,
     "Οδηγός Joypad"
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_LAKKA_SERVICES,
     "Υπηρεσίες"
     )
+#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_LANG_CHINESE_SIMPLIFIED,
     "Κινέζικα (Απλοποιημένα)"
@@ -1608,7 +1596,7 @@ MSG_HASH(
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_FILE_BROWSER_SETTINGS,
-    "Ρυθμίσεις"
+    "File Browser"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_LINEAR_FILTER,
@@ -2366,10 +2354,12 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_RUN_MUSIC,
     "Εκκίνηση"
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_SAMBA_ENABLE,
     "Ενεργοποίηση SAMBA"
     )
+#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_SAVEFILE_DIRECTORY,
     "Αρχείο Αποθήκευσης"
@@ -2542,10 +2532,12 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_SCREENSHOTS_IN_CONTENT_DIR_ENABLE,
     "Write Screenshots to Content Dir"
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_SSH_ENABLE,
     "Ενεργοποίηση SSH"
     )
+#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_START_CORE,
     "Έναρξη Πυρήνα"
@@ -2951,7 +2943,7 @@ MSG_HASH(
    "ΜΜ/ΗΗ ΩΩ:ΛΛ"
     )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_AM_PM,
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS_AM_PM,
    "ΩΩ:ΛΛ:ΔΔ (ΠΜ/ΜΜ)"
     )
 MSG_HASH(
@@ -3445,11 +3437,15 @@ MSG_HASH(
     "Ηφαιστιακό Κόκκινο"
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_XMB_MENU_COLOR_THEME_SUNBEAM,
+    "Sunbeam"
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_XMB_RIBBON_ENABLE,
     "Menu Shader Pipeline"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_XMB_SCALE_FACTOR,
+    MENU_ENUM_LABEL_VALUE_MENU_SCALE_FACTOR,
     "Menu Scale Factor"
     )
 MSG_HASH(
@@ -3604,10 +3600,12 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_AUDIO_SETTINGS,
     "Αλλαγή ρυθμίσεων εξόδου ήχου."
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_SUBLABEL_BLUETOOTH_ENABLE,
     "Ενεργοποίηση ή απενεργοποίηση bluetooth."
     )
+#endif
 MSG_HASH(
     MENU_ENUM_SUBLABEL_CONFIG_SAVE_ON_EXIT,
     "Αποθήκευση αλλαγών στο αρχείο διαμόρφωσης κατά την έξοδο."
@@ -3668,6 +3666,7 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_ONLINE_UPDATER,
     "Κατεβάστε πρόσθετα, στοιχεία και περιεχόμενο για το RetroArch."
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_SUBLABEL_SAMBA_ENABLE,
     "Enable or disable network sharing of your folders."
@@ -3676,14 +3675,17 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_SERVICES_SETTINGS,
     "Manage operating system level services."
     )
+#endif
 MSG_HASH(
     MENU_ENUM_SUBLABEL_SHOW_HIDDEN_FILES,
     "Show hidden files/directories inside the file browser."
     )
+#ifdef HAVE_LAKKA
 MSG_HASH(
     MENU_ENUM_SUBLABEL_SSH_ENABLE,
     "Enable or disable remote command line access."
     )
+#endif
 MSG_HASH(
     MENU_ENUM_SUBLABEL_SUSPEND_SCREENSAVER_ENABLE,
     "Αποτρέπει την προφύλαξη οθόνης του συστήματος από το να ενεργοποιηθεί."
@@ -5642,15 +5644,6 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_SUBLABEL_MATERIALUI_MENU_FOOTER_OPACITY,
     "Modify the opacity of the footer graphic."
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DPI_OVERRIDE_ENABLE,
-    "The menu normally scales itself dynamically. If you want to set a specific scaling size instead, enable this."
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DPI_OVERRIDE_VALUE,
-    "Set the custom scaling size here.\n"
-    "NOTE: You have to enable 'DPI Override' for this scaling size to take effect."
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_CORE_ASSETS_DIRECTORY,
@@ -7859,7 +7852,7 @@ MSG_HASH(MENU_ENUM_LABEL_VALUE_AI_SERVICE_URL,
 MSG_HASH(MENU_ENUM_LABEL_VALUE_AI_SERVICE_ENABLE,
       "AI Service Enabled")
 MSG_HASH(MENU_ENUM_SUBLABEL_AI_SERVICE_MODE,
-      "Pauses gameplay during translation (Image mode), or continues to run (Speech mode)")
+      "Show translation as a text overlay (Image mode), or play as Text-To-Speech (Speech mode)")
 MSG_HASH(MENU_ENUM_SUBLABEL_AI_SERVICE_URL,
       "A http:// url pointing to the translation service to use.")
 MSG_HASH(MENU_ENUM_SUBLABEL_AI_SERVICE_ENABLE,
@@ -8100,3 +8093,23 @@ MSG_HASH(MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_SETTINGS,
       "Adjust settings influencing the frame time counter (only active when threaded video is disabled).")
 MSG_HASH(MENU_ENUM_SUBLABEL_MENU_WIDGETS_ENABLE,
       "Use modern decorated animations, notifications, indicators and controls instead of the old text only system.")
+#ifdef HAVE_LAKKA
+MSG_HASH(MENU_ENUM_LABEL_VALUE_LOCALAP_ENABLE,
+      "Wi-Fi Access Point")
+MSG_HASH(MENU_ENUM_SUBLABEL_LOCALAP_ENABLE,
+      "Enable or disable Wi-Fi Access Point.")
+MSG_HASH(MSG_LOCALAP_SWITCHING_OFF,
+      "Switching off Wi-Fi Access Point.")
+MSG_HASH(MSG_WIFI_DISCONNECT_FROM,
+      "Disconnecting from Wi-Fi '%s'")
+MSG_HASH(MSG_LOCALAP_ALREADY_RUNNING,
+      "Wi-Fi Access Point is already started")
+MSG_HASH(MSG_LOCALAP_NOT_RUNNING,
+      "Wi-Fi Access Point is not running")
+MSG_HASH(MSG_LOCALAP_STARTING,
+      "Starting Wi-Fi Access Point with SSID=%s and Passkey=%s")
+MSG_HASH(MSG_LOCALAP_ERROR_CONFIG_CREATE,
+      "Could not create Wi-Fi Access Point configuration file.")
+MSG_HASH(MSG_LOCALAP_ERROR_CONFIG_PARSE,
+     "Wrong configuration file - could not find APNAME or PASSWORD in %s")
+#endif

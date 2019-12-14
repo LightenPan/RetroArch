@@ -29,57 +29,59 @@ RETRO_BEGIN_DECLS
 /* Default maximum playlist size */
 #define COLLECTION_SIZE 99999
 
+typedef struct content_playlist playlist_t;
+
 enum playlist_runtime_status
 {
-	PLAYLIST_RUNTIME_UNKNOWN = 0,
-	PLAYLIST_RUNTIME_MISSING,
-	PLAYLIST_RUNTIME_VALID
+   PLAYLIST_RUNTIME_UNKNOWN = 0,
+   PLAYLIST_RUNTIME_MISSING,
+   PLAYLIST_RUNTIME_VALID
 };
 
 enum playlist_file_mode
 {
-	PLAYLIST_LOAD = 0,
-	PLAYLIST_SAVE
+   PLAYLIST_LOAD = 0,
+   PLAYLIST_SAVE
 };
 
 enum playlist_label_display_mode
 {
-	LABEL_DISPLAY_MODE_DEFAULT = 0,
-	LABEL_DISPLAY_MODE_REMOVE_PARENTHESES,
-	LABEL_DISPLAY_MODE_REMOVE_BRACKETS,
-	LABEL_DISPLAY_MODE_REMOVE_PARENTHESES_AND_BRACKETS,
-	LABEL_DISPLAY_MODE_KEEP_REGION,
-	LABEL_DISPLAY_MODE_KEEP_DISC_INDEX,
-	LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX
+   LABEL_DISPLAY_MODE_DEFAULT = 0,
+   LABEL_DISPLAY_MODE_REMOVE_PARENTHESES,
+   LABEL_DISPLAY_MODE_REMOVE_BRACKETS,
+   LABEL_DISPLAY_MODE_REMOVE_PARENTHESES_AND_BRACKETS,
+   LABEL_DISPLAY_MODE_KEEP_REGION,
+   LABEL_DISPLAY_MODE_KEEP_DISC_INDEX,
+   LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX
 };
 
 enum playlist_thumbnail_mode
 {
-	PLAYLIST_THUMBNAIL_MODE_DEFAULT = 0,
-	PLAYLIST_THUMBNAIL_MODE_OFF,
-	PLAYLIST_THUMBNAIL_MODE_SCREENSHOTS,
-	PLAYLIST_THUMBNAIL_MODE_TITLE_SCREENS,
-	PLAYLIST_THUMBNAIL_MODE_BOXARTS
+   PLAYLIST_THUMBNAIL_MODE_DEFAULT = 0,
+   PLAYLIST_THUMBNAIL_MODE_OFF,
+   PLAYLIST_THUMBNAIL_MODE_SCREENSHOTS,
+   PLAYLIST_THUMBNAIL_MODE_TITLE_SCREENS,
+   PLAYLIST_THUMBNAIL_MODE_BOXARTS
 };
 
 struct content_playlist
 {
-	bool modified;
-	size_t size;
-	size_t cap;
+   bool modified;
+   size_t size;
+   size_t cap;
 
-	enum playlist_label_display_mode label_display_mode;
-	enum playlist_thumbnail_mode right_thumbnail_mode;
-	enum playlist_thumbnail_mode left_thumbnail_mode;
+   enum playlist_label_display_mode label_display_mode;
+   enum playlist_thumbnail_mode right_thumbnail_mode;
+   enum playlist_thumbnail_mode left_thumbnail_mode;
 
-	char *conf_path;
-	char *default_core_path;
-	char *default_core_name;
-	struct playlist_entry *entries;
-	size_t last_select_ptr;
-	char *label;
-	char *logo;
-	char *logo_content;
+   char *conf_path;
+   char *default_core_path;
+   char *default_core_name;
+   struct playlist_entry *entries;
+   size_t last_select_ptr;
+   char *label;
+   char *logo;
+   char *logo_content;
 };
 
 typedef struct content_playlist playlist_t;
@@ -103,6 +105,8 @@ struct playlist_entry
    char *crc32;
    char *subsystem_ident;
    char *subsystem_name;
+   char *runtime_str;
+   char *last_played_str;
    struct string_list *subsystem_roms;
    enum playlist_runtime_status runtime_status;
    unsigned runtime_hours;
@@ -123,7 +127,7 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
 
 /**
  * playlist_init:
- * @path            	   : Path to playlist contents file.
+ * @path                  : Path to playlist contents file.
  * @size                : Maximum capacity of playlist size.
  *
  * Creates and initializes a playlist.
@@ -134,7 +138,7 @@ playlist_t *playlist_init(const char *path, size_t size);
 
 /**
  * playlist_free:
- * @playlist        	   : Playlist handle.
+ * @playlist              : Playlist handle.
  *
  * Frees playlist handle.
  */
@@ -142,7 +146,7 @@ void playlist_free(playlist_t *playlist);
 
 /**
  * playlist_clear:
- * @playlist        	   : Playlist handle.
+ * @playlist              : Playlist handle.
  *
  * Clears all playlist entries in playlist.
  **/
@@ -150,7 +154,7 @@ void playlist_clear(playlist_t *playlist);
 
 /**
  * playlist_size:
- * @playlist        	   : Playlist handle.
+ * @playlist              : Playlist handle.
  *
  * Gets size of playlist.
  * Returns: size of playlist.
@@ -159,7 +163,7 @@ size_t playlist_size(playlist_t *playlist);
 
 /**
  * playlist_capacity:
- * @playlist        	   : Playlist handle.
+ * @playlist              : Playlist handle.
  *
  * Gets maximum capacity of playlist.
  * Returns: maximum capacity of playlist.
@@ -204,7 +208,7 @@ void playlist_resolve_path(enum playlist_file_mode mode,
 
 /**
  * playlist_push:
- * @playlist        	   : Playlist handle.
+ * @playlist              : Playlist handle.
  * @path                : Path of new playlist entry.
  * @core_path           : Core path of new playlist entry.
  * @core_name           : Core name of new playlist entry.
@@ -284,7 +288,7 @@ void playlist_set_default_core_path(playlist_t *playlist, const char *core_path)
 void playlist_set_default_core_name(playlist_t *playlist, const char *core_name);
 void playlist_set_label_display_mode(playlist_t *playlist, enum playlist_label_display_mode label_display_mode);
 void playlist_set_thumbnail_mode(
-		playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id, enum playlist_thumbnail_mode thumbnail_mode);
+      playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id, enum playlist_thumbnail_mode thumbnail_mode);
 void playlist_set_last_select_ptr(playlist_t *playlist, size_t select_ptr);
 
 RETRO_END_DECLS

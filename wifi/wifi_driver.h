@@ -54,6 +54,7 @@ typedef struct wifi_driver
    void (*get_ssids)(struct string_list *list);
    bool (*ssid_is_online)(unsigned i);
    bool (*connect_ssid)(unsigned i, const char* passphrase);
+   void (*tether_start_stop)(bool start, char* configfile);
 
    const char *ident;
 } wifi_driver_t;
@@ -72,24 +73,6 @@ extern wifi_driver_t wifi_null;
  **/
 const char* config_get_wifi_driver_options(void);
 
-/**
- * wifi_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to wifi driver at index. Can be NULL
- * if nothing found.
- **/
-const void *wifi_driver_find_handle(int index);
-
-/**
- * wifi_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of wifi driver at index. Can be NULL
- * if nothing found.
- **/
-const char *wifi_driver_find_ident(int index);
-
 void driver_wifi_stop(void);
 
 bool driver_wifi_start(void);
@@ -101,6 +84,8 @@ void driver_wifi_get_ssids(struct string_list *list);
 bool driver_wifi_ssid_is_online(unsigned i);
 
 bool driver_wifi_connect_ssid(unsigned i, const char* passphrase);
+
+void driver_wifi_tether_start_stop(bool start, char* configfile);
 
 bool wifi_driver_ctl(enum rarch_wifi_ctl_state state, void *data);
 
