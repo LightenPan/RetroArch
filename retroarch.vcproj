@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="retroarch"
 	ProjectGUID="{E914E52B-4AD9-4A4B-AAAD-91DAA6498E9B}"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -61,6 +62,8 @@
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -80,9 +83,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -134,6 +134,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -153,9 +155,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -399,11 +398,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\libretro-common\include\encodings\base64.h"
+				RelativePath=".\deps\mbedtls\mbedtls\base64.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\mbedtls\mbedtls\base64.h"
+				RelativePath=".\libretro-common\include\encodings\base64.h"
 				>
 			</File>
 			<File
@@ -447,11 +446,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\bit_ops.h"
+				RelativePath=".\wii\libogc\libfat\bit_ops.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\bit_ops.h"
+				RelativePath=".\deps\libfat\bit_ops.h"
 				>
 			</File>
 			<File
@@ -547,10 +546,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\os\cache.h"
-				>
-			</File>
-			<File
 				RelativePath=".\wii\libogc\libfat\cache.h"
 				>
 			</File>
@@ -560,6 +555,10 @@
 			</File>
 			<File
 				RelativePath=".\deps\libfat\cache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wiiu\include\wiiu\os\cache.h"
 				>
 			</File>
 			<File
@@ -603,11 +602,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\libretro-common\include\cdrom\cdrom.h"
+				RelativePath=".\libretro-common\include\libchdr\cdrom.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libretro-common\include\libchdr\cdrom.h"
+				RelativePath=".\libretro-common\include\cdrom\cdrom.h"
 				>
 			</File>
 			<File
@@ -783,11 +782,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\config.h"
+				RelativePath=".\deps\mbedtls\mbedtls\config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\mbedtls\mbedtls\config.h"
+				RelativePath=".\config.h"
 				>
 			</File>
 			<File
@@ -807,11 +806,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\interface\vchi\connections\connection.h"
+				RelativePath=".\deps\discord-rpc\src\connection.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\discord-rpc\src\connection.h"
+				RelativePath=".\gfx\include\userland\interface\vchi\connections\connection.h"
 				>
 			</File>
 			<File
@@ -907,15 +906,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2\context.h"
-				>
-			</File>
-			<File
 				RelativePath=".\gfx\common\metal\Context.h"
 				>
 			</File>
 			<File
 				RelativePath=".\wii\libogc\include\ogc\context.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wiiu\include\wiiu\gx2\context.h"
 				>
 			</File>
 			<File
@@ -1043,10 +1042,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_videocube\cube_texture_and_coords.h"
-				>
-			</File>
-			<File
 				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\cube_texture_and_coords.h"
 				>
 			</File>
@@ -1056,6 +1051,10 @@
 			</File>
 			<File
 				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_triangle\cube_texture_and_coords.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_videocube\cube_texture_and_coords.h"
 				>
 			</File>
 			<File
@@ -1487,11 +1486,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\directory.h"
+				RelativePath=".\deps\libfat\directory.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\directory.h"
+				RelativePath=".\wii\libogc\libfat\directory.h"
 				>
 			</File>
 			<File
@@ -1543,11 +1542,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2\displaylist.h"
+				RelativePath=".\wiiu\include\wiiu\gx2r\displaylist.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2r\displaylist.h"
+				RelativePath=".\wiiu\include\wiiu\gx2\displaylist.h"
 				>
 			</File>
 			<File
@@ -1575,11 +1574,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2\draw.h"
+				RelativePath=".\wiiu\include\wiiu\gx2r\draw.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2r\draw.h"
+				RelativePath=".\wiiu\include\wiiu\gx2\draw.h"
 				>
 			</File>
 			<File
@@ -1587,11 +1586,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\driver.h"
+				RelativePath=".\gfx\include\userland\vcfw\drivers\driver.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\vcfw\drivers\driver.h"
+				RelativePath=".\driver.h"
 				>
 			</File>
 			<File
@@ -1883,11 +1882,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\error\error.h"
+				RelativePath=".\deps\mbedtls\mbedtls\error.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\mbedtls\mbedtls\error.h"
+				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\error\error.h"
 				>
 			</File>
 			<File
@@ -1955,15 +1954,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\include\fat.h"
-				>
-			</File>
-			<File
 				RelativePath=".\wii\libogc\include\fat.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\fatdir.h"
+				RelativePath=".\deps\libfat\include\fat.h"
 				>
 			</File>
 			<File
@@ -1971,11 +1966,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\fatfile.h"
+				RelativePath=".\deps\libfat\fatdir.h"
 				>
 			</File>
 			<File
 				RelativePath=".\deps\libfat\fatfile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wii\libogc\libfat\fatfile.h"
 				>
 			</File>
 			<File
@@ -2039,11 +2038,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\file_allocation_table.h"
+				RelativePath=".\deps\libfat\file_allocation_table.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\file_allocation_table.h"
+				RelativePath=".\wii\libogc\libfat\file_allocation_table.h"
 				>
 			</File>
 			<File
@@ -2075,11 +2074,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\filetime.h"
+				RelativePath=".\wii\libogc\libfat\filetime.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\filetime.h"
+				RelativePath=".\deps\libfat\filetime.h"
 				>
 			</File>
 			<File
@@ -2091,11 +2090,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\common\metal\Filter.h"
+				RelativePath=".\libretro-common\include\gfx\scaler\filter.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libretro-common\include\gfx\scaler\filter.h"
+				RelativePath=".\gfx\common\metal\Filter.h"
 				>
 			</File>
 			<File
@@ -2143,15 +2142,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\test\inc1\foo.h"
-				>
-			</File>
-			<File
 				RelativePath=".\deps\glslang\glslang\test\inc2\foo.h"
 				>
 			</File>
 			<File
 				RelativePath=".\deps\glslang\glslang\test\foo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\deps\glslang\glslang\test\inc1\foo.h"
 				>
 			</File>
 			<File
@@ -2163,11 +2162,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\include\private\format.h"
+				RelativePath=".\deps\libflac\include\flac\format.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\include\flac\format.h"
+				RelativePath=".\deps\libflac\include\private\format.h"
 				>
 			</File>
 			<File
@@ -2407,11 +2406,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\interface\khronos\include\gles\glext.h"
+				RelativePath=".\gfx\include\gl\glext.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\gl\glext.h"
+				RelativePath=".\gfx\include\userland\interface\khronos\include\gles\glext.h"
 				>
 			</File>
 			<File
@@ -2435,11 +2434,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\spirv-cross\GLSL.std.450.h"
+				RelativePath=".\deps\glslang\glslang\spirv\GLSL.std.450.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\spirv\GLSL.std.450.h"
+				RelativePath=".\deps\spirv-cross\GLSL.std.450.h"
 				>
 			</File>
 			<File
@@ -2671,11 +2670,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\libretro-common\include\compat\ifaddrs.h"
+				RelativePath=".\wiiu\include\ifaddrs.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\ifaddrs.h"
+				RelativePath=".\libretro-common\include\compat\ifaddrs.h"
 				>
 			</File>
 			<File
@@ -2803,11 +2802,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\rcheevos\src\rcheevos\internal.h"
+				RelativePath=".\gfx\video_layout\internal.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\video_layout\internal.h"
+				RelativePath=".\deps\rcheevos\src\rcheevos\internal.h"
 				>
 			</File>
 			<File
@@ -2847,11 +2846,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\msinttypes\inttypes.h"
+				RelativePath=".\ps2\include\inttypes.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ps2\include\inttypes.h"
+				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\msinttypes\inttypes.h"
 				>
 			</File>
 			<File
@@ -3219,11 +3218,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\include\libfatversion.h"
+				RelativePath=".\deps\libfat\include\libfatversion.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\include\libfatversion.h"
+				RelativePath=".\wii\libogc\include\libfatversion.h"
 				>
 			</File>
 			<File
@@ -3615,11 +3614,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\mem_allocate.h"
+				RelativePath=".\wii\libogc\libfat\mem_allocate.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\mem_allocate.h"
+				RelativePath=".\deps\libfat\mem_allocate.h"
 				>
 			</File>
 			<File
@@ -3771,11 +3770,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\include\ogc\message.h"
+				RelativePath=".\gfx\include\userland\interface\vchi\message_drivers\message.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\interface\vchi\message_drivers\message.h"
+				RelativePath=".\wii\libogc\include\ogc\message.h"
 				>
 			</File>
 			<File
@@ -3799,11 +3798,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\common\metal_common.h"
+				RelativePath=".\gfx\common\metal\metal_common.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\common\metal\metal_common.h"
+				RelativePath=".\gfx\common\metal_common.h"
 				>
 			</File>
 			<File
@@ -4083,11 +4082,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\raspicam\gl_scenes\models.h"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\models.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\models.h"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\raspicam\gl_scenes\models.h"
 				>
 			</File>
 			<File
@@ -4223,11 +4222,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\os\mutex.h"
+				RelativePath=".\wii\libogc\include\ogc\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\include\ogc\mutex.h"
+				RelativePath=".\wiiu\include\wiiu\os\mutex.h"
 				>
 			</File>
 			<File
@@ -4455,11 +4454,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\os.h"
+				RelativePath=".\wii\libogc\wiiuse\os.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\wiiuse\os.h"
+				RelativePath=".\wiiu\include\wiiu\os.h"
 				>
 			</File>
 			<File
@@ -4531,11 +4530,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\partition.h"
+				RelativePath=".\wii\libogc\libfat\partition.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\partition.h"
+				RelativePath=".\deps\libfat\partition.h"
 				>
 			</File>
 			<File
@@ -4919,11 +4918,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\standalone\ResourceLimits.h"
+				RelativePath=".\deps\glslang\glslang\glslang\include\ResourceLimits.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\glslang\include\ResourceLimits.h"
+				RelativePath=".\deps\glslang\glslang\standalone\ResourceLimits.h"
 				>
 			</File>
 			<File
@@ -5155,15 +5154,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\os\semaphore.h"
-				>
-			</File>
-			<File
 				RelativePath=".\wii\libogc\include\ogc\semaphore.h"
 				>
 			</File>
 			<File
 				RelativePath=".\deps\pthreads\semaphore.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wiiu\include\wiiu\os\semaphore.h"
 				>
 			</File>
 			<File
@@ -5339,11 +5338,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\spirv\spirv.hpp"
+				RelativePath=".\deps\spirv-cross\spirv.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\spirv-cross\spirv.hpp"
+				RelativePath=".\deps\glslang\glslang\spirv\spirv.hpp"
 				>
 			</File>
 			<File
@@ -5499,15 +5498,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\msinttypes\stdint.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ps2\include\stdint.h"
 				>
 			</File>
 			<File
 				RelativePath=".\libretro-common\include\compat\msvc\stdint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\msinttypes\stdint.h"
 				>
 			</File>
 			<File
@@ -5527,11 +5526,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\include\protected\stream_decoder.h"
+				RelativePath=".\deps\libflac\include\flac\stream_decoder.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\include\flac\stream_decoder.h"
+				RelativePath=".\deps\libflac\include\protected\stream_decoder.h"
 				>
 			</File>
 			<File
@@ -5571,11 +5570,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\gx2\swap.h"
+				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\internal\swap.h"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\discord-rpc\thirdparty\rapidjson-1.1.0\include\rapidjson\internal\swap.h"
+				RelativePath=".\wiiu\include\wiiu\gx2\swap.h"
 				>
 			</File>
 			<File
@@ -5655,11 +5654,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\netinet\tcp.h"
+				RelativePath=".\wii\libogc\include\lwip\tcp.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\include\lwip\tcp.h"
+				RelativePath=".\wiiu\include\netinet\tcp.h"
 				>
 			</File>
 			<File
@@ -5755,11 +5754,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_videocube\triangle.h"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\triangle.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\triangle.h"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_videocube\triangle.h"
 				>
 			</File>
 			<File
@@ -5915,15 +5914,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\wut\elf2rpl\utils.h"
-				>
-			</File>
-			<File
 				RelativePath=".\deps\libvita2d\include\utils.h"
 				>
 			</File>
 			<File
 				RelativePath=".\gfx\include\userland\host_applications\linux\apps\dtoverlay\utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wiiu\wut\elf2rpl\utils.h"
 				>
 			</File>
 			<File
@@ -6019,11 +6018,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\vcinclude\vc_image_types.h"
+				RelativePath=".\gfx\include\userland\interface\vctypes\vc_image_types.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\interface\vctypes\vc_image_types.h"
+				RelativePath=".\gfx\include\userland\vcinclude\vc_image_types.h"
 				>
 			</File>
 			<File
@@ -6411,15 +6410,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cores\libretro-mpv\version.h"
-				>
-			</File>
-			<File
 				RelativePath=".\version.h"
 				>
 			</File>
 			<File
 				RelativePath=".\deps\mbedtls\mbedtls\version.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cores\libretro-mpv\version.h"
 				>
 			</File>
 			<File
@@ -6547,11 +6546,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\common\metal\View.h"
+				RelativePath=".\gfx\video_layout\view.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\video_layout\view.h"
+				RelativePath=".\gfx\common\metal\View.h"
 				>
 			</File>
 			<File
@@ -6747,11 +6746,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\include\wiiuse\wpad.h"
+				RelativePath=".\wiiu\include\wiiu\wpad.h"
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\include\wiiu\wpad.h"
+				RelativePath=".\wii\libogc\include\wiiuse\wpad.h"
 				>
 			</File>
 			<File
@@ -6987,11 +6986,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\camera\drivers\android.c"
+				RelativePath=".\location\drivers\android.c"
 				>
 			</File>
 			<File
-				RelativePath=".\location\drivers\android.c"
+				RelativePath=".\camera\drivers\android.c"
 				>
 			</File>
 			<File
@@ -7083,11 +7082,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libogc\audio.c"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_audio\audio.c"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_audio\audio.c"
+				RelativePath=".\wii\libogc\libogc\audio.c"
 				>
 			</File>
 			<File
@@ -7851,11 +7850,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\disc.c"
+				RelativePath=".\deps\libfat\disc.c"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\disc.c"
+				RelativePath=".\wii\libogc\libfat\disc.c"
 				>
 			</File>
 			<File
@@ -8215,11 +8214,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\fatfile.c"
+				RelativePath=".\deps\libfat\fatfile.c"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\fatfile.c"
+				RelativePath=".\wii\libogc\libfat\fatfile.c"
 				>
 			</File>
 			<File
@@ -8315,11 +8314,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\filetime.c"
+				RelativePath=".\wii\libogc\libfat\filetime.c"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\filetime.c"
+				RelativePath=".\deps\libfat\filetime.c"
 				>
 			</File>
 			<File
@@ -8751,11 +8750,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\libs\ilclient\ilcore.c"
+				RelativePath=".\gfx\include\userland\host_applications\framework\common\ilcore.c"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\framework\common\ilcore.c"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\libs\ilclient\ilcore.c"
 				>
 			</File>
 			<File
@@ -9187,11 +9186,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\libfat.c"
+				RelativePath=".\deps\libfat\libfat.c"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\libfat.c"
+				RelativePath=".\wii\libogc\libfat\libfat.c"
 				>
 			</File>
 			<File
@@ -9503,10 +9502,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\gtests\main.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\deps\glslang\glslang\glslang\osdependent\windows\main.cpp"
 				>
 			</File>
@@ -9520,6 +9515,10 @@
 			</File>
 			<File
 				RelativePath=".\deps\spirv-cross\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\deps\glslang\glslang\gtests\main.cpp"
 				>
 			</File>
 			<File
@@ -9551,15 +9550,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\md5.c"
-				>
-			</File>
-			<File
 				RelativePath=".\deps\mbedtls\md5.c"
 				>
 			</File>
 			<File
 				RelativePath=".\libretro-common\utils\md5.c"
+				>
+			</File>
+			<File
+				RelativePath=".\deps\libflac\md5.c"
 				>
 			</File>
 			<File
@@ -9595,11 +9594,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libflac\memory.c"
+				RelativePath=".\wiiu\system\memory.c"
 				>
 			</File>
 			<File
-				RelativePath=".\wiiu\system\memory.c"
+				RelativePath=".\deps\libflac\memory.c"
 				>
 			</File>
 			<File
@@ -10051,11 +10050,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\models.c"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\raspicam\gl_scenes\models.c"
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\raspicam\gl_scenes\models.c"
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\models.c"
 				>
 			</File>
 			<File
@@ -10171,11 +10170,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tests-other\msl_resource_bindings.cpp"
+				RelativePath=".\deps\spirv-cross\tests-other\msl_resource_bindings.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\spirv-cross\tests-other\msl_resource_bindings.cpp"
+				RelativePath=".\tests-other\msl_resource_bindings.cpp"
 				>
 			</File>
 			<File
@@ -10479,11 +10478,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\glslang\osdependent\unix\ossource.cpp"
+				RelativePath=".\deps\glslang\glslang\glslang\osdependent\windows\ossource.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\deps\glslang\glslang\glslang\osdependent\windows\ossource.cpp"
+				RelativePath=".\deps\glslang\glslang\glslang\osdependent\unix\ossource.cpp"
 				>
 			</File>
 			<File
@@ -10559,11 +10558,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\libfat\partition.c"
+				RelativePath=".\wii\libogc\libfat\partition.c"
 				>
 			</File>
 			<File
-				RelativePath=".\wii\libogc\libfat\partition.c"
+				RelativePath=".\deps\libfat\partition.c"
 				>
 			</File>
 			<File
@@ -11979,11 +11978,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\deps\mbedtls\threading.c"
+				RelativePath=".\bootstrap\vita\threading.c"
 				>
 			</File>
 			<File
-				RelativePath=".\bootstrap\vita\threading.c"
+				RelativePath=".\deps\mbedtls\threading.c"
 				>
 			</File>
 			<File
@@ -12043,15 +12042,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\triangle.c"
-				>
-			</File>
-			<File
 				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_triangle\triangle.c"
 				>
 			</File>
 			<File
 				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_videocube\triangle.c"
+				>
+			</File>
+			<File
+				RelativePath=".\gfx\include\userland\host_applications\linux\apps\hello_pi\hello_teapot\triangle.c"
 				>
 			</File>
 			<File

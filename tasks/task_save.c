@@ -60,6 +60,9 @@
 #define SAVE_STATE_CHUNK 4096
 #endif
 
+extern bool task_push_yun_save_rom_state(char *path);
+
+
 static bool save_state_in_background = false;
 static struct string_list *task_save_files = NULL;
 

@@ -15732,50 +15732,50 @@ static bool setting_append_list(
                general_write_handler,
                general_read_handler);
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
-       (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
-       CONFIG_STRING(
-          list, list_info,
-          settings->arrays.retrogame_allinone_username,
-          sizeof(settings->arrays.retrogame_allinone_username),
-          MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,
-          MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_USERNAME,
-          "",
-          &group_info,
-          &subgroup_info,
-          parent_group,
-          general_write_handler,
-          general_read_handler);
-       SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
-       (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+         CONFIG_STRING(
+               list, list_info,
+               settings->arrays.retrogame_allinone_username,
+               sizeof(settings->arrays.retrogame_allinone_username),
+               MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,
+               MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_USERNAME,
+               "",
+               &group_info,
+               &subgroup_info,
+               parent_group,
+               general_write_handler,
+               general_read_handler);
+         SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
+         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
-       CONFIG_STRING(
-          list, list_info,
-          settings->arrays.retrogame_allinone_password,
-          sizeof(settings->arrays.retrogame_allinone_password),
-          MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,
-          MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
-          "",
-          &group_info,
-          &subgroup_info,
-          parent_group,
-          general_write_handler,
-          general_read_handler);
-       SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
-       (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+         CONFIG_STRING(
+               list, list_info,
+               settings->arrays.retrogame_allinone_password,
+               sizeof(settings->arrays.retrogame_allinone_password),
+               MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,
+               MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
+               "",
+               &group_info,
+               &subgroup_info,
+               parent_group,
+               general_write_handler,
+               general_read_handler);
+         SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
+         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
-       CONFIG_STRING(
-          list, list_info,
-          settings->arrays.retrogame_allinone_mcode,
-          sizeof(settings->arrays.retrogame_allinone_mcode),
-          MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,
-          MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_MCODE,
-          "",
-          &group_info,
-          &subgroup_info,
-          parent_group,
-          general_write_handler,
-          general_read_handler);
+         CONFIG_STRING(
+               list, list_info,
+               settings->arrays.retrogame_allinone_mcode,
+               sizeof(settings->arrays.retrogame_allinone_mcode),
+               MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,
+               MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_MCODE,
+               "",
+               &group_info,
+               &subgroup_info,
+               parent_group,
+               general_write_handler,
+               general_read_handler);
 
          CONFIG_STRING(
                list, list_info,

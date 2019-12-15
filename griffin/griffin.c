@@ -19,6 +19,12 @@
 
 #define CINTERFACE
 
+#if defined(ANDROID)
+#define HAVE_ONLINE_UPDATER 1
+#define HAVE_UPDATE_ASSETS 1
+#define HAVE_UPDATE_CORES 1
+#endif
+
 #if !defined(__WINRT__)
 #define HAVE_IBXM 1
 #endif
@@ -1090,7 +1096,7 @@ GIT
 RETROARCH
 ============================================================ */
 #include "../retroarch.c"
-#include "../paths.c"
+// #include "../paths.c"
 #include "../libretro-common/queues/task_queue.c"
 
 #include "../msg_hash.c"
