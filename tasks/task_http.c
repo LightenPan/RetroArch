@@ -86,6 +86,7 @@ static int task_http_conn_iterate_transfer_parse(
 
 static int cb_http_conn_default(void *data_, size_t len)
 {
+	// RARCH_LOG("cb_http_conn_default begin.\n");
    http_handle_t *http = (http_handle_t*)data_;
 
    if (!http)
@@ -104,6 +105,7 @@ static int cb_http_conn_default(void *data_, size_t len)
 
    http->cb     = NULL;
 
+	// RARCH_LOG("cb_http_conn_default end.\n");
    return 0;
 }
 
@@ -135,6 +137,7 @@ static int task_http_iterate_transfer(retro_task_t *task)
 
 static void task_http_transfer_handler(retro_task_t *task)
 {
+	// RARCH_LOG("task_http_transfer_handler begin.\n");
    http_transfer_data_t *data = NULL;
    http_handle_t        *http = (http_handle_t*)task->state;
 
@@ -164,7 +167,9 @@ static void task_http_transfer_handler(retro_task_t *task)
    if (http->error)
       goto task_finished;
 
+	// RARCH_LOG("task_http_transfer_handler end.\n");
    return;
+
 task_finished:
    task_set_finished(task, true);
 
@@ -240,10 +245,12 @@ static bool task_http_retriever(retro_task_t *task, void *data)
 
 static void http_transfer_progress_cb(retro_task_t *task)
 {
+	// RARCH_LOG("http_transfer_progress_cb begin.\n");
 #ifdef RARCH_INTERNAL
    if (task)
       video_display_server_set_window_progress(task->progress, task->finished);
 #endif
+	// RARCH_LOG("http_transfer_progress_cb end.\n");
 }
 
 static void* task_push_http_transfer_generic(
@@ -251,6 +258,8 @@ static void* task_push_http_transfer_generic(
       const char *url, bool mute, const char *type,
       retro_task_callback_t cb, void *user_data)
 {
+	// RARCH_LOG("task_push_http_transfer_generic begin.\n");
+
    task_finder_data_t find_data;
    char tmp[255];
    const char *s           = NULL;
@@ -319,6 +328,7 @@ static void* task_push_http_transfer_generic(
 
    task_queue_push(t);
 
+	// RARCH_LOG("task_push_http_transfer_generic end.\n");
    return t;
 
 error:

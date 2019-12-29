@@ -186,6 +186,19 @@ char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5,
    return strdup(save_state_url);
 }
 
+void cpyYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, int seq,
+											const char *fragment_save_buf_md5, char *outurl, int outlen)
+{
+	char save_state_url[PATH_MAX_LENGTH];
+	char acc_query_str[1024] = {0};
+	clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
+	snprintf(save_state_url, sizeof(save_state_url),
+		"%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
+		"http://wekafei.cn/api/UserGameData/SaveStateFragment",
+		acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+	strlcpy(outurl, save_state_url, outlen);
+}
+
 char *genYunLoadStateUrl(char *loadname)
 {
    char load_state_url[PATH_MAX_LENGTH];
@@ -996,7 +1009,7 @@ static void free_yun_save_rom_state_handle(yun_save_rom_state_handle_t *ysrsh)
 
 void upload_yun_save_state_fragment_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
 {
-	RARCH_LOG("upload_yun_save_state_fragment_cb\n");
+	RARCH_LOG("upload_yun_save_state_fragment_cb begin\n");
 	http_transfer_data_t *data = (http_transfer_data_t*)task_data;
 	yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t *)user_data;
 	char status[1024] = {0};
@@ -1117,25 +1130,79 @@ bool upload_yun_save_state_fragment(yun_save_rom_state_handle_t *ysrsh)
 		// 剩余未上传内容不足ysrsh->uploaded_file_size，则只上传剩余内容
 		fragment_buf_size = ysrsh->save_state_buf_size - ysrsh->uploaded_file_size;
 	}
+	RARCH_LOG("upload_yun_save_state_fragment log init info."
+		" fragment_buf_size: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
+		fragment_buf_size, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
 
-	int b64_file_buf_len = 2*fragment_buf_size;
-	char *b64_file_buf = base64((void *)fragment_buf, (int)fragment_buf_size, &b64_file_buf_len);
+#ifdef HAVE_LIBNX
+	// switch libnx 如果多调用几个malloc，会崩溃，不知道是什么问题，这里用特殊逻辑计算base64
+	int b64_file_buf_len = 0;
+	char *b64_file_buf = NULL;
+	{
+		//定义base64编码表
+		const char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+		//计算经过base64编码后的字符串长度
+		int str_len = fragment_buf_size;
+		const char *str = fragment_buf;
+		int len = 0;
+		if(str_len % 3 == 0)
+			len = str_len/3*4;
+		else
+			len = (str_len/3+1)*4;
+
+		char *res = (char *)malloc(len + 1);
+		res[len] = '\0';
+
+		//以3个8位字符为一组进行编码
+		int i = 0, j = 0;
+		for(i = 0, j = 0; i < len - 2; j += 3, i += 4)
+		{
+			res[i] = base64_table[str[j]>>2]; //取出第一个字符的前6位并找出对应的结果字符
+			res[i+1] = base64_table[(str[j]&0x3)<<4 | (str[j+1]>>4)]; //将第一个字符的后位与第二个字符的前4位进行组合并找到对应的结果字符
+			res[i+2] = base64_table[(str[j+1]&0xf)<<2 | (str[j+2]>>6)]; //将第二个字符的后4位与第三个字符的前2位组合并找出对应的结果字符
+			res[i+3] = base64_table[str[j+2]&0x3f]; //取出第三个字符的后6位并找出结果字符
+		}
+
+		switch(str_len % 3)
+		{
+		case 1:
+			res[i - 2] = '=';
+			res[i - 1] = '=';
+			break;
+		case 2:
+			res[i - 1] = '=';
+			break;
+		}
+
+		b64_file_buf = res;
+		b64_file_buf_len = len;
+		// RARCH_LOG("upload_yun_save_state_fragment log base64. b64_file_buf_len: %u, i: %u, b64_file_buf: %s\n",
+		// 	b64_file_buf_len, i, b64_file_buf);
+	}
+#else
+	int b64_file_buf_len = 0;
+	char *b64_file_buf = base64(fragment_buf, (int)fragment_buf_size, &b64_file_buf_len);
+	if (NULL == b64_file_buf || b64_file_buf_len == 0)
+	{
+		RARCH_LOG("upload_yun_save_state_fragment base64 failed.\n");
+		return false;
+	}
+#endif
 
 	// 计算存档MD5保证存档是正确的
 	char fragment_buf_md5[64] = {0};
 	md5_hexdigest(fragment_buf, fragment_buf_size, fragment_buf_md5, sizeof(fragment_buf_md5));
 	const char *savename = path_basename(ysrsh->save_state_path);
-	char *save_state_url = genYunSaveStateFragmentUrl(savename, ysrsh->save_state_buf_md5, ysrsh->seq, fragment_buf_md5);
-	{
-		RARCH_LOG("upload_yun_save_state_fragment log info. "
-			"url: %s, save_state_buf_md5: %s, seq: %u"
-			", fragment_buf_md5: %s, fragment_buf_size: %u, b64_len: %u, uploaded_file_size: %u\n",
-			save_state_url, ysrsh->save_state_buf_md5, ysrsh->seq,
-			fragment_buf_md5, fragment_buf_size, b64_file_buf_len, ysrsh->uploaded_file_size);
-		ysrsh->http_task = (retro_task_t*)task_push_http_post_transfer(
-			save_state_url, b64_file_buf, true, NULL, upload_yun_save_state_fragment_cb, ysrsh);
-	}
-	free(save_state_url);
+	char save_state_url[1024] = {0};
+	cpyYunSaveStateFragmentUrl(savename, ysrsh->save_state_buf_md5, ysrsh->seq, fragment_buf_md5, save_state_url, sizeof(save_state_url));
+	RARCH_LOG("upload_yun_save_state_fragment log info. "
+		"url: %s, save_state_buf_md5: %s, seq: %u"
+		", fragment_buf_md5: %s, fragment_buf_size: %u, b64_len: %u, uploaded_file_size: %u\n",
+		save_state_url, ysrsh->save_state_buf_md5, ysrsh->seq,
+		fragment_buf_md5, fragment_buf_size, b64_file_buf_len, ysrsh->uploaded_file_size);
+	ysrsh->http_task = (retro_task_t*)task_push_http_post_transfer(
+		save_state_url, b64_file_buf, true, NULL, upload_yun_save_state_fragment_cb, ysrsh);
 	free(b64_file_buf);
 	return true;
 }
@@ -1242,7 +1309,7 @@ bool task_push_yun_save_rom_state(char *path)
       goto error;
 
    // 分配任务上下文
-   yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t*)calloc(1, sizeof(yun_save_rom_state_handle_t));
+   yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t*)malloc(sizeof(yun_save_rom_state_handle_t));
    if (!ysrsh)
    {
       snprintf(show_errmsg, sizeof(show_errmsg), "分配任务上下文失败：%s", path);
@@ -1256,7 +1323,7 @@ bool task_push_yun_save_rom_state(char *path)
    ysrsh->seq = 0;
 	ysrsh->only_fragment_failed = false;
 	ysrsh->http_task = NULL;
-	ysrsh->fragment_buf_size = 200*1024;
+	ysrsh->fragment_buf_size = 100*1024;
 
    /* Configure task */
    task->handler                 = task_push_yun_save_rom_state_handler;

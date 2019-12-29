@@ -8058,33 +8058,41 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
       case DISPLAYLIST_CORES_UPDATER:
          menu_entries_ctl(MENU_ENTRIES_CTL_CLEAR, info->list);
 #ifdef HAVE_NETWORKING
-         {
-            core_updater_list_t *core_list = core_updater_list_get_cached();
+			{
+				// 新版本有BUG，这里还原成老版本
+				print_buf_lines(info->list, menu->core_buf, "",
+					(int)menu->core_len, FILE_TYPE_DOWNLOAD_CORE, true, true);
+				info->need_push    = true;
+				info->need_refresh = true;
+				info->need_clear   = true;
 
-            if (core_list)
-            {
-               size_t i;
-
-               for (i = 0; i < core_updater_list_size(core_list); i++)
-               {
-                  const core_updater_list_entry_t *entry = NULL;
-
-                  if (core_updater_list_get_index(core_list, i, &entry))
-                  {
-                     if (menu_entries_append_enum(info->list,
-                           entry->remote_filename,
-                           "",
-                           MENU_ENUM_LABEL_URL_ENTRY,
-                           FILE_TYPE_DOWNLOAD_CORE, 0, 0))
-                     {
-                        file_list_set_alt_at_offset(
-                              info->list, i, entry->display_name);
-
-                        count++;
-                     }
-                  }
-               }
-            }
+				// 新版本有BUG，这里还原成老版本
+				// core_updater_list_t *core_list = core_updater_list_get_cached();
+				// 
+				// if (core_list)
+				// {
+				//    size_t i;
+				// 
+				//    for (i = 0; i < core_updater_list_size(core_list); i++)
+				//    {
+				//       const core_updater_list_entry_t *entry = NULL;
+				// 
+				//       if (core_updater_list_get_index(core_list, i, &entry))
+				//       {
+				//          if (menu_entries_append_enum(info->list,
+				//                entry->remote_filename,
+				//                "",
+				//                MENU_ENUM_LABEL_URL_ENTRY,
+				//                FILE_TYPE_DOWNLOAD_CORE, 0, 0))
+				//          {
+				//             file_list_set_alt_at_offset(
+				//                   info->list, i, entry->display_name);
+				// 
+				//             count++;
+				//          }
+				//       }
+				//    }
+				// }
          }
 #endif
          if (count == 0)

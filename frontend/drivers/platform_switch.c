@@ -406,6 +406,7 @@ static void frontend_switch_exitspawn(char *s, size_t len)
       break;
    }
 #endif
+	RARCH_LOG("frontend_switch_exitspawn log label: %s\n", path_get_ptr(RARCH_PATH_LABEL));
    frontend_switch_exec(s, should_load_game);
 }
 

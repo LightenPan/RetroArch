@@ -4066,6 +4066,7 @@ void cb_generic_download(retro_task_t *task,
       void *task_data,
       void *user_data, const char *err)
 {
+	RARCH_LOG("cb_generic_download begin.\n");
    char parent_dir[PATH_MAX_LENGTH] = {0};
    char output_path[PATH_MAX_LENGTH];
    char buf[PATH_MAX_LENGTH];
@@ -4238,7 +4239,7 @@ void cb_generic_download(retro_task_t *task,
       dir_path = parent_dir;
    }
 
-   RARCH_LOG("cb_generic_download begin. output_path: %s\n", output_path);
+   RARCH_LOG("cb_generic_download after calc. output_path: %s\n", output_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))

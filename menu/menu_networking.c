@@ -45,9 +45,11 @@ unsigned print_buf_lines(file_list_t *list, char *buf,
       const char *label, int buf_size,
       enum msg_file_type type, bool append, bool extended)
 {
+   RARCH_LOG("print_buf_lines. buf_size: %u, buf: %s\n", buf_size, buf);
+
    char c;
    unsigned count   = 0;
-   int i            = 0;
+   int i, j         = 0;
    char *line_start = buf;
 
    if (!buf || !buf_size)
@@ -122,6 +124,57 @@ unsigned print_buf_lines(file_list_t *list, char *buf,
             count++;
          }
       }
+
+		// 新版本有BUG，这里还原成老版本
+		switch (type)
+		{
+		case FILE_TYPE_DOWNLOAD_CORE:
+			{
+				settings_t *settings      = config_get_ptr();
+
+				if (settings)
+				{
+					char display_name[255];
+					char core_path[PATH_MAX_LENGTH];
+					char *last                         = NULL;
+
+					display_name[0] = core_path[0]     = '\0';
+
+					fill_pathname_join_noext(
+						core_path,
+						settings->paths.path_libretro_info,
+						(extended && !string_is_empty(core_pathname))
+						? core_pathname : line_start,
+						sizeof(core_path));
+					path_remove_extension(core_path);
+
+					last = (char*)strrchr(core_path, '_');
+
+					if (!string_is_empty(last))
+					{
+						if (string_is_not_equal_fast(last, "_libretro", 9))
+							*last = '\0';
+					}
+
+					strlcat(core_path,
+						file_path_str(FILE_PATH_CORE_INFO_EXTENSION),
+						sizeof(core_path));
+
+					RARCH_LOG("print_buf_lines FILE_TYPE_DOWNLOAD_CORE log item. core_path: %s\n", core_path);
+					if (
+						filestream_exists(core_path)
+						&& core_info_get_display_name(
+						core_path, display_name, sizeof(display_name)))
+						file_list_set_alt_at_offset(list, j, display_name);
+				}
+			}
+			break;
+		default:
+		case FILE_TYPE_NONE:
+			break;
+		}
+		j++;
+		////////////////////////////////
 
       string_list_free(str_list);
 

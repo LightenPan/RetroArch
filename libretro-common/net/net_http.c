@@ -230,6 +230,7 @@ static void net_http_send_str(
 struct http_connection_t *net_http_connection_new(const char *url,
       const char *method, const char *data)
 {
+	// RARCH_LOG("net_http_connection_new begin.\n");
    char new_domain[2048];
    bool error                     = false;
    char **domain                  = NULL;
@@ -251,16 +252,16 @@ struct http_connection_t *net_http_connection_new(const char *url,
       return NULL;
    }
 
-   conn->urlcopy           = strdup(url);
+	conn->urlcopy           = strdup(url);
 
    if (method)
-      conn->methodcopy     = strdup(method);
+		conn->methodcopy     = strdup(method);
 
    if (data)
-      conn->postdatacopy   = strdup(data);
+		conn->postdatacopy   = strdup(data);
 
    if (!conn->urlcopy)
-      goto error;
+		goto error;
 
    if (!strncmp(url, "http://", STRLEN_CONST("http://")))
       conn->scan           = conn->urlcopy + STRLEN_CONST("http://");
@@ -322,6 +323,7 @@ struct http_connection_t *net_http_connection_new(const char *url,
    domain        = &conn->domain;
    *domain       = conn->scan;
 
+	// RARCH_LOG("net_http_connection_new end.\n");
    return conn;
 
 error:

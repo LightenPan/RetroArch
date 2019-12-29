@@ -1500,6 +1500,9 @@ static bool command_event_cmd_exec(const char *data, const char *label,
       return false;
    task_push_to_history_list(true, launched_from_cli);
 #else
+	// 静态链接时，传递标签
+	path_set(RARCH_PATH_LABEL, label);
+	RARCH_LOG("command_event_cmd_exec frontend_driver_set_fork. label: %s\n", path_get(RARCH_PATH_LABEL));
    frontend_driver_set_fork(FRONTEND_FORK_CORE_WITH_ARGS);
 #endif
 

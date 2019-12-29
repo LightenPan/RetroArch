@@ -969,6 +969,7 @@ static char subsystem_path[PATH_MAX_LENGTH]             = {0};
 static char path_default_shader_preset[PATH_MAX_LENGTH] = {0};
 static char path_main_basename[8192]                    = {0};
 static char path_content[PATH_MAX_LENGTH]               = {0};
+static char path_label[PATH_MAX_LENGTH]                 = {0};
 static char path_libretro[PATH_MAX_LENGTH]              = {0};
 static char path_config_file[PATH_MAX_LENGTH]           = {0};
 static char path_config_append_file[PATH_MAX_LENGTH]    = {0};
@@ -1683,7 +1684,10 @@ char *path_get_ptr(enum rarch_path_type type)
    switch (type)
    {
       case RARCH_PATH_CONTENT:
-         return path_content;
+			return path_content;
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			return path_label;
       case RARCH_PATH_DEFAULT_SHADER_PRESET:
          return path_default_shader_preset;
       case RARCH_PATH_BASENAME:
@@ -1717,7 +1721,10 @@ const char *path_get(enum rarch_path_type type)
    switch (type)
    {
       case RARCH_PATH_CONTENT:
-         return path_content;
+			return path_content;
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			return path_label;
       case RARCH_PATH_DEFAULT_SHADER_PRESET:
          return path_default_shader_preset;
       case RARCH_PATH_BASENAME:
@@ -1737,7 +1744,7 @@ const char *path_get(enum rarch_path_type type)
             return path_config_append_file;
          break;
       case RARCH_PATH_CORE:
-         return path_libretro;
+			return path_libretro;
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
@@ -1751,7 +1758,10 @@ size_t path_get_realsize(enum rarch_path_type type)
    switch (type)
    {
       case RARCH_PATH_CONTENT:
-         return sizeof(path_content);
+			return sizeof(path_content);
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			return sizeof(path_label);
       case RARCH_PATH_DEFAULT_SHADER_PRESET:
          return sizeof(path_default_shader_preset);
       case RARCH_PATH_BASENAME:
@@ -1838,7 +1848,12 @@ bool path_set(enum rarch_path_type type, const char *path)
       case RARCH_PATH_CONTENT:
          strlcpy(path_content, path,
                sizeof(path_content));
-         break;
+			break;
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			strlcpy(path_label, path,
+				sizeof(path_label));
+			break;
       case RARCH_PATH_NONE:
          break;
    }
@@ -1873,7 +1888,12 @@ bool path_is_empty(enum rarch_path_type type)
       case RARCH_PATH_CONTENT:
          if (string_is_empty(path_content))
             return true;
-         break;
+			break;
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			if (string_is_empty(path_label))
+				return true;
+			break;
       case RARCH_PATH_CORE:
          if (string_is_empty(path_libretro))
             return true;
@@ -1905,7 +1925,11 @@ void path_clear(enum rarch_path_type type)
          break;
       case RARCH_PATH_CONTENT:
          *path_content = '\0';
-         break;
+			break;
+			// 静态链接添加标签
+		case RARCH_PATH_LABEL:
+			*path_label = '\0';
+			break;
       case RARCH_PATH_BASENAME:
          *path_main_basename = '\0';
          break;
@@ -1926,7 +1950,8 @@ void path_clear(enum rarch_path_type type)
 
 static void path_clear_all(void)
 {
-   path_clear(RARCH_PATH_CONTENT);
+	path_clear(RARCH_PATH_CONTENT);
+	path_clear(RARCH_PATH_LABEL); // 静态链接添加标签
    path_clear(RARCH_PATH_CONFIG);
    path_clear(RARCH_PATH_CONFIG_APPEND);
    path_clear(RARCH_PATH_CORE_OPTIONS);
@@ -7730,6 +7755,7 @@ void main_exit(void *args)
    logger_shutdown();
 #endif
 
+	RARCH_LOG("main_exit log label: %s\n", path_get_ptr(RARCH_PATH_LABEL));
    frontend_driver_deinit(args);
    frontend_driver_exitspawn(
          path_get_ptr(RARCH_PATH_CORE),
@@ -25107,7 +25133,7 @@ bool retroarch_main_init(int argc, char *argv[])
       RARCH_LOG("retroarch_main_init log argv[%d]: %s\n", i, argv[i]);
    }
 
-#if defined(VITA)
+#if defined(VITA) || defined(HAVE_LIBNX)
    if (argc >=3)
    {
       const char *fullpath = path_get(RARCH_PATH_CONTENT);

@@ -695,6 +695,8 @@ static void core_updater_list_qsort(core_updater_list_t *core_list)
 bool core_updater_list_parse_network_data(
       core_updater_list_t *core_list, const char *data, size_t len)
 {
+	RARCH_LOG("core_updater_list_parse_network_data. len: %u, data: %s\n", len, data);
+
    struct string_list *network_core_list       = NULL;
    struct string_list *network_core_entry_list = NULL;
    char *data_buf                              = NULL;

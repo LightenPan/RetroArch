@@ -587,8 +587,10 @@ bool task_queue_is_threaded(void)
 
 bool task_queue_find(task_finder_data_t *find_data)
 {
+	RARCH_LOG("task_queue_find begin.\n");
    if (!impl_current->find(find_data->func, find_data->userdata))
-      return false;
+		return false;
+	RARCH_LOG("task_queue_find end.\n");
    return true;
 }
 
