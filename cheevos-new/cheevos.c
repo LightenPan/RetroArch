@@ -110,7 +110,7 @@ typedef struct
    rc_lboard_t* lboard;
    const rcheevos_ralboard_t* info;
    bool active;
-   unsigned last_value;
+   int last_value;
    int format;
 } rcheevos_lboard_t;
 
@@ -122,6 +122,7 @@ typedef struct
 #endif
 
    bool core_supports;
+   bool invalid_peek_address;
 
    rcheevos_rapatchdata_t patchdata;
    rcheevos_cheevo_t* core;
@@ -157,6 +158,7 @@ static rcheevos_locals_t rcheevos_locals =
    NULL, /* task_lock */
 #endif
    true, /* core_supports */
+   false,/* invalid_peek_address */
    {0},  /* patchdata */
    NULL, /* core */
    NULL, /* unofficial */
@@ -355,6 +357,13 @@ static const char* rcheevos_rc_error(int ret)
       case RC_MISSING_SUBMIT: return "Missing submit condition";
       case RC_MISSING_VALUE: return "Missing value expression";
       case RC_INVALID_LBOARD_FIELD: return "Invalid field in leaderboard";
+      case RC_MISSING_DISPLAY_STRING: return "Missing display string";
+      case RC_OUT_OF_MEMORY: return "Out of memory";
+      case RC_INVALID_VALUE_FLAG: return "Invalid flag in value expression";
+      case RC_MISSING_VALUE_MEASURED: return "Missing measured flag in value expression";
+      case RC_MULTIPLE_MEASURED: return "Multiple measured targets";
+      case RC_INVALID_MEASURED_TARGET: return "Invalid measured target";
+
       default: return "Unknown error";
    }
 }
@@ -648,6 +657,10 @@ static unsigned rcheevos_peek(unsigned address, unsigned num_bytes, void* ud)
          case 1: value |= data[0];
       }
    }
+   else
+   {
+      rcheevos_locals.invalid_peek_address = true;
+   }
 
    return value;
 }
@@ -673,18 +686,37 @@ static void rcheevos_test_cheevo_set(bool official)
       count = rcheevos_locals.patchdata.unofficial_count;
    }
 
+   rcheevos_locals.invalid_peek_address = false;
+
    for (i = 0; i < count; i++, cheevo++)
    {
       /* Check if the achievement is active for the current mode. */
-      if ((cheevo->active & mode) == 0)
-         continue;
-
       if (cheevo->active & mode)
       {
          int valid = rc_test_trigger(cheevo->trigger, rcheevos_peek, NULL, NULL);
 
+         /* trigger must be false for at least one frame before it can trigger. if last is true, the trigger hasn't yet been false. */
          if (cheevo->last)
+         {
+            /* if the we're still waiting for the trigger to stabilize, check to see if an error occurred */
+            if (rcheevos_locals.invalid_peek_address)
+            {
+               /* could not map one or more addresses - disable the achievement */
+               CHEEVOS_ERR(RCHEEVOS_TAG "Achievement disabled (invalid address): %s\n", cheevo->info->title);
+               cheevo->active = 0;
+
+               /* clear out the trigger so it shows up as 'Unsupported' in the menu */
+               CHEEVOS_FREE(cheevo->trigger);
+               cheevo->trigger = NULL;
+
+               /* reset the flag for the next achievement */
+               rcheevos_locals.invalid_peek_address = false;
+               continue;
+            }
+
+            /* no error, reset any hit counts for the next check */
             rc_reset_trigger(cheevo->trigger);
+         }
          else if (valid)
             rcheevos_award(cheevo, mode);
 
@@ -771,9 +803,13 @@ static void rcheevos_test_leaderboards(void)
    rcheevos_lboard_t* lboard = rcheevos_locals.lboards;
    unsigned	 i;
 
+   rcheevos_locals.invalid_peek_address = false;
+
    for (i = 0; i < rcheevos_locals.patchdata.lboard_count; i++, lboard++)
    {
-      if (!lboard->lboard) continue;
+      if (!lboard->lboard)
+         continue;
+
       switch (rc_evaluate_lboard(lboard->lboard, &lboard->last_value, rcheevos_peek, NULL, NULL))
       {
          default:
@@ -803,7 +839,6 @@ static void rcheevos_test_leaderboards(void)
 
             CHEEVOS_LOG(RCHEEVOS_TAG "Leaderboard started: %s\n", lboard->info->title);
             lboard->active     = 1;
-            lboard->last_value = 0;
 
             snprintf(buffer, sizeof(buffer),
                   "Leaderboard Active: %s", lboard->info->title);
@@ -811,6 +846,18 @@ static void rcheevos_test_leaderboards(void)
             runloop_msg_queue_push(lboard->info->description, 0, 3 * 60, false, NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
             break;
          }
+      }
+
+      if (rcheevos_locals.invalid_peek_address)
+      {
+         /* disable the leaderboard */
+         CHEEVOS_FREE(lboard->lboard);
+         lboard->lboard = NULL;
+
+         CHEEVOS_LOG(RCHEEVOS_TAG "Leaderboard disabled (invalid address): %s\n", lboard->info->title);
+
+         /* reset the flag for the next leaderboard */
+         rcheevos_locals.invalid_peek_address = false;
       }
    }
 }
@@ -824,19 +871,29 @@ void rcheevos_reset_game(void)
    cheevo = rcheevos_locals.core;
    for (i = 0; i < rcheevos_locals.patchdata.core_count; i++, cheevo++)
    {
+      rc_reset_trigger(cheevo->trigger);
       cheevo->last = 1;
    }
 
    cheevo = rcheevos_locals.unofficial;
    for (i = 0; i < rcheevos_locals.patchdata.unofficial_count; i++, cheevo++)
    {
+      rc_reset_trigger(cheevo->trigger);
       cheevo->last = 1;
    }
 
    lboard = rcheevos_locals.lboards;
    for (i = 0; i < rcheevos_locals.patchdata.lboard_count; i++, lboard++)
    {
-      lboard->active = 0;
+      rc_reset_lboard(lboard->lboard);
+
+      if (lboard->active)
+      {
+         lboard->active = 0;
+
+         /* this ensures the leaderboard won't restart until the start trigger is false for at least one frame */
+         lboard->lboard->submitted = 1;
+      }
    }
 }
 
@@ -1212,10 +1269,12 @@ enum
    RCHEEVOS_DEACTIVATE   = -14,
    RCHEEVOS_PLAYING      = -15,
    RCHEEVOS_DELAY        = -16,
-   RCHEEVOS_PCE_CD_MD5   = -17
+   RCHEEVOS_PCE_CD_MD5   = -17,
+   RCHEEVOS_NDS_MD5      = -18,
+   RCHEEVOS_BUFFER_FILE  = -19
 };
 
-static int rcheevos_hash_psx(rcheevos_coro_t* coro)
+static int rcheevos_prepare_hash_psx(rcheevos_coro_t* coro)
 {
    char exe_name_buffer[64];
    size_t exe_name_size;
@@ -1288,7 +1347,7 @@ static int rcheevos_hash_psx(rcheevos_coro_t* coro)
    else
    {
       /* store the exe name, we're about to overwrite buffer */
-      strncpy(exe_name_buffer, exe_name, sizeof(exe_name_buffer));
+      strlcpy(exe_name_buffer, exe_name, sizeof(exe_name_buffer));
       exe_name_buffer[sizeof(exe_name_buffer) - 1] = '\0';
       exe_name_size = strlen(exe_name_buffer);
 
@@ -1337,6 +1396,82 @@ static int rcheevos_hash_psx(rcheevos_coro_t* coro)
    coro->track = NULL;
 
    return success;
+}
+
+static int rcheevos_prepare_hash_nintendo_ds(rcheevos_coro_t* coro)
+{
+  intfstream_t* stream;
+  unsigned char header[512];
+  int success = 0;
+
+  stream = intfstream_open_file(coro->path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+  if (stream)
+  {
+     if (intfstream_read(stream, header, sizeof(header)) == 512)
+     {
+        unsigned int hash_size, arm9_size, arm9_addr, arm7_size, arm7_addr, icon_addr;
+        int offset = 0;
+
+        if (header[0] == 0x2E && header[1] == 0x00 && header[2] == 0x00 && header[3] == 0xEA &&
+           header[0xB0] == 0x44 && header[0xB1] == 0x46 && header[0xB2] == 0x96 && header[0xB3] == 0x00)
+        {
+           /* SuperCard header detected, ignore it */
+           offset = 512;
+           intfstream_seek(stream, offset, RETRO_VFS_SEEK_POSITION_START);
+           intfstream_read(stream, header, sizeof(header));
+        }
+
+        arm9_addr = header[0x20] | (header[0x21] << 8) | (header[0x22] << 16) | (header[0x23] << 24);
+        arm9_size = header[0x2C] | (header[0x2D] << 8) | (header[0x2E] << 16) | (header[0x2F] << 24);
+        arm7_addr = header[0x30] | (header[0x31] << 8) | (header[0x32] << 16) | (header[0x33] << 24);
+        arm7_size = header[0x3C] | (header[0x3D] << 8) | (header[0x3E] << 16) | (header[0x3F] << 24);
+        icon_addr = header[0x68] | (header[0x69] << 8) | (header[0x6A] << 16) | (header[0x6B] << 24);
+
+        hash_size = 0x160 + arm9_size + arm7_size + 0xA00;
+        if (hash_size > 16 * 1024 * 1024)
+        {
+           CHEEVOS_LOG(RCHEEVOS_TAG "arm9 code size (%u) + arm7 code size (%u) exceeds 16MB", arm9_size, arm7_size);
+        }
+        else
+        {
+           if (coro->data)
+              free(coro->data);
+
+           coro->data = malloc(hash_size);
+           if (!coro->data)
+           {
+              CHEEVOS_LOG(RCHEEVOS_TAG "failed to allocate %u bytes", hash_size);
+              intfstream_close(stream);
+              CORO_STOP();
+           }
+           else
+           {
+              uint8_t* hash_ptr = (uint8_t*)coro->data;
+
+              memcpy(hash_ptr, header, 0x160);
+              hash_ptr += 0x160;
+
+              intfstream_seek(stream, arm9_addr + offset, RETRO_VFS_SEEK_POSITION_START);
+              intfstream_read(stream, hash_ptr, arm9_size);
+              hash_ptr += arm9_size;
+
+              intfstream_seek(stream, arm7_addr + offset, RETRO_VFS_SEEK_POSITION_START);
+              intfstream_read(stream, hash_ptr, arm7_size);
+              hash_ptr += arm7_size;
+
+              intfstream_seek(stream, icon_addr + offset, RETRO_VFS_SEEK_POSITION_START);
+              intfstream_read(stream, hash_ptr, 0xA00);
+
+              coro->len = hash_size;
+              success = 1;
+           }
+        }
+     }
+
+     intfstream_close(stream);
+  }
+
+  return success;
 }
 
 static int rcheevos_iterate(rcheevos_coro_t* coro)
@@ -1406,11 +1541,18 @@ static int rcheevos_iterate(rcheevos_coro_t* coro)
       0
    };
 
+   static const uint32_t nds_exts[] =
+   {
+      0x00b88942aU, /* nds */
+      0
+   };
+
    static rcheevos_finder_t finders[] =
    {
       {RCHEEVOS_SNES_MD5,    "SNES (discards header)",            snes_exts},
       {RCHEEVOS_LYNX_MD5,    "Atari Lynx (discards header)",      lynx_exts},
       {RCHEEVOS_NES_MD5,     "NES (discards header)",             nes_exts},
+      {RCHEEVOS_NDS_MD5,     "Nintendo DS (main executables)",    nds_exts},
       {RCHEEVOS_PSX_MD5,     "Playstation (main executable)",     psx_exts},
       {RCHEEVOS_PCE_CD_MD5,  "PC Engine CD (boot sector)",        pce_cd_exts},
       {RCHEEVOS_SEGACD_MD5,  "Sega CD/Saturn (first sector)",     segacd_exts},
@@ -1427,60 +1569,6 @@ static int rcheevos_iterate(rcheevos_coro_t* coro)
          * command_read_ram needs it. */
       if (!coro->settings->bools.cheevos_enable)
          CORO_STOP();
-
-      /* Load the content into memory, or copy it
-         * over to our own buffer */
-      if (!coro->data)
-      {
-         coro->stream = intfstream_open_file(
-               coro->path,
-               RETRO_VFS_FILE_ACCESS_READ,
-               RETRO_VFS_FILE_ACCESS_HINT_NONE);
-
-         if (!coro->stream)
-            CORO_STOP();
-
-         CORO_YIELD();
-         coro->len         = 0;
-         coro->count       = intfstream_get_size(coro->stream);
-
-         /* size limit */
-         if (coro->count > CHEEVOS_MB(64))
-            coro->count    = CHEEVOS_MB(64);
-
-         coro->data        = malloc(coro->count);
-
-         if (!coro->data)
-         {
-            intfstream_close(coro->stream);
-            CHEEVOS_FREE(coro->stream);
-            CORO_STOP();
-         }
-
-         for (;;)
-         {
-            ptr      = (uint8_t*)coro->data + coro->len;
-            to_read  = 4096;
-
-            if (to_read > coro->count)
-               to_read = coro->count;
-
-            num_read = intfstream_read(coro->stream, (void*)ptr, to_read);
-            if (num_read <= 0)
-               break;
-
-            coro->len         += num_read;
-            coro->count       -= num_read;
-
-            if (coro->count == 0)
-               break;
-
-            CORO_YIELD();
-         }
-
-         intfstream_close(coro->stream);
-         CHEEVOS_FREE(coro->stream);
-      }
 
       /* Use the selected file's extension to determine which method to use */
       for (coro->i = 0; coro->i < ARRAY_SIZE(finders); coro->i++)
@@ -1670,12 +1758,72 @@ found:
 
 
    /**************************************************************************
+    * Info   Loads a file into memory
+    * Input  coro->path
+    * Output coro->data, coro->len
+    *************************************************************************/
+   CORO_SUB(RCHEEVOS_BUFFER_FILE)
+      if (!coro->data)
+      {
+         coro->stream = intfstream_open_file(
+            coro->path,
+            RETRO_VFS_FILE_ACCESS_READ,
+            RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+         if (!coro->stream)
+            CORO_STOP();
+
+         CORO_YIELD();
+         coro->len         = 0;
+         coro->count       = intfstream_get_size(coro->stream);
+
+         /* size limit */
+         if (coro->count > CHEEVOS_MB(64))
+            coro->count = CHEEVOS_MB(64);
+
+         coro->data        = malloc(coro->count);
+
+         if (!coro->data)
+         {
+            intfstream_close(coro->stream);
+            CHEEVOS_FREE(coro->stream);
+            CORO_STOP();
+         }
+
+         for (;;)
+         {
+            ptr      = (uint8_t*)coro->data + coro->len;
+            to_read  = 8192;
+
+            if (to_read > coro->count)
+               to_read = coro->count;
+
+            num_read = intfstream_read(coro->stream, (void*)ptr, to_read);
+            if (num_read <= 0)
+               break;
+
+            coro->len         += num_read;
+            coro->count       -= num_read;
+
+            if (coro->count == 0)
+               break;
+
+            CORO_YIELD();
+         }
+
+         intfstream_close(coro->stream);
+         CHEEVOS_FREE(coro->stream);
+      }
+      CORO_RET();
+
+
+   /**************************************************************************
     * Info   Tries to identify a SNES game
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Input  coro->path or coro->data+coro->len
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_SNES_MD5)
-      MD5_Init(&coro->md5);
+      CORO_GOSUB(RCHEEVOS_BUFFER_FILE);
 
       /* Checks for the existence of a headered SNES file.
          Unheadered files fall back to RCHEEVOS_GENERIC_MD5. */
@@ -1690,17 +1838,16 @@ found:
       coro->count  = 0;
 
       CORO_GOSUB(RCHEEVOS_EVAL_MD5);
-      MD5_Final(coro->hash, &coro->md5);
-
       CORO_GOTO(RCHEEVOS_GET_GAMEID);
 
 
    /**************************************************************************
     * Info   Tries to identify an Atari Lynx game
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Input  coro->path or coro->data+coro->len
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_LYNX_MD5)
+      CORO_GOSUB(RCHEEVOS_BUFFER_FILE);
 
       /* Checks for the existence of a headered Lynx file.
          Unheadered files fall back to RCHEEVOS_GENERIC_MD5. */
@@ -1712,21 +1859,20 @@ found:
          CORO_RET();
       }
 
-      MD5_Init(&coro->md5);
       coro->offset = lynx_header_len;
       coro->count  = coro->len - lynx_header_len;
-      CORO_GOSUB(RCHEEVOS_EVAL_MD5);
 
-      MD5_Final(coro->hash, &coro->md5);
+      CORO_GOSUB(RCHEEVOS_EVAL_MD5);
       CORO_GOTO(RCHEEVOS_GET_GAMEID);
 
 
    /**************************************************************************
     * Info   Tries to identify a NES game
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Input  coro->path or coro->data+coro->len
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_NES_MD5)
+      CORO_GOSUB(RCHEEVOS_BUFFER_FILE);
 
       /* Checks for the existence of a headered NES file.
          Unheadered files fall back to RCHEEVOS_GENERIC_MD5. */
@@ -1749,31 +1895,43 @@ found:
          CORO_RET();
       }
 
-      MD5_Init(&coro->md5);
       coro->offset = sizeof(coro->header);
       coro->count  = coro->len - coro->offset;
-      CORO_GOSUB(RCHEEVOS_EVAL_MD5);
 
-      MD5_Final(coro->hash, &coro->md5);
+      CORO_GOSUB(RCHEEVOS_EVAL_MD5);
       CORO_GOTO(RCHEEVOS_GET_GAMEID);
 
 
    /**************************************************************************
    * Info   Tries to identify a Sega CD game
-   * Input  CHEEVOS_VAR_INFO the content info
-   * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+   * Input  coro->path, coro->len
+   * Output coro->gameid
    *************************************************************************/
    CORO_SUB(RCHEEVOS_SEGACD_MD5)
    {
       /* ignore bin files less than 16MB - they're probably a ROM, not a CD */
-      if (coro->ext_hash == 0x0b8861beU && coro->len < CHEEVOS_MB(16))
+      if (coro->ext_hash == 0x0b8861beU)
       {
-         CHEEVOS_LOG(RCHEEVOS_TAG "ignoring small BIN file - assuming not CD\n", coro->gameid);
-         coro->gameid = 0;
-         CORO_RET();
-      }
+         to_read = coro->len;
+         if (to_read == 0)
+         {
+            coro->stream = intfstream_open_file(coro->path,
+               RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+            if (coro->stream)
+            {
+               to_read = intfstream_get_size(coro->stream);
+               intfstream_close(coro->stream);
+               CHEEVOS_FREE(coro->stream);
+            }
+         }
 
-      MD5_Init(&coro->md5);
+         if (to_read < CHEEVOS_MB(16))
+         {
+            CHEEVOS_LOG(RCHEEVOS_TAG "ignoring small BIN file - assuming not CD\n", coro->gameid);
+            coro->gameid = 0;
+            CORO_RET();
+         }
+      }
 
       /* find the data track - it should be the first one */
       coro->track = cdfs_open_data_track(coro->path);
@@ -1788,14 +1946,12 @@ found:
             cdfs_read_file(&coro->cdfp, coro->data, coro->count);
             coro->len = coro->count;
 
-            CORO_GOSUB(RCHEEVOS_EVAL_MD5);
-            MD5_Final(coro->hash, &coro->md5);
-
             cdfs_close_file(&coro->cdfp);
 
             cdfs_close_track(coro->track);
             coro->track = NULL;
 
+            CORO_GOSUB(RCHEEVOS_EVAL_MD5);
             CORO_GOTO(RCHEEVOS_GET_GAMEID);
          }
 
@@ -1811,13 +1967,11 @@ found:
 
    /**************************************************************************
    * Info   Tries to identify a PC Engine CD game
-   * Input  CHEEVOS_VAR_INFO the content info
-   * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+   * Input  coro->path
+   * Output coro->gameid
    *************************************************************************/
    CORO_SUB(RCHEEVOS_PCE_CD_MD5)
    {
-      MD5_Init(&coro->md5);
-
       /* find the data track - it should be the second one */
       coro->track = cdfs_open_data_track(coro->path);
       if (coro->track)
@@ -1861,14 +2015,12 @@ found:
             cdfs_read_file(&coro->cdfp, ((uint8_t*)coro->data) + 22, to_read);
             coro->len = coro->count;
 
-            CORO_GOSUB(RCHEEVOS_EVAL_MD5);
-            MD5_Final(coro->hash, &coro->md5);
-
             cdfs_close_file(&coro->cdfp);
 
             cdfs_close_track(coro->track);
             coro->track = NULL;
 
+            CORO_GOSUB(RCHEEVOS_EVAL_MD5);
             CORO_GOTO(RCHEEVOS_GET_GAMEID);
          }
 
@@ -1884,17 +2036,32 @@ found:
 
    /**************************************************************************
     * Info   Tries to identify a Playstation game
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Input  coro->path
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_PSX_MD5)
    {
-      if (rcheevos_hash_psx(coro))
+      if (rcheevos_prepare_hash_psx(coro))
       {
-         MD5_Init(&coro->md5);
          CORO_GOSUB(RCHEEVOS_EVAL_MD5);
-         MD5_Final(coro->hash, &coro->md5);
+         CORO_GOTO(RCHEEVOS_GET_GAMEID);
+      }
 
+      coro->gameid = 0;
+      CORO_RET();
+   }
+
+
+   /**************************************************************************
+   * Info   Tries to identify a Nintendo DS game
+   * Input  coro->path
+   * Output coro->gameid
+   *************************************************************************/
+   CORO_SUB(RCHEEVOS_NDS_MD5)
+   {
+      if (rcheevos_prepare_hash_nintendo_ds(coro))
+      {
+         CORO_GOSUB(RCHEEVOS_EVAL_MD5);
          CORO_GOTO(RCHEEVOS_GET_GAMEID);
       }
 
@@ -1905,30 +2072,31 @@ found:
 
    /**************************************************************************
     * Info   Tries to identify a game by examining the entire file (no special processing)
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Input  coro->path or coro->data+coro->len
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_GENERIC_MD5)
-
-      MD5_Init(&coro->md5);
+      CORO_GOSUB(RCHEEVOS_BUFFER_FILE);
 
       coro->offset      = 0;
       coro->count       = 0;
+
       CORO_GOSUB(RCHEEVOS_EVAL_MD5);
 
-      MD5_Final(coro->hash, &coro->md5);
-
       if (coro->count == 0)
+      {
+         coro->gameid = 0;
          CORO_RET();
+      }
 
       CORO_GOTO(RCHEEVOS_GET_GAMEID);
 
 
    /**************************************************************************
-    * Info  Tries to identify an arcade game based on its filename (with no extension).
-    *       An arcade game "rom" is a zip file containing many ROMs.
-    * Input  CHEEVOS_VAR_INFO the content info
-    * Output CHEEVOS_VAR_GAMEID the Retro Achievements game ID, or 0 if not found
+    * Info   Tries to identify an arcade game based on its filename (with no extension).
+    *         An arcade game "rom" is a zip file containing many ROMs.
+    * Input  coro->path
+    * Output coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_ARCADE_MD5)
       if (!string_is_empty(coro->path))
@@ -1947,8 +2115,8 @@ found:
 
    /**************************************************************************
     * Info    Evaluates the CHEEVOS_VAR_MD5 hash
-    * Inputs  CHEEVOS_VAR_INFO, CHEEVOS_VAR_OFFSET, CHEEVOS_VAR_COUNT
-    * Outputs CHEEVOS_VAR_MD5, CHEEVOS_VAR_COUNT
+    * Inputs  coro->data, coro->count, coro->offset, coro->len
+    * Outputs coro->hash
     *************************************************************************/
    CORO_SUB(RCHEEVOS_EVAL_MD5)
 
@@ -1962,16 +2130,19 @@ found:
       if (coro->count > CHEEVOS_MB(64))
          coro->count = CHEEVOS_MB(64);
 
+      MD5_Init(&coro->md5);
       MD5_Update(&coro->md5,
             (void*)((uint8_t*)coro->data + coro->offset),
             coro->count);
+      MD5_Final(coro->hash, &coro->md5);
+
       CORO_RET();
 
 
    /**************************************************************************
     * Info    Gets the achievements from Retro Achievements
     * Inputs  coro->hash
-    * Outputs CHEEVOS_VAR_GAMEID
+    * Outputs coro->gameid
     *************************************************************************/
    CORO_SUB(RCHEEVOS_GET_GAMEID)
 
@@ -2446,7 +2617,10 @@ bool rcheevos_load(const void *data)
    rcheevos_hardcore_paused = false;
 
    if (!rcheevos_locals.core_supports || !data)
+   {
+      rcheevos_hardcore_paused = true;
       return false;
+   }
 
    coro = (rcheevos_coro_t*)calloc(1, sizeof(*coro));
 
@@ -2464,7 +2638,7 @@ bool rcheevos_load(const void *data)
    CORO_SETUP();
 
    info = (const struct retro_game_info*)data;
-   strncpy(buffer, path_get_extension(info->path), sizeof(buffer));
+   strlcpy(buffer, path_get_extension(info->path), sizeof(buffer));
 
    if (info->data)
    {
@@ -2519,7 +2693,7 @@ bool rcheevos_load(const void *data)
             free((void*)coro->path);
             coro->path = strdup(disc_path);
 
-            strncpy(buffer, path_get_extension(disc_path), sizeof(buffer));
+            strlcpy(buffer, path_get_extension(disc_path), sizeof(buffer));
          }
       }
    }

@@ -220,6 +220,7 @@ static config_file_t *core_info_list_iterate(
          current_path,
          info_path_base_size);
 
+// PSV要去掉下划线
 #if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(PS2) && !defined(HW_WUP))
    {
       char *substr = strrchr(info_path_base, '_');
@@ -785,112 +786,6 @@ void core_info_list_get_supported_cores(core_info_list_t *core_info_list,
 
    *infos     = core_info_list->list;
    *num_infos = supported;
-}
-
-void core_info_list_get_supported_cores_core_name(core_info_list_t *core_info_list,
-      const char *path, struct string_list *s, int *len)
-{
-   RARCH_LOG("core_info_list_get_supported_cores_core_name log req. path: %s\n", path);
-   size_t i;
-   size_t supported         = 0;
-#ifdef HAVE_COMPRESSION
-   struct string_list *list = NULL;
-#endif
-
-   if (!core_info_list)
-      return;
-
-   core_info_tmp_path = path;
-
-#ifdef HAVE_COMPRESSION
-   if (path_is_compressed_file(path))
-      list = file_archive_get_file_list(path, NULL);
-   core_info_tmp_list = list;
-#endif
-   
-   union string_list_elem_attr attr;
-   attr.i = 0;
-
-   /* Let supported core come first in list so we can return
-    * a pointer to them. */
-   qsort(core_info_list->list, core_info_list->count,
-         sizeof(core_info_t), core_info_qsort_cmp);
-
-   for (i = 0; i < core_info_list->count; i++)
-   {
-      const core_info_t *core = &core_info_list->list[i];
-      if (!core_info_does_support_file(core, path))
-         continue;
-
-#ifdef HAVE_COMPRESSION
-      if (!core_info_does_support_any_file(core, list))
-         continue;
-#endif
-
-      RARCH_LOG("core_info_list_get_supported_cores_core_name log core info. count: %u, path: %s, core_path: %s, core_name: %s, display_name: %s, systemname: %s\n",
-         core_info_list->count, path, core->path, core->core_name, core->display_name, core->systemname);
-      
-      string_list_append(s, core->core_name, attr);
-      *len += strlen(core->core_name) + 1;
-   }
-
-#ifdef HAVE_COMPRESSION
-   if (list)
-      string_list_free(list);
-#endif
-}
-
-void core_info_list_get_supported_cores_path(core_info_list_t *core_info_list,
-      const char *path, struct string_list *s, int *len)
-{
-   RARCH_LOG("core_info_list_get_supported_cores_path log req. path: %s\n", path);
-   size_t i;
-   size_t supported         = 0;
-#ifdef HAVE_COMPRESSION
-   struct string_list *list = NULL;
-#endif
-
-   if (!core_info_list)
-      return;
-
-   core_info_tmp_path = path;
-
-#ifdef HAVE_COMPRESSION
-   if (path_is_compressed_file(path))
-      list = file_archive_get_file_list(path, NULL);
-   core_info_tmp_list = list;
-#endif
-   
-   union string_list_elem_attr attr;
-   attr.i = 0;
-
-   /* Let supported core come first in list so we can return
-    * a pointer to them. */
-   qsort(core_info_list->list, core_info_list->count,
-         sizeof(core_info_t), core_info_qsort_cmp);
-
-   for (i = 0; i < core_info_list->count; i++)
-   {
-      const core_info_t *core = &core_info_list->list[i];
-      if (!core_info_does_support_file(core, path))
-         continue;
-
-#ifdef HAVE_COMPRESSION
-      if (!core_info_does_support_any_file(core, list))
-         continue;
-#endif
-
-      RARCH_LOG("core_info_list_get_supported_cores_path log core info. count: %u, path: %s, core_path: %s, core_name: %s, display_name: %s, systemname: %s\n",
-         core_info_list->count, path, core->path, core->core_name, core->display_name, core->systemname);
-      
-      string_list_append(s, core->path, attr);
-      *len += strlen(core->path) + 1;
-   }
-
-#ifdef HAVE_COMPRESSION
-   if (list)
-      string_list_free(list);
-#endif
 }
 
 void core_info_get_name(const char *path, char *s, size_t len,

@@ -97,7 +97,7 @@
 #define DEFAULT_MOUSE_SCALE 1
 #endif
 
-#if defined(RARCH_MOBILE) || defined(HAVE_LIBNX)
+#if defined(RARCH_MOBILE) || defined(HAVE_LIBNX) || defined(__WINRT__)
 #define DEFAULT_POINTER_ENABLE true
 #else
 #define DEFAULT_POINTER_ENABLE false
@@ -171,6 +171,10 @@
 #define DEFAULT_HISTORY_LIST_ENABLE true
 
 #define DEFAULT_PLAYLIST_ENTRY_RENAME true
+
+#define DEFAULT_ACCESSIBILITY_ENABLE false
+
+#define DEFAULT_ACCESSIBILITY_NARRATOR_SPEECH_SPEED 5
 
 #define DEFAULT_DRIVER_SWITCH_ENABLE true
 
@@ -514,13 +518,10 @@ static bool content_show_video        = true;
 static bool content_show_netplay      = true;
 #endif
 static bool content_show_history      = true;
-#ifdef HAVE_LIBRETRODB
 static bool content_show_add     	  = true;
-#endif
 static bool content_show_playlists    = true;
 
 #ifdef HAVE_XMB
-static unsigned xmb_scale_factor      = 110;
 static unsigned xmb_alpha_factor      = 75;
 static unsigned menu_font_color_red   = 255;
 static unsigned menu_font_color_green = 255;
@@ -900,7 +901,11 @@ static const bool stdin_cmd_enable = false;
 
 static const uint16_t network_remote_base_port = 55400;
 
+#if defined(ANDROID) || defined(IOS)
 static const bool network_on_demand_thumbnails = true;
+#else
+static const bool network_on_demand_thumbnails = false;
+#endif
 
 static const bool network_on_demand_yunsavestate = false;
 
@@ -976,6 +981,8 @@ static const float analog_sensitivity     = 1.0f;
 /* Describes speed of which turbo-enabled buttons toggle. */
 static const unsigned turbo_period        = 6;
 static const unsigned turbo_duty_cycle    = 3;
+static const unsigned turbo_mode          = 0;
+static const unsigned turbo_default_btn   = RETRO_DEVICE_ID_JOYPAD_B;
 
 /* Enable input auto-detection. Will attempt to autoconfigure
  * gamepads, plug-and-play style. */

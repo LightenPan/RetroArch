@@ -104,12 +104,19 @@ if [ "$HAVE_FLOATSOFTFP" = "yes" ]; then
    add_define MAKEFILE FLOATSOFTFP_CFLAGS -mfloat-abi=softfp
 fi
 
-check_platform Win32 EGL 'EGL is' false
 
-check_header EGL EGL/egl.h EGL/eglext.h
+if [ "$HAVE_ANGLE" = 'yes' ]; then
+   eval "HAVE_EGL=\"yes\""
+   add_dirs INCLUDE ./gfx/include/ANGLE
+   add_dirs LIBRARY ./angle-x64
+   add_opt OPENGL no
+   add_opt OPENGLES yes
+else
+   check_header EGL EGL/egl.h EGL/eglext.h
 # some systems have EGL libs, but no pkgconfig
 # https://github.com/linux-sunxi/sunxi-mali/pull/8
 check_val '' EGL "-l${VC_PREFIX}EGL $EXTRA_GL_LIBS" '' "${VC_PREFIX}egl" '' '' true
+fi
 
 if [ "$HAVE_EGL" = 'yes' ]; then
    EGL_LIBS="$EGL_LIBS $EXTRA_GL_LIBS"
@@ -387,13 +394,12 @@ check_lib '' DRMINGW -lexchndl
 check_enabled THREADS FFMPEG FFmpeg 'Threads are' false
 
 if [ "$HAVE_FFMPEG" != 'no' ]; then
-   check_val '' AVCODEC -lavcodec '' libavcodec 54 '' false
-   check_val '' AVFORMAT -lavformat '' libavformat 54 '' false
-   check_val '' AVDEVICE -lavdevice '' libavdevice '' '' false
-   check_val '' SWRESAMPLE -lswresample '' libswresample '' '' false
-   check_val '' AVRESAMPLE -lavresample '' libavresample '' '' false
-   check_val '' AVUTIL -lavutil '' libavutil 51 '' false
-   check_val '' SWSCALE -lswscale '' libswscale 2.1 '' false
+   check_val '' AVCODEC -lavcodec '' libavcodec 57 '' false
+   check_val '' AVFORMAT -lavformat '' libavformat 57 '' false
+   check_val '' AVDEVICE -lavdevice '' libavdevice 57 '' false
+   check_val '' SWRESAMPLE -lswresample '' libswresample 2 '' false
+   check_val '' AVUTIL -lavutil '' libavutil 55 '' false
+   check_val '' SWSCALE -lswscale '' libswscale 4 '' false
 
    check_header AV_CHANNEL_LAYOUT libavutil/channel_layout.h
 
@@ -526,6 +532,7 @@ fi
 
 if [ "$HAVE_STEAM" = 'yes' ]; then
    add_opt ONLINE_UPDATER no
+   add_opt UPDATE_CORES no
    die : 'Notice: Steam build enabled, disabling online updater as well.'
 fi
 

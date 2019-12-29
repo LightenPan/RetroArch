@@ -60,6 +60,12 @@ MSG_HASH(MENU_ENUM_LABEL_AUDIO_RESAMPLER_DRIVER,
       "audio_resampler_driver")
 MSG_HASH(MENU_ENUM_LABEL_AUDIO_SETTINGS,
       "audio_settings")
+MSG_HASH(MENU_ENUM_LABEL_AUDIO_RESAMPLER_SETTINGS,
+      "audio_resampler_settings")
+MSG_HASH(MENU_ENUM_LABEL_AUDIO_SYNCHRONIZATION_SETTINGS,
+      "audio_synchronization_settings")
+MSG_HASH(MENU_ENUM_LABEL_AUDIO_OUTPUT_SETTINGS,
+      "audio_output_settings")
 MSG_HASH(MENU_ENUM_LABEL_AUDIO_SYNC,
       "audio_sync")
 MSG_HASH(MENU_ENUM_LABEL_AUDIO_VOLUME,
@@ -283,12 +289,20 @@ MSG_HASH(MENU_ENUM_LABEL_DEFERRED_CDROM_INFO_LIST,
       "deferred_cdrom_info_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_CDROM_INFO_DETAIL_LIST,
       "deferred_cdrom_info_detail_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_REMAPPINGS_PORT_LIST,
+      "deferred_remappings_port_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST,
       "deferred_dropdown_box_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_SPECIAL,
       "deferred_dropdown_box_list_special")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_RESOLUTION,
       "deferred_dropdown_box_list_resolution")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_VIDEO_SHADER_PARAMETER,
+      "deferred_dropdown_box_list_video_shader_parameter")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_VIDEO_SHADER_PRESET_PARAMETER,
+      "deferred_dropdown_box_list_video_shader_preset_parameter")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_VIDEO_SHADER_NUM_PASSES,
+      "deferred_dropdown_box_list_video_shader_num_passes")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_PLAYLIST_DEFAULT_CORE,
       "deferred_dropdown_box_list_playlist_default_core")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_PLAYLIST_LABEL_DISPLAY_MODE,
@@ -335,6 +349,8 @@ MSG_HASH(MENU_ENUM_LABEL_DEFERRED_ARCHIVE_OPEN_DETECT_CORE,
       "deferred_archive_open_detect_core")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AUDIO_SETTINGS_LIST,
       "deferred_audio_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AUDIO_RESAMPLER_SETTINGS_LIST,
+      "deferred_audio_resampler_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AUDIO_MIXER_SETTINGS_LIST,
       "deferred_audio_mixer_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_MENU_SOUNDS_LIST,
@@ -369,10 +385,16 @@ MSG_HASH(MENU_ENUM_LABEL_DEFERRED_INPUT_HOTKEY_BINDS_LIST,
       "deferred_input_hotkey_binds")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_INPUT_SETTINGS_LIST,
       "deferred_input_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_INPUT_HAPTIC_FEEDBACK_SETTINGS_LIST,
+      "deferred_input_haptic_feedback_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_INPUT_MENU_SETTINGS_LIST,
+      "deferred_input_menu_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_LATENCY_SETTINGS_LIST,
       "deferred_latency_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AI_SERVICE_SETTINGS_LIST,
       "deferred_ai_service_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_ACCESSIBILITY_SETTINGS_LIST,
+      "deferred_accessibility_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_LAKKA_LIST,
       "deferred_lakka_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_LAKKA_SERVICES_LIST,
@@ -441,6 +463,16 @@ MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_FILTER,
       "deferred_video_filter")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_SETTINGS_LIST,
       "deferred_video_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_WINDOWED_MODE_SETTINGS_LIST,
+      "deferred_video_windowed_mode_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_FULLSCREEN_MODE_SETTINGS_LIST,
+      "deferred_video_fullscreen_mode_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_OUTPUT_SETTINGS_LIST,
+      "deferred_video_output_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_SCALING_SETTINGS_LIST,
+      "deferred_video_scaling_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_VIDEO_SYNCHRONIZATION_SETTINGS_LIST,
+      "deferred_video_synchronization_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_CRT_SWITCHRES_SETTINGS_LIST,
       "deferred_crt_switchres_settings_list")
 MSG_HASH(MENU_ENUM_LABEL_DEFERRED_WIFI_SETTINGS_LIST,
@@ -469,6 +501,8 @@ MSG_HASH(MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT,
       "download_core_content")
 MSG_HASH(MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT_DIRS,
       "download_core_content_dirs")
+MSG_HASH(MENU_ENUM_LABEL_UPDATE_INSTALLED_CORES,
+      "update_installed_cores")
 MSG_HASH(MENU_ENUM_LABEL_CONTENT_DIR,
       "content_directory")
 MSG_HASH(MENU_ENUM_LABEL_MENU_SCALE_FACTOR,
@@ -1237,6 +1271,8 @@ MSG_HASH(MENU_ENUM_LABEL_START_CORE,
       "start_core")
 MSG_HASH(MENU_ENUM_LABEL_START_NET_RETROPAD,
       "menu_start_net_retropad")
+MSG_HASH(MENU_ENUM_LABEL_START_GONG,
+      "menu_start_gong")
 MSG_HASH(MENU_ENUM_LABEL_START_VIDEO_PROCESSOR,
       "menu_start_video_processor")
 MSG_HASH(MENU_ENUM_LABEL_STATE_SLOT,
@@ -1425,6 +1461,16 @@ MSG_HASH(MENU_ENUM_LABEL_VIDEO_SCALE_INTEGER,
       "video_scale_integer")
 MSG_HASH(MENU_ENUM_LABEL_VIDEO_SETTINGS,
       "video_settings")
+MSG_HASH(MENU_ENUM_LABEL_VIDEO_WINDOWED_MODE_SETTINGS,
+      "video_windowed_mode_settings")
+MSG_HASH(MENU_ENUM_LABEL_VIDEO_FULLSCREEN_MODE_SETTINGS,
+      "video_fullscreen_mode_settings")
+MSG_HASH(MENU_ENUM_LABEL_VIDEO_SCALING_SETTINGS,
+      "video_scaling_settings")
+MSG_HASH(MENU_ENUM_LABEL_VIDEO_SYNCHRONIZATION_SETTINGS,
+      "video_synchronization_settings")
+MSG_HASH(MENU_ENUM_LABEL_VIDEO_OUTPUT_SETTINGS,
+      "video_output_settings")
 MSG_HASH(MENU_ENUM_LABEL_CRT_SWITCHRES_SETTINGS,
       "crt_switchres_settings")
 MSG_HASH(MENU_ENUM_LABEL_VIDEO_SHADER_DIR,
@@ -2061,6 +2107,8 @@ MSG_HASH(MENU_ENUM_LABEL_QUICK_MENU_SHOW_CLOSE_CONTENT,
       "quick_menu_show_close_content")
 MSG_HASH(MENU_ENUM_LABEL_SETTINGS_SHOW_INPUT,
       "settings_show_input")
+MSG_HASH(MENU_ENUM_LABEL_ACCESSIBILITY_SETTINGS,
+      "accessibility_settings")
 MSG_HASH(MENU_ENUM_LABEL_AI_SERVICE_SETTINGS,
       "ai_service_settings")
 MSG_HASH(MENU_ENUM_LABEL_AI_SERVICE_MODE,
@@ -2127,3 +2175,45 @@ MSG_HASH(MENU_ENUM_LABEL_DRIVER_SWITCH_ENABLE,
       "driver_switch_enable")
 MSG_HASH(MENU_ENUM_LABEL_AI_SERVICE_PAUSE,
       "ai_service_pause")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_MANUAL_CONTENT_SCAN_LIST,
+      "deferred_manual_content_scan_list")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_LIST,
+      "manual_content_scan_list")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_DIR,
+      "manual_content_scan_dir")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+      "manual_content_scan_system_name")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+      "deferred_dropdown_box_list_manual_content_scan_system_name")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME_CUSTOM,
+      "manual_content_scan_system_name_custom")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_CORE_NAME,
+      "manual_content_scan_core_name")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME,
+      "deferred_dropdown_box_list_manual_content_scan_core_name")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_FILE_EXTS,
+      "manual_content_scan_file_exts")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_SEARCH_ARCHIVES,
+      "manual_content_scan_search_archives")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_DAT_FILE,
+      "manual_content_scan_dat_file")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_OVERWRITE,
+      "manual_content_scan_overwrite")
+MSG_HASH(MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_START,
+      "manual_content_scan_start")
+MSG_HASH(MENU_ENUM_LABEL_ACCESSIBILITY_ENABLED,
+      "accessibility_enabled")
+MSG_HASH(MENU_ENUM_LABEL_ACCESSIBILITY_NARRATOR_SPEECH_SPEED,
+      "accessibility_narrator_speech_speed")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AUDIO_OUTPUT_SETTINGS_LIST,
+      "deferred_audio_output_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_AUDIO_SYNCHRONIZATION_SETTINGS_LIST,
+      "deferred_audio_synchronization_settings_list")
+MSG_HASH(MENU_ENUM_LABEL_INPUT_MENU_SETTINGS,
+      "input_menu_settings")
+MSG_HASH(MENU_ENUM_LABEL_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+      "input_haptic_feedback_settings")
+MSG_HASH(MENU_ENUM_LABEL_INPUT_TURBO_MODE,
+      "input_turbo_mode")
+MSG_HASH(MENU_ENUM_LABEL_INPUT_TURBO_DEFAULT_BUTTON,
+      "input_turbo_default_button")

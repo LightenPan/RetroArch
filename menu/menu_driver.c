@@ -68,6 +68,9 @@
 #include "../verbosity.h"
 #include "../tasks/task_powerstate.h"
 #include "../playlist.h"
+#ifdef HAVE_NETWORKING
+#include "../core_updater_list.h"
+#endif
 
 #define SCROLL_INDEX_SIZE          (2 * (26 + 2) + 1)
 
@@ -755,8 +758,8 @@ int menu_entry_select(uint32_t i)
    return menu_entry_action(&entry, i, MENU_ACTION_SELECT);
 }
 
-int menu_entry_action(menu_entry_t *entry,
-      unsigned i, enum menu_action action)
+int menu_entry_action(
+      menu_entry_t *entry, size_t i, enum menu_action action)
 {
    int ret                    = 0;
    file_list_t *selection_buf =
@@ -825,7 +828,8 @@ int menu_entry_action(menu_entry_t *entry,
          break;
       case MENU_ACTION_START:
          if (cbs && cbs->action_start)
-            ret = cbs->action_start(entry->type, entry->label);
+				ret = cbs->action_start(entry->path,
+				entry->label, entry->type, i, entry->entry_idx);
          break;
       case MENU_ACTION_LEFT:
          if (cbs && cbs->action_left)
@@ -842,7 +846,7 @@ int menu_entry_action(menu_entry_t *entry,
       case MENU_ACTION_SELECT:
          if (cbs && cbs->action_select)
             ret = cbs->action_select(entry->path,
-                  entry->label, entry->type, i);
+                  entry->label, entry->type, i, entry->entry_idx);
          break;
       case MENU_ACTION_SEARCH:
          menu_input_dialog_start_search();
@@ -3578,7 +3582,7 @@ static bool menu_init(menu_handle_t *menu_data)
       task_push_decompress(settings->arrays.bundle_assets_src,
             settings->arrays.bundle_assets_dst,
             NULL, settings->arrays.bundle_assets_dst_subdir,
-            NULL, bundle_decompressed, NULL, NULL);
+            NULL, bundle_decompressed, NULL, NULL, false);
 #endif
    }
 
@@ -3904,6 +3908,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
          playlist_free_cached();
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
          menu_shader_manager_free();
+#endif
+#ifdef HAVE_NETWORKING
+         core_updater_list_free_cached();
 #endif
 
          if (menu_driver_data)
@@ -4445,7 +4452,7 @@ void menu_subsystem_populate(const struct retro_subsystem_info* subsystem, menu_
                         RARCH_WARN("Menu subsystem entry: Description label truncated.\n");
                      }
                   }
-                  
+
                   strlcpy(s, tmp, sizeof(s));
                }
             }
@@ -4458,4 +4465,44 @@ void menu_subsystem_populate(const struct retro_subsystem_info* subsystem, menu_
          }
       }
    }
+}
+
+
+void get_current_menu_value(char* retstr, size_t max)
+{
+   const char*      entry_label;
+   menu_entry_t     entry;
+
+   menu_driver_selection_ptr = menu_navigation_get_selection();
+   menu_entry_init(&entry);
+   menu_entry_get(&entry, 0, menu_navigation_get_selection(), NULL, true);
+   menu_entry_get_value(&entry, &entry_label);
+
+   strlcpy(retstr, entry_label, max);
+}
+
+void get_current_menu_label(char* retstr, size_t max)
+{
+   const char*      entry_label;
+   menu_entry_t     entry;
+
+   menu_driver_selection_ptr = menu_navigation_get_selection();
+   menu_entry_init(&entry);
+   menu_entry_get(&entry, 0, menu_navigation_get_selection(), NULL, true);
+   menu_entry_get_rich_label(&entry, &entry_label);
+
+   strlcpy(retstr, entry_label, max);
+}
+
+void get_current_menu_sublabel(char* retstr, size_t max)
+{
+   const char*      entry_sublabel;
+   menu_entry_t     entry;
+
+   menu_driver_selection_ptr = menu_navigation_get_selection();
+   menu_entry_init(&entry);
+   menu_entry_get(&entry, 0, menu_navigation_get_selection(), NULL, true);
+ 
+   menu_entry_get_sublabel(&entry, &entry_sublabel);
+   strlcpy(retstr, entry_sublabel, max);
 }

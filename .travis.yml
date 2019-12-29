@@ -58,6 +58,12 @@ matrix:
       env: CXX_BUILD=1 CC=clang-6.0 CXX=clang++-6.0
     - os: osx
       env: CC=clang CXX=clang++
+    - name: OSX OpenGL Make
+      os: osx
+      osx_image: xcode11.2
+      script:
+        - ./configure --enable-opengl --disable-metal
+        - make
     - os: osx
       osx_image: xcode8
       script:
@@ -111,7 +117,7 @@ before_install:
        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
      fi
 
-script:
+before_script:
   - |
      if [ -n "$CROSS_COMPILE" ]; then
        ARGS="$ARGS --disable-d3d8 --disable-d3d9 --disable-d3d10 --disable-d3d11 --disable-d3d12"
@@ -144,6 +150,9 @@ script:
      if [ -n "$ENABLE_GLES3" ]; then
        ARGS="$ARGS --enable-opengles3"
      fi
+  - echo "Configure arguments = $ARGS"
+
+script:
   - ./configure $ARGS
   - |
      if [ -n "$C89_BUILD" ]; then

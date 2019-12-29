@@ -319,6 +319,8 @@ enum midi_driver_enum
 
 #if defined(HAVE_METAL)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_METAL;
+#elif defined(HAVE_VITA2D)
+static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_VITA2D;
 #elif defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(__CELLOS_LV2__)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GL;
 #elif defined(HAVE_OPENGL_CORE)
@@ -1198,8 +1200,8 @@ static struct config_path_setting *populate_settings_path(settings_t *settings, 
    SETTING_PATH("kiosk_mode_password",        settings->paths.kiosk_mode_password, false, NULL, true);
    SETTING_PATH("netplay_nickname",           settings->paths.username, false, NULL, true);
    SETTING_PATH("video_filter",               settings->paths.path_softfilter_plugin, false, NULL, true);
-	SETTING_PATH("audio_dsp_plugin",           settings->paths.path_audio_dsp_plugin, false, NULL, true);
-	SETTING_PATH("core_updater_buildbot_base_url", settings->paths.network_buildbot_base_url, false, NULL, true);
+   SETTING_PATH("audio_dsp_plugin",           settings->paths.path_audio_dsp_plugin, false, NULL, true);
+   SETTING_PATH("core_updater_buildbot_base_url", settings->paths.network_buildbot_base_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_cores_url", settings->paths.network_buildbot_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_assets_url", settings->paths.network_buildbot_assets_url, false, NULL, true);
 
@@ -1339,6 +1341,7 @@ static struct config_bool_setting *populate_settings_bool(settings_t *settings, 
    struct config_bool_setting  *tmp    = (struct config_bool_setting*)calloc(1, (*size + 1) * sizeof(struct config_bool_setting));
    unsigned count                      = 0;
 
+   SETTING_BOOL("accessibility_enable", &settings->bools.accessibility_enable, true, DEFAULT_ACCESSIBILITY_ENABLE, false);
    SETTING_BOOL("driver_switch_enable", &settings->bools.driver_switch_enable, true, DEFAULT_DRIVER_SWITCH_ENABLE, false);
    SETTING_BOOL("frame_time_counter_reset_after_fastforwarding", &settings->bools.frame_time_counter_reset_after_fastforwarding, true, false, false);
    SETTING_BOOL("frame_time_counter_reset_after_load_state", &settings->bools.frame_time_counter_reset_after_load_state, true, false, false);
@@ -1532,9 +1535,7 @@ static struct config_bool_setting *populate_settings_bool(settings_t *settings, 
    SETTING_BOOL("content_show_netplay",          &settings->bools.menu_content_show_netplay, true, content_show_netplay, false);
 #endif
    SETTING_BOOL("content_show_history",          &settings->bools.menu_content_show_history, true, content_show_history, false);
-#ifdef HAVE_LIBRETRODB
    SETTING_BOOL("content_show_add",              &settings->bools.menu_content_show_add, true, content_show_add, false);
-#endif
    SETTING_BOOL("content_show_playlists",        &settings->bools.menu_content_show_playlists, true, content_show_playlists, false);
    SETTING_BOOL("menu_show_load_core",           &settings->bools.menu_show_load_core, true, menu_show_load_core, false);
    SETTING_BOOL("menu_show_load_content",        &settings->bools.menu_show_load_content, true, menu_show_load_content, false);
@@ -1737,6 +1738,7 @@ static struct config_uint_setting *populate_settings_uint(settings_t *settings, 
    if (!tmp)
       return NULL;
 
+   SETTING_UINT("accessibility_narrator_speech_speed",  		         &settings->uints.accessibility_narrator_speech_speed, true, DEFAULT_ACCESSIBILITY_NARRATOR_SPEECH_SPEED, false);
 #ifdef HAVE_NETWORKING
    SETTING_UINT("streaming_mode",  		         &settings->uints.streaming_mode, true, STREAMING_MODE_TWITCH, false);
 #endif
@@ -1745,6 +1747,8 @@ static struct config_uint_setting *populate_settings_uint(settings_t *settings, 
    SETTING_UINT("input_bind_hold",              &settings->uints.input_bind_hold,        true, input_bind_hold, false);
    SETTING_UINT("input_turbo_period",           &settings->uints.input_turbo_period,     true, turbo_period, false);
    SETTING_UINT("input_duty_cycle",             &settings->uints.input_turbo_duty_cycle, true, turbo_duty_cycle, false);
+   SETTING_UINT("input_turbo_mode",             &settings->uints.input_turbo_mode, true, turbo_mode, false);
+   SETTING_UINT("input_turbo_default_button",   &settings->uints.input_turbo_default_button, true, turbo_default_btn, false);
    SETTING_UINT("input_max_users",              input_driver_get_uint(INPUT_ACTION_MAX_USERS),        true, input_max_users, false);
    SETTING_UINT("fps_update_interval",          &settings->uints.fps_update_interval, true, DEFAULT_FPS_UPDATE_INTERVAL, false);
    SETTING_UINT("input_menu_toggle_gamepad_combo", &settings->uints.input_menu_toggle_gamepad_combo, true, menu_toggle_gamepad_combo, false);

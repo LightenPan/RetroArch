@@ -352,8 +352,7 @@ void playlist_get_index_by_path(playlist_t *playlist,
 }
 
 bool playlist_entry_exists(playlist_t *playlist,
-      const char *path,
-      const char *crc32)
+      const char *path)
 {
    size_t i;
    char real_search_path[PATH_MAX_LENGTH];
@@ -705,7 +704,7 @@ void playlist_resolve_path(enum playlist_file_mode mode,
 
 /**
  * playlist_push:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Push entry to top of playlist.
  **/
@@ -1642,7 +1641,7 @@ void playlist_free(playlist_t *playlist)
 
 /**
  * playlist_clear:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Clears all playlist entries in playlist.
  **/
@@ -1664,7 +1663,7 @@ void playlist_clear(playlist_t *playlist)
 
 /**
  * playlist_size:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Gets size of playlist.
  * Returns: size of playlist.
@@ -1678,7 +1677,7 @@ size_t playlist_size(playlist_t *playlist)
 
 /**
  * playlist_capacity:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Gets maximum capacity of playlist.
  * Returns: maximum capacity of playlist.
@@ -2382,7 +2381,7 @@ bool playlist_init_cached(const char *path, size_t size)
 
 /**
  * playlist_init:
- * @path                  : Path to playlist contents file.
+ * @path            	   : Path to playlist contents file.
  * @size                : Maximum capacity of playlist size.
  *
  * Creates and initializes a playlist.

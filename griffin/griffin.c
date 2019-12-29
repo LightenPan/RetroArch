@@ -33,6 +33,18 @@
 #define HAVE_COMPRESSION 1
 #endif
 
+#if defined(HAVE_OPENGL) && defined(HAVE_ANGLE)
+#ifndef HAVE_OPENGLES
+#define HAVE_OPENGLES  1
+#endif
+#if !defined(HAVE_OPENGLES3) && !defined(HAVE_OPENGLES2)
+#define HAVE_OPENGLES3 1
+#endif
+#ifndef HAVE_EGL
+#define HAVE_EGL       1
+#endif
+#endif
+
 #define JSON_STATIC 1 /* must come before runtime_file, netplay_room_parse and jsonsax_full */
 
 #if _MSC_VER && !defined(__WINRT__)
@@ -213,7 +225,7 @@ VIDEO CONTEXT
 
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_VULKAN)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_VULKAN) || defined(HAVE_OPENGLES)
 #include "../gfx/drivers_context/wgl_ctx.c"
 #endif
 
@@ -279,6 +291,14 @@ VIDEO CONTEXT
 
 #if defined(HAVE_VIDEOCORE)
 #include "../gfx/drivers_context/vc_egl_ctx.c"
+#endif
+
+#if defined(_WIN32) && defined(HAVE_ANGLE)
+#include "../gfx/common/angle_common.c"
+#endif
+
+#if defined(__WINRT__)
+#include "../gfx/drivers_context/uwp_egl_ctx.c"
 #endif
 
 #endif
@@ -1073,6 +1093,10 @@ FRONTEND
 
 #include "../core_info.c"
 
+#if defined(HAVE_NETWORKING)
+#include "../core_updater_list.c"
+#endif
+
 /*============================================================
 UI
 ============================================================ */
@@ -1096,7 +1120,6 @@ GIT
 RETROARCH
 ============================================================ */
 #include "../retroarch.c"
-// #include "../paths.c"
 #include "../libretro-common/queues/task_queue.c"
 
 #include "../msg_hash.c"
@@ -1215,6 +1238,7 @@ DATA RUNLOOP
 #include "../tasks/task_image.c"
 #include "../tasks/task_file_transfer.c"
 #include "../tasks/task_playlist_manager.c"
+#include "../tasks/task_manual_content_scan.c"
 #ifdef HAVE_ZLIB
 #include "../tasks/task_decompress.c"
 #endif
@@ -1225,6 +1249,7 @@ DATA RUNLOOP
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
 #include "../tasks/task_pl_thumbnail_download.c"
 #include "../tasks/task_pl_rom_download.c"
+#include "../tasks/task_core_updater.c"
 #endif
 
 /*============================================================
@@ -1495,10 +1520,9 @@ DEPENDENCIES
 /*============================================================
 XML
 ============================================================ */
-#ifdef HAVE_VIDEO_LAYOUT
 #include "../libretro-common/formats/xml/rxml.c"
+#include "../libretro-common/formats/logiqx_dat/logiqx_dat.c"
 #include "../deps/yxml/yxml.c"
-#endif
 
 /*============================================================
  AUDIO UTILS
@@ -1638,7 +1662,7 @@ SSL
 #endif
 #endif
 
-#ifdef HAVE_EASTEREGG
+#ifdef HAVE_GONG
 #include "../cores/libretro-gong/gong.c"
 #endif
 
@@ -1646,3 +1670,8 @@ SSL
 PLAYLIST NAME SANITIZATION
 ============================================================ */
 #include "../libretro-common/playlists/label_sanitization.c"
+
+/*============================================================
+MANUAL CONTENT SCAN
+============================================================ */
+#include "../manual_content_scan.c"

@@ -1,5 +1,6 @@
 HAVE_LIBRETRO=             # Libretro library used
 HAVE_ASSETS_DIR=           # Assets install directory
+HAVE_ANGLE=no              # ANGLE support (OpenGL wrapper)
 HAVE_GDI=yes               # GDI support (Win32-only)
 HAVE_OPENGLES_LIBS=        # Link flags for custom GLES library
 HAVE_OPENGLES_CFLAGS=      # C-flags for custom GLES library
@@ -150,7 +151,7 @@ HAVE_OSMESA=no             # Off-screen Mesa rendering
 HAVE_VIDEOPROCESSOR=auto   # Enable video processor core
 HAVE_VIDEOCORE=auto        # Broadcom Videocore 4 support
 HAVE_DRMINGW=no            # DrMingw exception handler
-HAVE_EASTEREGG=yes         # Easter egg
+HAVE_GONG=no               # Gong core embedded
 HAVE_CDROM=auto            # CD-ROM support
 HAVE_GLSL=yes              # GLSL shaders support
 HAVE_SLANG=auto            # slang support

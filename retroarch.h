@@ -1921,6 +1921,7 @@ extern video_driver_t video_null;
 extern const gfx_ctx_driver_t gfx_ctx_osmesa;
 extern const gfx_ctx_driver_t gfx_ctx_sdl_gl;
 extern const gfx_ctx_driver_t gfx_ctx_x_egl;
+extern const gfx_ctx_driver_t gfx_ctx_uwp;
 extern const gfx_ctx_driver_t gfx_ctx_wayland;
 extern const gfx_ctx_driver_t gfx_ctx_x;
 extern const gfx_ctx_driver_t gfx_ctx_drm;
@@ -2040,6 +2041,17 @@ bool menu_widgets_ready(void);
 unsigned int retroarch_get_rotation(void);
 
 input_keyboard_line_t *get_input_keyboard_line(void);
+
+bool is_input_keyboard_display_on(void);
+bool is_accessibility_enabled(void);
+bool accessibility_speak(const char* speak_text);
+bool accessibility_speak_priority(const char* speak_text, int priority);
+bool accessibility_startup_message(void);
+
+bool is_narrator_running(void);
+
+bool accessibility_speak_ai_service(
+      const char* speak_text, const char* voice, int priority);
 
 RETRO_END_DECLS
 

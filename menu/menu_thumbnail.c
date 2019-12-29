@@ -155,18 +155,23 @@ static void menu_thumbnail_handle_upload(
    /* Update thumbnail status */
    thumbnail_tag->thumbnail->status = MENU_THUMBNAIL_STATUS_AVAILABLE;
 
-   /* Trigger 'fade in' animation */
-   thumbnail_tag->thumbnail->alpha  = 0.0f;
+   /* Trigger 'fade in' animation, if required */
+   if (menu_thumbnail_fade_duration > 0.0f)
+   {
+      thumbnail_tag->thumbnail->alpha  = 0.0f;
 
-   animation_entry.easing_enum      = EASING_OUT_QUAD;
-   animation_entry.tag              = (uintptr_t)&thumbnail_tag->thumbnail->alpha;
-   animation_entry.duration         = menu_thumbnail_fade_duration;
-   animation_entry.target_value     = 1.0f;
-   animation_entry.subject          = &thumbnail_tag->thumbnail->alpha;
-   animation_entry.cb               = NULL;
-   animation_entry.userdata         = NULL;
+      animation_entry.easing_enum      = EASING_OUT_QUAD;
+      animation_entry.tag              = (uintptr_t)&thumbnail_tag->thumbnail->alpha;
+      animation_entry.duration         = menu_thumbnail_fade_duration;
+      animation_entry.target_value     = 1.0f;
+      animation_entry.subject          = &thumbnail_tag->thumbnail->alpha;
+      animation_entry.cb               = NULL;
+      animation_entry.userdata         = NULL;
 
-   menu_animation_push(&animation_entry);
+      menu_animation_push(&animation_entry);
+   }
+   else
+      thumbnail_tag->thumbnail->alpha  = 1.0f;
 
 end:
    /* Clean up */
@@ -292,6 +297,54 @@ void menu_thumbnail_request(
       }
 #endif
    }
+}
+
+/* Requests loading of a specific thumbnail image file
+ * (may be used, for example, to load savestate images)
+ * - If operation fails, 'thumbnail->status' will be set to
+ *   MUI_THUMBNAIL_STATUS_MISSING
+ * - If operation is successful, 'thumbnail->status' will be
+ *   set to MUI_THUMBNAIL_STATUS_PENDING
+ * 'thumbnail' will be populated with texture info/metadata
+ * once the image load is complete */
+void menu_thumbnail_request_file(
+      const char *file_path, menu_thumbnail_t *thumbnail)
+{
+   settings_t *settings                = config_get_ptr();
+   menu_thumbnail_tag_t *thumbnail_tag = NULL;
+
+   if (!thumbnail || !settings)
+      return;
+
+   /* Reset thumbnail, then set 'missing' status by default
+    * (saves a number of checks later) */
+   menu_thumbnail_reset(thumbnail);
+   thumbnail->status = MENU_THUMBNAIL_STATUS_MISSING;
+
+   /* Check if file path is valid */
+   if (string_is_empty(file_path))
+      return;
+
+   if (!path_is_valid(file_path))
+      return;
+
+   /* Load thumbnail */
+   thumbnail_tag = (menu_thumbnail_tag_t*)calloc(1, sizeof(menu_thumbnail_tag_t));
+
+   if (!thumbnail_tag)
+      return;
+
+   /* Configure user data */
+   thumbnail_tag->thumbnail = thumbnail;
+   thumbnail_tag->list_id   = menu_thumbnail_list_id;
+
+   /* Would like to cancel any existing image load tasks
+    * here, but can't see how to do it... */
+   if(task_push_image_load(
+         file_path, video_driver_supports_rgba(),
+         settings->uints.menu_thumbnail_upscale_threshold,
+         menu_thumbnail_handle_upload, thumbnail_tag))
+      thumbnail->status = MENU_THUMBNAIL_STATUS_PENDING;
 }
 
 /* Resets (and free()s the current texture of) the
@@ -497,16 +550,72 @@ void menu_thumbnail_process_streams(
 
 /* Thumbnail rendering */
 
-/* Draws specified thumbnail centred (with aspect correct
- * scaling) within a rectangle of (width x height)
+/* Determines the actual screen dimensions of a
+ * thumbnail when centred with aspect correct
+ * scaling within a rectangle of (width x height) */
+void menu_thumbnail_get_draw_dimensions(
+      menu_thumbnail_t *thumbnail,
+      unsigned width, unsigned height, float scale_factor,
+      float *draw_width, float *draw_height)
+{
+   float display_aspect;
+   float thumbnail_aspect;
+
+   /* Sanity check */
+   if (!thumbnail || (width < 1) || (height < 1))
+      goto error;
+
+   if ((thumbnail->width < 1) || (thumbnail->height < 1))
+      goto error;
+
+   /* Account for display/thumbnail aspect ratio
+    * differences */
+   display_aspect   = (float)width            / (float)height;
+   thumbnail_aspect = (float)thumbnail->width / (float)thumbnail->height;
+
+   if (thumbnail_aspect > display_aspect)
+   {
+      *draw_width  = (float)width;
+      *draw_height = (float)thumbnail->height * (*draw_width / (float)thumbnail->width);
+   }
+   else
+   {
+      *draw_height = (float)height;
+      *draw_width  = (float)thumbnail->width * (*draw_height / (float)thumbnail->height);
+   }
+
+   /* Account for scale factor
+    * > Side note: We cannot use the menu_display_ctx_draw_t
+    *   'scale_factor' parameter for scaling thumbnails,
+    *   since this clips off any part of the expanded image
+    *   that extends beyond the bounding box. But even if
+    *   it didn't, we can't get real screen dimensions
+    *   without scaling manually... */
+   *draw_width  *= scale_factor;
+   *draw_height *= scale_factor;
+   return;
+
+error:
+   *draw_width  = 0.0f;
+   *draw_height = 0.0f;
+   return;
+}
+
+/* Draws specified thumbnail with specified alignment
+ * (and aspect correct scaling) within a rectangle of
+ * (width x height).
+ * 'shadow' defines an optional shadow effect (may be
+ * set to NULL if a shadow effect is not required).
  * NOTE: Setting scale_factor > 1.0f will increase the
  *       size of the thumbnail beyond the limits of the
- *       (width x height) rectangle (centring + aspect
+ *       (width x height) rectangle (alignment + aspect
  *       correct scaling is preserved). Use with caution */
 void menu_thumbnail_draw(
       video_frame_info_t *video_info, menu_thumbnail_t *thumbnail,
       float x, float y, unsigned width, unsigned height,
-      float alpha, float scale_factor)
+      enum menu_thumbnail_alignment alignment,
+      float alpha, float scale_factor,
+      menu_thumbnail_shadow_t *shadow)
 {
    /* Sanity check */
    if (!video_info || !thumbnail ||
@@ -522,8 +631,8 @@ void menu_thumbnail_draw(
       math_matrix_4x4 mymat;
       float draw_width;
       float draw_height;
-      float display_aspect;
-      float thumbnail_aspect;
+      float draw_x;
+      float draw_y;
       float thumbnail_alpha     = thumbnail->alpha * alpha;
       float thumbnail_color[16] = {
          1.0f, 1.0f, 1.0f, 1.0f,
@@ -539,27 +648,9 @@ void menu_thumbnail_draw(
          menu_display_set_alpha(thumbnail_color, thumbnail_alpha);
 
       /* Get thumbnail dimensions */
-      display_aspect   = (float)width            / (float)height;
-      thumbnail_aspect = (float)thumbnail->width / (float)thumbnail->height;
-
-      if (thumbnail_aspect > display_aspect)
-      {
-         draw_width  = (float)width;
-         draw_height = (float)thumbnail->height * (draw_width / (float)thumbnail->width);
-      }
-      else
-      {
-         draw_height = (float)height;
-         draw_width  = (float)thumbnail->width * (draw_height / (float)thumbnail->height);
-      }
-
-      /* Account for scale factor
-       * > We have to do it like this rather than using the
-       *   draw.scale_factor parameter, because the latter
-       *   clips off any part of the expanded image that
-       *   extends beyond the bounding box... */
-      draw_width  *= scale_factor;
-      draw_height *= scale_factor;
+      menu_thumbnail_get_draw_dimensions(
+            thumbnail, width, height, scale_factor,
+            &draw_width, &draw_height);
 
       menu_display_blend_begin(video_info);
 
@@ -583,15 +674,14 @@ void menu_thumbnail_draw(
 
       menu_display_rotate_z(&rotate_draw, video_info);
 
-      /* Configure draw object */
+      /* Configure draw object
+       * > Note: Colour, width/height and position must
+       *   be set *after* drawing any shadow effects */
       coords.vertices      = 4;
       coords.vertex        = NULL;
       coords.tex_coord     = NULL;
       coords.lut_tex_coord = NULL;
-      coords.color         = (const float*)thumbnail_color;
 
-      draw.width           = (unsigned)draw_width;
-      draw.height          = (unsigned)draw_height;
       draw.scale_factor    = 1.0f;
       draw.rotation        = 0.0f;
       draw.coords          = &coords;
@@ -600,9 +690,103 @@ void menu_thumbnail_draw(
       draw.prim_type       = MENU_DISPLAY_PRIM_TRIANGLESTRIP;
       draw.pipeline.id     = 0;
 
-      /* > Ensure thumbnail is centred */
-      draw.x               = x + ((float)width - draw_width) / 2.0f;
-      draw.y               = (float)video_info->height - y - draw_height - ((float)height - draw_height) / 2.0f;
+      /* Set thumbnail alignment within bounding box */
+      switch (alignment)
+      {
+         case MENU_THUMBNAIL_ALIGN_TOP:
+            /* Centred horizontally */
+            draw_x = x + ((float)width - draw_width) / 2.0f;
+            /* Drawn at top of bounding box */
+            draw_y = (float)video_info->height - y - draw_height;
+            break;
+         case MENU_THUMBNAIL_ALIGN_BOTTOM:
+            /* Centred horizontally */
+            draw_x = x + ((float)width - draw_width) / 2.0f;
+            /* Drawn at bottom of bounding box */
+            draw_y = (float)video_info->height - y - (float)height;
+            break;
+         case MENU_THUMBNAIL_ALIGN_LEFT:
+            /* Drawn at left side of bounding box */
+            draw_x = x;
+            /* Centred vertically */
+            draw_y = (float)video_info->height - y - draw_height - ((float)height - draw_height) / 2.0f;
+            break;
+         case MENU_THUMBNAIL_ALIGN_RIGHT:
+            /* Drawn at right side of bounding box */
+            draw_x = x + (float)width - draw_width;
+            /* Centred vertically */
+            draw_y = (float)video_info->height - y - draw_height - ((float)height - draw_height) / 2.0f;
+            break;
+         case MENU_THUMBNAIL_ALIGN_CENTRE:
+         default:
+            /* Centred both horizontally and vertically */
+            draw_x = x + ((float)width - draw_width) / 2.0f;
+            draw_y = (float)video_info->height - y - draw_height - ((float)height - draw_height) / 2.0f;
+            break;
+      }
+
+      /* Draw shadow effect, if required */
+      if (shadow)
+      {
+         /* Sanity check */
+         if ((shadow->type != MENU_THUMBNAIL_SHADOW_NONE) &&
+             (shadow->alpha > 0.0f))
+         {
+            float shadow_width;
+            float shadow_height;
+            float shadow_x;
+            float shadow_y;
+            float shadow_color[16] = {
+               0.0f, 0.0f, 0.0f, 1.0f,
+               0.0f, 0.0f, 0.0f, 1.0f,
+               0.0f, 0.0f, 0.0f, 1.0f,
+               0.0f, 0.0f, 0.0f, 1.0f
+            };
+            float shadow_alpha     = thumbnail_alpha;
+
+            /* Set shadow opacity */
+            if (shadow->alpha < 1.0f)
+               shadow_alpha *= shadow->alpha;
+
+            menu_display_set_alpha(shadow_color, shadow_alpha);
+
+            /* Configure shadow based on effect type
+             * > Not using a switch() here, since we've
+             *   already eliminated MENU_THUMBNAIL_SHADOW_NONE */
+            if (shadow->type == MENU_THUMBNAIL_SHADOW_OUTLINE)
+            {
+               shadow_width  = draw_width  + (float)(shadow->outline.width * 2);
+               shadow_height = draw_height + (float)(shadow->outline.width * 2);
+               shadow_x      = draw_x - (float)shadow->outline.width;
+               shadow_y      = draw_y - (float)shadow->outline.width;
+            }
+            /* Default: MENU_THUMBNAIL_SHADOW_DROP */
+            else
+            {
+               shadow_width  = draw_width;
+               shadow_height = draw_height;
+               shadow_x      = draw_x + shadow->drop.x_offset;
+               shadow_y      = draw_y - shadow->drop.y_offset;
+            }
+
+            /* Apply shadow draw object configuration */
+            coords.color = (const float*)shadow_color;
+            draw.width   = (unsigned)shadow_width;
+            draw.height  = (unsigned)shadow_height;
+            draw.x       = shadow_x;
+            draw.y       = shadow_y;
+
+            /* Draw shadow */
+            menu_display_draw(&draw, video_info);
+         }
+      }
+
+      /* Final thumbnail draw object configuration */
+      coords.color = (const float*)thumbnail_color;
+      draw.width   = (unsigned)draw_width;
+      draw.height  = (unsigned)draw_height;
+      draw.x       = draw_x;
+      draw.y       = draw_y;
 
       /* Draw thumbnail */
       menu_display_draw(&draw, video_info);

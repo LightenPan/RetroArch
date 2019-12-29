@@ -1,7 +1,6 @@
 TARGET          := libvitaGL
 SOURCES         := source source/utils
 SHADERS         := shaders
-INCDIRS         := math_neon
 
 LIBS = -lc -lm -lSceGxm_stub -lSceDisplay_stub
 
@@ -17,7 +16,7 @@ OBJS     := $(CFILES:.c=.o)
 PREFIX  = arm-vita-eabi
 CC      = $(PREFIX)-gcc
 AR      = $(PREFIX)-gcc-ar
-CFLAGS  = -g -Wl,-q -O2 -ffast-math -mtune=cortex-a9 -mfpu=neon -flto -ftree-vectorize -DTRANSPOSE_MATRICES -I$(INCDIRS)
+CFLAGS  = -g -Wl,-q -O2 -ffast-math -mtune=cortex-a9 -mfpu=neon -flto -ftree-vectorize -DTRANSPOSE_MATRICES
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET).a

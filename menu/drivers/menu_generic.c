@@ -55,6 +55,7 @@ static enum action_iterate_type action_iterate_type(const char *label)
    return ITERATE_TYPE_DEFAULT;
 }
 
+
 /**
  * menu_iterate:
  * @input                    : input sample for this frame
@@ -68,6 +69,8 @@ static enum action_iterate_type action_iterate_type(const char *label)
  **/
 int generic_menu_iterate(void *data, void *userdata, enum menu_action action)
 {
+   static enum action_iterate_type last_iterate_type = ITERATE_TYPE_DEFAULT;
+
    enum action_iterate_type iterate_type;
    unsigned file_type             = 0;
    int ret                        = 0;
@@ -91,12 +94,17 @@ int generic_menu_iterate(void *data, void *userdata, enum menu_action action)
    {
       BIT64_SET(menu->state, MENU_STATE_RENDER_FRAMEBUFFER);
    }
-
    switch (iterate_type)
    {
       case ITERATE_TYPE_HELP:
          ret = menu_dialog_iterate(
                menu->menu_state_msg, sizeof(menu->menu_state_msg), label);
+
+         if (iterate_type != last_iterate_type && is_accessibility_enabled())
+         {
+            accessibility_speak(menu->menu_state_msg);
+         }
+
          BIT64_SET(menu->state, MENU_STATE_RENDER_MESSAGEBOX);
          BIT64_SET(menu->state, MENU_STATE_POST_ITERATE);
          if (ret == 1 || action == MENU_ACTION_OK)
@@ -138,8 +146,24 @@ int generic_menu_iterate(void *data, void *userdata, enum menu_action action)
                : NULL;
 
             if (cbs && cbs->enum_idx != MSG_UNKNOWN)
+            {
                ret = menu_hash_get_help_enum(cbs->enum_idx,
                      menu->menu_state_msg, sizeof(menu->menu_state_msg));
+               if (iterate_type != last_iterate_type && is_accessibility_enabled())
+               {
+                  if (string_is_equal(menu->menu_state_msg, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_INFORMATION_AVAILABLE)))
+                  {
+                     char current_sublabel[255];
+                     get_current_menu_sublabel(current_sublabel, sizeof(current_sublabel));
+                     if (string_is_equal(current_sublabel, ""))
+                        accessibility_speak(menu->menu_state_msg);
+                     else
+                        accessibility_speak(current_sublabel);
+                  }
+                  else
+                     accessibility_speak(menu->menu_state_msg);
+               }
+            }
             else
             {
                unsigned type = 0;
@@ -254,6 +278,12 @@ int generic_menu_iterate(void *data, void *userdata, enum menu_action action)
          break;
    }
 
+   if ((last_iterate_type == ITERATE_TYPE_HELP || last_iterate_type == ITERATE_TYPE_INFO) && last_iterate_type != iterate_type && is_accessibility_enabled())
+   {
+      accessibility_speak("Closed dialog.");
+   }
+
+   last_iterate_type = iterate_type;
    BIT64_SET(menu->state, MENU_STATE_BLIT);
 
    if (BIT64_GET(menu->state, MENU_STATE_POP_STACK))
@@ -337,7 +367,8 @@ int generic_menu_entry_action(
          break;
       case MENU_ACTION_START:
          if (cbs && cbs->action_start)
-            ret = cbs->action_start(entry->type, entry->label);
+            ret = cbs->action_start(entry->path,
+                  entry->label, entry->type, i, entry->entry_idx);
          break;
       case MENU_ACTION_LEFT:
          if (cbs && cbs->action_left)
@@ -354,7 +385,7 @@ int generic_menu_entry_action(
       case MENU_ACTION_SELECT:
          if (cbs && cbs->action_select)
             ret = cbs->action_select(entry->path,
-                  entry->label, entry->type, i);
+                  entry->label, entry->type, i, entry->entry_idx);
          break;
       case MENU_ACTION_SEARCH:
          menu_input_dialog_start_search();
@@ -383,5 +414,56 @@ int generic_menu_entry_action(
       }
    }
 
+   if (action != 0 && is_accessibility_enabled() && !is_input_keyboard_display_on())
+   {
+      char current_label[255];
+      char current_value[255];
+      char title_name[255];
+      char speak_string[512];
+
+      strlcpy(title_name, "", sizeof(title_name));
+      strlcpy(current_label, "", sizeof(current_label));
+      get_current_menu_value(current_value, sizeof(current_value));
+
+      switch (action)
+      {
+         case MENU_ACTION_INFO:
+            break;
+         case MENU_ACTION_OK:
+         case MENU_ACTION_LEFT:
+         case MENU_ACTION_RIGHT:
+         case MENU_ACTION_CANCEL:
+            menu_entries_get_title(title_name, sizeof(title_name));
+         case MENU_ACTION_UP:
+         case MENU_ACTION_DOWN:
+         case MENU_ACTION_SCROLL_UP:
+         case MENU_ACTION_SCROLL_DOWN:
+            get_current_menu_label(current_label, sizeof(current_label));
+            break;
+         case MENU_ACTION_START:
+         case MENU_ACTION_SELECT:
+         case MENU_ACTION_SEARCH:
+            get_current_menu_label(current_label, sizeof(current_label));
+         case MENU_ACTION_SCAN:
+         default:
+            break;
+      }
+
+      strlcpy(speak_string, "", sizeof(speak_string));
+      if (!string_is_equal(title_name, ""))
+      {
+         strlcpy(speak_string, title_name, sizeof(speak_string));
+         strlcat(speak_string, " ", sizeof(speak_string));
+      }
+      strlcat(speak_string, current_label, sizeof(speak_string));
+      if (!string_is_equal(current_value, "..."))
+      {
+         strlcat(speak_string, " ", sizeof(speak_string));
+         strlcat(speak_string, current_value, sizeof(speak_string));
+      }
+
+      if (!string_is_equal(speak_string, ""))
+         accessibility_speak(speak_string);
+   }
    return ret;
 }

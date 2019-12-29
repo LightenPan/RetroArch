@@ -12,7 +12,10 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+      //修改项目根目录下的build.gradle，将jcenter()或者mavenCentral()替换掉即可，这样国内镜像就很快下载了
+      //  jcenter()
+      //  mavenCentral()
+      maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     }
 }
 

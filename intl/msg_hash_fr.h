@@ -841,6 +841,54 @@ MSG_HASH(
     "Téléchargement de contenu"
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_UPDATE_INSTALLED_CORES,
+    "Mettre à jour les cœurs installés"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_UPDATE_INSTALLED_CORES,
+    "Met à jour les cœurs installés vers la dernière version disponible."
+    )
+MSG_HASH(
+    MSG_FETCHING_CORE_LIST,
+    "Récupération de la liste des cœurs..."
+    )
+MSG_HASH(
+    MSG_CORE_LIST_FAILED,
+    "Échec de récupération de la liste des cœurs !"
+    )
+MSG_HASH(
+    MSG_LATEST_CORE_INSTALLED,
+    "Dernière version déjà installée : "
+    )
+MSG_HASH(
+    MSG_UPDATING_CORE,
+    "Mise à jour du cœur : "
+    )
+MSG_HASH(
+    MSG_DOWNLOADING_CORE,
+    "Téléchargement du cœur : "
+    )
+MSG_HASH(
+    MSG_EXTRACTING_CORE,
+    "Extraction du cœur : "
+    )
+MSG_HASH(
+    MSG_CORE_INSTALLED,
+    "Cœur installé : "
+    )
+MSG_HASH(
+    MSG_SCANNING_CORES,
+    "Analyse des cœurs..."
+    )
+MSG_HASH(
+    MSG_CHECKING_CORE,
+    "Vérification du cœur : "
+    )
+MSG_HASH(
+    MSG_ALL_CORES_UPDATED,
+    "Tous les cœurs installés sont à jour"
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_SCALE_FACTOR,
     "Facteur de mise à l'échelle du menu"
     )
@@ -1527,7 +1575,7 @@ MSG_HASH(
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_INPUT_USER_BINDS,
-    "Touches de l'utilisateur %u"
+    "Touches du port %u"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_LATENCY_SETTINGS,
@@ -3766,6 +3814,10 @@ MSG_HASH(
     "Anti-Zenburn"
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_RGUI_MENU_COLOR_THEME_FLUX,
+    "Flux"
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TRUE,
     "Vrai"
     )
@@ -4561,7 +4613,7 @@ MSG_HASH(
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_INPUT_USER_BINDS,
-    "Configurer les touches pour cet utilisateur."
+    "Configurer les touches pour ce port."
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_LATENCY_SETTINGS,
@@ -9495,6 +9547,14 @@ MSG_HASH(
     "Afficher ou masquer 'Entrées' dans l'écran des réglages."
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_SETTINGS,
+    "Accessibilité"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_ACCESSIBILITY_SETTINGS,
+    "Change les réglages du narrateur d'accessibilité'."
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_AI_SERVICE_SETTINGS,
     "Service IA"
     )
@@ -9891,6 +9951,10 @@ MSG_HASH(
     "Mode parole"
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_AI_SERVICE_NARRATOR_MODE,
+    "Mode narrateur"
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PRESET_REMOVE,
     "Supprimer"
     )
@@ -10043,4 +10107,228 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_SUBLABEL_AI_SERVICE_PAUSE,
     "Met le cœur en pause lorsque l'écran est traduit."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_LIST,
+    "Analyse manuelle"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_LIST,
+    "Analyse de contenu configurable basée sur le nom des fichiers. Le contenu n'est pas forcé d'être présent dans la base de données."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DIR,
+    "Dossier de contenu"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_DIR,
+    "Sélectionne le dossier dans lequel rechercher du contenu."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+    "Nom du système"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+    "Specifie un 'Nom du système' avec lequel associer le contenu analysé. Utilisé pour le nom de la liste de lecture générée et pour identifier les miniatures de la liste de lecture."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_CUSTOM,
+    "Nom de système personnalisé"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME_CUSTOM,
+    "Specifie manuellement un 'Nom du système' pour le contenu analysé. Utilisé uniquement lorsque le 'Nom du système' est réglé sur '<Personnalisé>'."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME,
+    "Cœur"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_CORE_NAME,
+    "Sélectionne le cœur par défaut à utiliser au lancement du contenu analysé."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_FILE_EXTS,
+    "Extensions de fichiers"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_FILE_EXTS,
+    "Liste délimitée par espaces des types de fichiers à inclure lors de l'analyse. Si laissée vide, inclut tous les fichiers - ou si un cœur est spécifié, tous les fichiers supportés par ce cœur."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SEARCH_ARCHIVES,
+    "Analyser le contenu des archives"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SEARCH_ARCHIVES,
+    "Si cette option est activée, la recherche dans les fichiers d'archive (.zip, .7z, etc.) sera active lors de la recherche de contenu valide/pris en charge. Peut avoir un fort impact sur les performances lors de l'analyse."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DAT_FILE,
+    "Fichiers DAT d'arcade"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_DAT_FILE,
+    "Sélectionne un fichier Logiqx ou MAME List XML DAT pour activer le renommage automatique du contenu arcade analysé (MAME, FinalBurn Neo, etc.)."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_OVERWRITE,
+    "Remplacer la liste de lecture existante"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_OVERWRITE,
+    "Si cette option est activée, les listes de lectures existantes seront supprimées avant d'analyser le contenu. Si elle est désactivée, les entrées dans les listes de lecture existantes seront préservées et seul le contenu actuellement manquant sera ajouté."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_START,
+    "Lancer l'analyse"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_START,
+    "Analyse le contenu sélectionné."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_USE_CONTENT_DIR,
+    "<Dossier du contenu>"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_USE_CUSTOM,
+    "<Personnalisé>"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME_DETECT,
+    "<Non spécifié>"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_DAT_FILE_INVALID,
+    "Fichier arcade DAT sélectionné invalide"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_DAT_FILE_TOO_LARGE,
+    "Le fichier arcade DAT sélectionné est trop lourd (mémoire libre insuffisante)"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_DAT_FILE_LOAD_ERROR,
+    "Chargement du fichier arcade DAT échoué (format invalide ?)"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_INVALID_CONFIG,
+    "Configuration d'analyse manuelle invalide"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_INVALID_CONTENT,
+    "Aucun contenu valide détecté"
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_START,
+    "Analyse de contenu : "
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_IN_PROGRESS,
+    "Analyse : "
+    )
+MSG_HASH(
+    MSG_MANUAL_CONTENT_SCAN_END,
+    "Analyse terminée : "
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_ENABLED,
+    "Accessibilité activée"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_ACCESSIBILITY_ENABLED,
+    "Activer/désactiver le narrateur d'accessibilité pour la navigation dans le menu"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_ACCESSIBILITY_NARRATOR_SPEECH_SPEED,
+    "Définir le débit vocal pour le narrateur, de rapide à lent"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_NARRATOR_SPEECH_SPEED,
+    "Débit vocal du narrateur"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_VIDEO_SCALING_SETTINGS,
+    "Mise à l'échelle"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_VIDEO_SCALING_SETTINGS,
+    "Changer les réglages de mise à l'échelle vidéo."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_VIDEO_FULLSCREEN_MODE_SETTINGS,
+    "Mode plein écran"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_VIDEO_FULLSCREEN_MODE_SETTINGS,
+    "Changer les réglages du mode plein écran."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_VIDEO_WINDOWED_MODE_SETTINGS,
+    "Mode fenêtré"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_VIDEO_WINDOWED_MODE_SETTINGS,
+    "Changer les réglages du mode fenêtré."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_VIDEO_OUTPUT_SETTINGS,
+    "Sortie vidéo"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_VIDEO_OUTPUT_SETTINGS,
+    "Changer les réglages de la sortie vidéo."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_VIDEO_SYNCHRONIZATION_SETTINGS,
+    "Synchronisation vidéo"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_VIDEO_SYNCHRONIZATION_SETTINGS,
+    "Changer les réglages de la synchronisation vidéo."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_AUDIO_OUTPUT_SETTINGS,
+    "Sortie audio"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_AUDIO_OUTPUT_SETTINGS,
+    "Changer les réglages de la sortie audio."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_AUDIO_SYNCHRONIZATION_SETTINGS,
+    "Synchronisation audio"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_AUDIO_SYNCHRONIZATION_SETTINGS,
+    "Changer les réglages de la synchronisation audio."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_AUDIO_RESAMPLER_SETTINGS,
+    "Rééchantillonneur audio"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_AUDIO_RESAMPLER_SETTINGS,
+    "Changer les réglages du rééchantillonneur audio."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_INPUT_MENU_SETTINGS,
+    "Touches pour le menu"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_INPUT_MENU_SETTINGS,
+    "Changer les réglages des touches pour le menu."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+    "Retour haptique/vibration"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+    "Changer les réglages du retour haptique et de la vibration."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_START_GONG,
+    "Démarrer Gong"
     )

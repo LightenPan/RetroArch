@@ -166,6 +166,7 @@ OBJ += frontend/frontend_driver.o \
        tasks/task_file_transfer.o \
        tasks/task_image.o \
        tasks/task_playlist_manager.o \
+       tasks/task_manual_content_scan.o \
        $(LIBRETRO_COMM_DIR)/encodings/encoding_utf.o \
        $(LIBRETRO_COMM_DIR)/encodings/encoding_crc32.o \
        $(LIBRETRO_COMM_DIR)/encodings/encoding_base64.o \
@@ -261,8 +262,8 @@ OBJ += \
        performance_counters.o \
        verbosity.o \
        midi/drivers/null_midi.o \
-       $(LIBRETRO_COMM_DIR)/playlists/label_sanitization.o
-
+       $(LIBRETRO_COMM_DIR)/playlists/label_sanitization.o \
+       manual_content_scan.o
 
 ifeq ($(HAVE_AUDIOMIXER), 1)
    DEFINES += -DHAVE_AUDIOMIXER
@@ -848,16 +849,13 @@ endif
 ifeq ($(HAVE_VIDEO_LAYOUT), 1)
    DEFINES += -DHAVE_VIDEO_LAYOUT
    OBJ += \
-      gfx/video_layout.o \
-      gfx/video_layout/view.o \
-      gfx/video_layout/element.o \
-      gfx/video_layout/component.o \
-      gfx/video_layout/internal.o \
-      gfx/video_layout/scope.o \
-      gfx/video_layout/load.o
-   OBJ += \
-      $(LIBRETRO_COMM_DIR)/formats/xml/rxml.o \
-      deps/yxml/yxml.o
+			 gfx/video_layout.o \
+			 gfx/video_layout/view.o \
+			 gfx/video_layout/element.o \
+			 gfx/video_layout/component.o \
+			 gfx/video_layout/internal.o \
+			 gfx/video_layout/scope.o \
+			 gfx/video_layout/load.o
 endif
 
 ifeq ($(HAVE_STB_FONT), 1)
@@ -898,6 +896,7 @@ ifeq ($(HAVE_VITA2D), 1)
           $(DEPS_DIR)/libvita2d/shader/color_f_gxp.o \
           $(DEPS_DIR)/libvita2d/shader/texture_v_gxp.o \
           $(DEPS_DIR)/libvita2d/shader/texture_f_gxp.o \
+          $(DEPS_DIR)/libvita2d/shader/texture_tint_v_gxp.o \
           $(DEPS_DIR)/libvita2d/shader/texture_tint_f_gxp.o
 
    ifeq ($(HAVE_MENU_COMMON),1)
@@ -991,6 +990,12 @@ ifeq ($(HAVE_WAYLAND), 1)
  LIBS += $(WAYLAND_LIBS) $(WAYLAND_CURSOR_LIBS)
 
 endif
+
+# XML
+OBJ += \
+       $(LIBRETRO_COMM_DIR)/formats/xml/rxml.o \
+       $(LIBRETRO_COMM_DIR)/formats/logiqx_dat/logiqx_dat.o \
+       deps/yxml/yxml.o
 
 #Input
 
@@ -1290,7 +1295,7 @@ endif
 ifeq ($(HAVE_SDL2), 1)
    HAVE_SDL_COMMON = 1
    OBJ += gfx/drivers/sdl2_gfx.o \
-      gfx/common/sdl2_common.o
+			 gfx/common/sdl2_common.o
    DEF_FLAGS += $(SDL2_CFLAGS)
    LIBS += $(SDL2_LIBS)
 else ifeq ($(HAVE_SDL), 1)
@@ -1732,9 +1737,9 @@ OBJ += $(LIBRETRO_COMM_DIR)/formats/bmp/rbmp_encode.o \
        $(LIBRETRO_COMM_DIR)/formats/json/jsonsax_full.o \
        $(LIBRETRO_COMM_DIR)/formats/image_transfer.o
 
-# Easter Egg
-ifeq ($(HAVE_EASTEREGG),1)
-  DEFINES += -DHAVE_EASTEREGG
+# Gong embedded core
+ifeq ($(HAVE_GONG),1)
+  DEFINES += -DHAVE_GONG
   OBJ += cores/libretro-gong/gong.o
 endif
 
@@ -1759,6 +1764,7 @@ ifeq ($(HAVE_NETWORKING), 1)
           $(LIBRETRO_COMM_DIR)/net/net_http_parse.o \
           $(LIBRETRO_COMM_DIR)/net/net_socket.o \
           $(LIBRETRO_COMM_DIR)/net/net_natt.o \
+          core_updater_list.o \
           network/net_http_special.o \
           tasks/task_http.o \
           tasks/task_netplay_lan_scan.o \
@@ -1769,6 +1775,7 @@ ifeq ($(HAVE_NETWORKING), 1)
    ifeq ($(HAVE_MENU_COMMON), 1)
       OBJ += tasks/task_pl_thumbnail_download.o \
           tasks/task_pl_rom_download.o \
+          tasks/task_core_updater.o \
           menu/menu_networking.o
    endif
 
@@ -1954,11 +1961,20 @@ ifneq ($(findstring Win32,$(OS)),)
    LIBS += -lhid -lsetupapi
 endif
 
+ifeq ($(HAVE_ANGLE), 1)
+	OBJ += gfx/common/angle_common.o
+	DEFINES += -DHAVE_ANGLE
+	# TODO/FIXME - should perhaps set these libraries as separate CFLAG variables in qb system
+	LIBS += -lEGL
+endif
+
 # Record
 
 ifeq ($(HAVE_FFMPEG), 1)
    OBJ += record/drivers/record_ffmpeg.o \
-          cores/libretro-ffmpeg/ffmpeg_core.o
+          cores/libretro-ffmpeg/ffmpeg_core.o \
+          cores/libretro-ffmpeg/video_buffer.o \
+			 $(LIBRETRO_COMM_DIR)/rthreads/tpool.o
 
    LIBS += $(AVCODEC_LIBS) $(AVFORMAT_LIBS) $(AVUTIL_LIBS) $(SWSCALE_LIBS) $(SWRESAMPLE_LIBS) $(FFMPEG_LIBS)
    DEFINES += -DHAVE_FFMPEG
@@ -2058,7 +2074,7 @@ ifeq ($(HAVE_MATH_NEON), 1)
 endif
 
 ifeq ($(HAVE_VITAGL), 1)
-   DEFINES += -DHAVE_VITAGL
+   DEFINES += -DHAVE_VITAGL -DTRANSPOSE_MATRICES
    INCLUDE_DIRS += -I$(DEPS_DIR)/vitaGL/source
    SOURCES := $(DEPS_DIR)/vitaGL/source $(DEPS_DIR)/vitaGL/source/utils
    OBJ += $(patsubst %.c,%.o,$(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)))

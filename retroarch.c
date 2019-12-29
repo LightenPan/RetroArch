@@ -37,6 +37,7 @@
 
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
 #include <objbase.h>
+#include <process.h>
 #endif
 
 #include <stdio.h>
@@ -257,7 +258,7 @@ static const audio_driver_t *audio_drivers[] = {
 #endif
 #endif
 #ifdef HAVE_TINYALSA
-   &audio_tinyalsa,
+	&audio_tinyalsa,
 #endif
 #if defined(HAVE_AUDIOIO)
    &audio_audioio,
@@ -473,8 +474,11 @@ static const gfx_ctx_driver_t *gfx_ctx_drivers[] = {
 #if defined(HAVE_OPENDINGUX_FBDEV)
    &gfx_ctx_opendingux_fbdev,
 #endif
-#if defined(_WIN32) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_OPENGL_CORE) || defined(HAVE_VULKAN))
+#if defined(_WIN32) && !defined(__WINRT__) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_OPENGL_CORE) || defined(HAVE_VULKAN))
    &gfx_ctx_wgl,
+#endif
+#if defined(__WINRT__) && defined(HAVE_OPENGLES)
+   &gfx_ctx_uwp,
 #endif
 #if defined(HAVE_WAYLAND)
    &gfx_ctx_wayland,
@@ -809,7 +813,8 @@ enum
    RA_OPT_MAX_FRAMES_SCREENSHOT,
    RA_OPT_MAX_FRAMES_SCREENSHOT_PATH,
    RA_OPT_SET_SHADER,
-   RA_OPT_SET_LABEL
+   RA_OPT_SET_LABEL,
+   RA_OPT_ACCESSIBILITY
 };
 
 enum  runloop_state
@@ -1214,7 +1219,7 @@ struct string_list *string_list_new_special(enum string_list_type type,
          break;
       case STRING_LIST_SUPPORTED_CORES_PATHS:
          core_info_get_list(&core_info_list);
-         
+
          core_info_list_get_supported_cores(core_info_list,
                (const char*)data, &core_info, list_size);
 
@@ -1238,7 +1243,6 @@ struct string_list *string_list_new_special(enum string_list_type type,
          break;
       case STRING_LIST_SUPPORTED_CORES_NAMES:
          core_info_get_list(&core_info_list);
-      
          core_info_list_get_supported_cores(core_info_list,
                (const char*)data, &core_info, list_size);
 
@@ -1997,7 +2001,7 @@ enum rarch_content_type path_is_media_type(const char *path)
       case FILE_TYPE_XM:
          return RARCH_CONTENT_MUSIC;
 #endif
-#ifdef HAVE_EASTEREGG
+#ifdef HAVE_GONG
       case FILE_TYPE_GONG:
          return RARCH_CONTENT_GONG;
 #endif
@@ -2259,6 +2263,10 @@ void dir_check_defaults(void)
     */
 #if defined(ORBIS) || defined(ANDROID)
    if (path_is_valid("host0:app/custom.ini"))
+#elif defined(__WINRT__)
+   char path[MAX_PATH];
+   fill_pathname_expand_special(path, "~\\custom.ini", MAX_PATH);
+   if (path_is_valid(path))
 #else
    if (path_is_valid("custom.ini"))
 #endif
@@ -2289,6 +2297,9 @@ void dir_check_defaults(void)
    }
 }
 
+/* Is text-to-speech accessibility turned on? */
+static bool accessibility_enabled               = false;
+
 #ifdef HAVE_MENU
 /* MENU INPUT GLOBAL VARIABLES */
 static const char **menu_input_dialog_keyboard_buffer     = {NULL};
@@ -2311,16 +2322,19 @@ static bool menu_driver_is_binding              = false;
  * it will be closed; if the menu was not running, it will be opened */
 static bool menu_driver_toggled                 = false;
 
+
 #ifdef HAVE_LIBNX
 #define LIBNX_SWKBD_LIMIT 500 /* enforced by HOS */
 extern u32 __nx_applet_type;
 extern void libnx_apply_overclock(void);
 #endif
 
+#ifdef HAVE_MENU
 #ifdef HAVE_LIBNX
 #define menu_input_dialog_get_display_kb_internal() menu_input_dialog_get_display_kb()
 #else
 #define menu_input_dialog_get_display_kb_internal() menu_input_dialog_keyboard_display
+#endif
 #endif
 
 #ifdef HAVE_MENU_WIDGETS
@@ -2407,6 +2421,11 @@ bool menu_input_dialog_start_search(void)
          sizeof(menu_input_dialog_keyboard_label));
 
    input_keyboard_ctl(RARCH_INPUT_KEYBOARD_CTL_LINE_FREE, NULL);
+  
+   if (is_accessibility_enabled())
+   {
+      accessibility_speak((char*) msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SEARCH));
+   }
 
    menu_input_dialog_keyboard_buffer   =
       input_keyboard_start_line(menu, menu_input_search_cb);
@@ -2435,6 +2454,8 @@ bool menu_input_dialog_start(menu_input_ctx_line_t *line)
    menu_input_dialog_keyboard_idx    = line->idx;
 
    input_keyboard_ctl(RARCH_INPUT_KEYBOARD_CTL_LINE_FREE, NULL);
+
+   accessibility_speak("Keyboard input:");
 
    menu_input_dialog_keyboard_buffer =
       input_keyboard_start_line(menu, line->cb);
@@ -2675,15 +2696,14 @@ static void retroarch_set_runtime_shader_preset(const char *arg)
    else
       runtime_shader_preset[0] = '\0';
 }
+#endif
 
 static void retroarch_unset_runtime_shader_preset(void)
 {
+#if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
    runtime_shader_preset[0] = '\0';
-}
-#else
-static void retroarch_set_runtime_shader_preset(const char *arg) {}
-static void retroarch_unset_runtime_shader_preset(void) {}
 #endif
+}
 
 #define MEASURE_FRAME_TIME_SAMPLES_COUNT (2 * 1024)
 
@@ -3135,17 +3155,17 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(r_y_plus,  RARCH_ANALOG_RIGHT_Y_PLUS,     MENU_ENUM_LABEL_VALUE_INPUT_ANALOG_RIGHT_Y_PLUS),
       DECLARE_BIND(r_y_minus, RARCH_ANALOG_RIGHT_Y_MINUS,    MENU_ENUM_LABEL_VALUE_INPUT_ANALOG_RIGHT_Y_MINUS),
 
-      DECLARE_BIND( gun_trigger,         RARCH_LIGHTGUN_TRIGGER,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_TRIGGER ),
-      DECLARE_BIND( gun_offscreen_shot,   RARCH_LIGHTGUN_RELOAD,           MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_RELOAD ),
-      DECLARE_BIND( gun_aux_a,         RARCH_LIGHTGUN_AUX_A,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_A ),
-      DECLARE_BIND( gun_aux_b,         RARCH_LIGHTGUN_AUX_B,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_B ),
-      DECLARE_BIND( gun_aux_c,         RARCH_LIGHTGUN_AUX_C,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_C ),
-      DECLARE_BIND( gun_start,         RARCH_LIGHTGUN_START,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_START ),
-      DECLARE_BIND( gun_select,         RARCH_LIGHTGUN_SELECT,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_SELECT ),
-      DECLARE_BIND( gun_dpad_up,         RARCH_LIGHTGUN_DPAD_UP,         MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_UP ),
-      DECLARE_BIND( gun_dpad_down,      RARCH_LIGHTGUN_DPAD_DOWN,      MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_DOWN ),
-      DECLARE_BIND( gun_dpad_left,      RARCH_LIGHTGUN_DPAD_LEFT,      MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_LEFT ),
-      DECLARE_BIND( gun_dpad_right,      RARCH_LIGHTGUN_DPAD_RIGHT,      MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_RIGHT ),
+      DECLARE_BIND( gun_trigger,			RARCH_LIGHTGUN_TRIGGER,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_TRIGGER ),
+      DECLARE_BIND( gun_offscreen_shot,	RARCH_LIGHTGUN_RELOAD,	        MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_RELOAD ),
+      DECLARE_BIND( gun_aux_a,			RARCH_LIGHTGUN_AUX_A,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_A ),
+      DECLARE_BIND( gun_aux_b,			RARCH_LIGHTGUN_AUX_B,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_B ),
+      DECLARE_BIND( gun_aux_c,			RARCH_LIGHTGUN_AUX_C,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_AUX_C ),
+      DECLARE_BIND( gun_start,			RARCH_LIGHTGUN_START,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_START ),
+      DECLARE_BIND( gun_select,			RARCH_LIGHTGUN_SELECT,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_SELECT ),
+      DECLARE_BIND( gun_dpad_up,			RARCH_LIGHTGUN_DPAD_UP,			MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_UP ),
+      DECLARE_BIND( gun_dpad_down,		RARCH_LIGHTGUN_DPAD_DOWN,		MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_DOWN ),
+      DECLARE_BIND( gun_dpad_left,		RARCH_LIGHTGUN_DPAD_LEFT,		MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_LEFT ),
+      DECLARE_BIND( gun_dpad_right,		RARCH_LIGHTGUN_DPAD_RIGHT,		MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_RIGHT ),
 
       DECLARE_BIND(turbo,     RARCH_TURBO_ENABLE,            MENU_ENUM_LABEL_VALUE_INPUT_TURBO_ENABLE),
 
@@ -3201,6 +3221,8 @@ struct turbo_buttons
 {
    bool frame_enable[MAX_USERS];
    uint16_t enable[MAX_USERS];
+   bool mode1_enable[MAX_USERS];
+   int32_t turbo_pressed[MAX_USERS];
    unsigned count;
 };
 
@@ -4060,6 +4082,7 @@ static void handle_translation_cb(
    int start                         = -1;
    char* found_string                = NULL;
    char* error_string                = NULL;
+   char* text_string                 = NULL;
    int curr_state                    = 0;
 
    RARCH_LOG("RESULT FROM AI SERVICE...\n");
@@ -4087,7 +4110,6 @@ static void handle_translation_cb(
          {
             found_string = (char*)malloc(i-start+1);
             strlcpy(found_string, body_copy+start+1, i-start);
-
             if (curr_state == 1)/*image*/
             {
                raw_image_file_data = (char*)unbase64(found_string,
@@ -4105,6 +4127,12 @@ static void handle_translation_cb(
 #endif
             else if (curr_state == 3)
             {
+               text_string = (char*)malloc(i-start+1);
+               strlcpy(text_string, body_copy+start+1, i-start);
+               curr_state = 0;
+            }
+            else if (curr_state == 4)
+            {
                error_string = (char*)malloc(i-start+1);
                strlcpy(error_string, body_copy+start+1, i-start);
                curr_state = 0;
@@ -4119,9 +4147,14 @@ static void handle_translation_cb(
                curr_state = 2;
                free(found_string);
             }
-            else if (string_is_equal(found_string, "error"))
+            else if (string_is_equal(found_string, "text"))
             {
                curr_state = 3;
+               free(found_string);
+            }
+            else if (string_is_equal(found_string, "error"))
+            {
+               curr_state = 4;
                free(found_string);
             }
             else
@@ -4134,21 +4167,27 @@ static void handle_translation_cb(
       }
       i++;
    }
-
+   
    if (string_is_equal(error_string, "No text found."))
    {
       RARCH_LOG("No text found...\n");
+      if (!text_string)
+      {
+         text_string = (char*)malloc(15);
+      }
+      
+      strlcpy(text_string, error_string, 15);
 #ifdef HAVE_MENU_WIDGETS
       if (menu_widgets_paused)
       {
          /* In this case we have to unpause and then repause for a frame */
          menu_widgets_ai_service_overlay_set_state(2);
-         command_event(CMD_EVENT_UNPAUSE, NULL);
+         command_event(CMD_EVENT_UNPAUSE, NULL);        
       }
 #endif
    }
 
-   if (!raw_image_file_data && !raw_sound_data)
+   if (!raw_image_file_data && !raw_sound_data && !text_string)
    {
       error = "Invalid JSON body.";
       goto finish;
@@ -4176,22 +4215,20 @@ static void handle_translation_cb(
          {
              image_type = IMAGE_TYPE_BMP;
          }
-         else if (raw_image_file_data[1] == 'P' &&
+         else if (raw_image_file_data[1] == 'P' && 
                   raw_image_file_data[2] == 'N' &&
                   raw_image_file_data[3] == 'G')
-         {
             image_type = IMAGE_TYPE_PNG;
-         }
          else
          {
             RARCH_LOG("Invalid image type returned from server.\n");
             goto finish;
          }
-
+         
          ai_res = menu_widgets_ai_service_overlay_load(
-                     raw_image_file_data, (unsigned) new_image_size,
+                     raw_image_file_data, (unsigned) new_image_size, 
                      image_type);
-
+         
          if (!ai_res)
          {
             RARCH_LOG("Video driver not supported for AI Service.");
@@ -4208,7 +4245,7 @@ static void handle_translation_cb(
             command_event(CMD_EVENT_UNPAUSE, NULL);
          }
       }
-      else
+      else 
 #endif
       /* Can't use menu widget overlays, so try writing to video buffer */
       {
@@ -4228,9 +4265,9 @@ static void handle_translation_cb(
                ((uint32_t) ((uint8_t)raw_image_file_data[24]) << 16) +
                ((uint32_t) ((uint8_t)raw_image_file_data[23]) << 8) +
                ((uint32_t) ((uint8_t)raw_image_file_data[22]) << 0);
-            raw_image_data = malloc(image_width*image_height*3*sizeof(uint8_t));
-            memcpy(raw_image_data,
-                   raw_image_file_data+54*sizeof(uint8_t),
+            raw_image_data = (void*)malloc(image_width*image_height*3*sizeof(uint8_t));
+            memcpy(raw_image_data, 
+                   raw_image_file_data+54*sizeof(uint8_t), 
                    image_width*image_height*3*sizeof(uint8_t));
          }
          else if (raw_image_file_data[1] == 'P' && raw_image_file_data[2] == 'N' &&
@@ -4249,7 +4286,7 @@ static void handle_translation_cb(
                 ((uint32_t) ((uint8_t)raw_image_file_data[22])<<8)+
                 ((uint32_t) ((uint8_t)raw_image_file_data[23])<<0);
             rpng = rpng_alloc();
-
+         
             if (!rpng)
             {
                error = "Can't allocate memory.";
@@ -4262,24 +4299,24 @@ static void handle_translation_cb(
             do
             {
                retval = rpng_process_image(rpng, &raw_image_data_alpha, new_image_size, &image_width, &image_height);
-            }
-            while(retval == IMAGE_PROCESS_NEXT);
+            } while(retval == IMAGE_PROCESS_NEXT);
 
             /* Returned output from the png processor is an upside down RGBA
              * image, so we have to change that to RGB first.  This should
              * probably be replaced with a scaler call.*/
             {
+               unsigned ui;
                int d,tw,th,tc;
                d=0;
-               raw_image_data = malloc(image_width*image_height*3*sizeof(uint8_t));
-               for (i=0;i<image_width*image_height*4;i++)
+               raw_image_data = (void*)malloc(image_width*image_height*3*sizeof(uint8_t));
+               for (ui=0;ui<image_width*image_height*4;ui++)
                {
-                  if (i%4 != 3)
+                  if (ui%4 != 3)
                   {
                      tc = d%3;
                      th = image_height-d/(3*image_width)-1;
                      tw = (d%(image_width*3))/3;
-                     ((uint8_t*) raw_image_data)[tw*3+th*3*image_width+tc] = ((uint8_t *)raw_image_data_alpha)[i];
+                     ((uint8_t*) raw_image_data)[tw*3+th*3*image_width+tc] = ((uint8_t *)raw_image_data_alpha)[ui];
                      d+=1;
                   }
                }
@@ -4290,7 +4327,7 @@ static void handle_translation_cb(
          {
             RARCH_LOG("Output from URL not a valid file type, or is not supported.\n");
             goto finish;
-         }
+         }    
 
          scaler = (struct scaler_ctx*)calloc(1, sizeof(struct scaler_ctx));
          if (!scaler)
@@ -4345,7 +4382,7 @@ static void handle_translation_cb(
          video_driver_frame(raw_output_data, image_width, image_height, pitch);
       }
    }
-
+  
 #ifdef HAVE_AUDIOMIXER
    if (raw_sound_data)
    {
@@ -4361,7 +4398,7 @@ static void handle_translation_cb(
          return;
 
       params.volume               = 1.0f;
-      params.slot_selection_type  = AUDIO_MIXER_SLOT_SELECTION_AUTOMATIC; /* user->slot_selection_type; */
+      params.slot_selection_type  = AUDIO_MIXER_SLOT_SELECTION_MANUAL; /* user->slot_selection_type; */
       params.slot_selection_idx   = 10;
       params.stream_type          = AUDIO_STREAM_TYPE_SYSTEM; /* user->stream_type; */
       params.type                 = AUDIO_MIXER_TYPE_WAV;
@@ -4380,6 +4417,9 @@ static void handle_translation_cb(
       free(img);
    }
 #endif
+
+   if (text_string && is_accessibility_enabled())
+      accessibility_speak(text_string);
 
 finish:
    if (error)
@@ -4406,8 +4446,31 @@ finish:
       free(scaler);
    if (error_string)
       free(error_string);
+   if (text_string)
+      free(text_string);
    if (raw_output_data)
       free(raw_output_data);
+}
+
+bool is_ai_service_speech_running(void)
+{
+#ifdef HAVE_AUDIOMIXER
+   enum audio_mixer_state res = audio_driver_mixer_get_stream_state(10);
+   if (res == AUDIO_STREAM_STATE_NONE || res == AUDIO_STREAM_STATE_STOPPED)
+      return false;
+   return true;
+#else
+   return false;
+#endif
+}
+
+bool ai_service_speech_stop(void)
+{
+#ifdef HAVE_AUDIOMIXER
+   audio_driver_mixer_stop_stream(10);
+   audio_driver_mixer_remove_stream(10);
+#endif
+   return false;
 }
 
 static const char *ai_service_get_str(enum translation_lang id)
@@ -4570,9 +4633,9 @@ static const char *ai_service_get_str(enum translation_lang id)
 
    To make your own server, it must listen for a POST request, which
    will consist of a JSON body, with the "image" field as a base64
-   encoded string of a 24bit-BMP/PNG that the will be translated.
-   The server must output the translated image in the form of a
-   JSON body, with the "image" field also as a base64 encoded
+   encoded string of a 24bit-BMP/PNG that the will be translated.  
+   The server must output the translated image in the form of a 
+   JSON body, with the "image" field also as a base64 encoded 
    24bit-BMP, or as an alpha channel png.
    */
 static bool run_translation_service(void)
@@ -4601,13 +4664,13 @@ static bool run_translation_service(void)
    const char *rf2                       = "\"}\0";
    char *rf3                             = NULL;
    bool TRANSLATE_USE_BMP                = false;
-   bool use_overlay                      = true;
+   bool use_overlay                      = false;
 
    const char *label                     = NULL;
    char* system_label                    = NULL;
    core_info_t *core_info                = NULL;
 
-#ifdef HAVE_MENU_WIDGETS
+#ifdef HAVE_MENU_WIDGETS   
    if (menu_widgets_ai_service_overlay_get_state() != 0)
    {
       /* For the case when ai service pause is disabled. */
@@ -4623,14 +4686,9 @@ static bool run_translation_service(void)
 
 #ifdef HAVE_MENU_WIDGETS
    if (video_driver_poke
-       && video_driver_poke->load_texture && video_driver_poke->unload_texture)
-   {
+         && video_driver_poke->load_texture && video_driver_poke->unload_texture)
       use_overlay = true;
-   }
-   else
 #endif
-      use_overlay = false;
-
 
    /* get the core info here so we can pass long the game name */
    core_info_get_current_core(&core_info);
@@ -4639,7 +4697,7 @@ static bool run_translation_service(void)
    {
       const char *system_id        = core_info->system_id
          ? core_info->system_id : "core";
-
+      
       const struct playlist_entry *entry  = NULL;
       playlist_t *current_playlist = playlist_get_cached();
 
@@ -4712,7 +4770,7 @@ static bool run_translation_service(void)
       scaler->out_height = height;
       scaler_ctx_gen_filter(scaler);
 
-      scaler->in_stride = vp.width*3;
+      scaler->in_stride  = vp.width*3;
       scaler->out_stride = width*3;
       scaler_ctx_scale_direct(scaler, bit24_image, bit24_image_prev);
       scaler_ctx_gen_reset(scaler);
@@ -4763,7 +4821,7 @@ static bool run_translation_service(void)
    }
    else
    {
-      pitch = width*3;
+      pitch      = width * 3;
       bmp_buffer = rpng_save_image_bgr24_string(bit24_image+width*(height-1)*3, width, height, -pitch, &buffer_bytes);
    }
 
@@ -4776,9 +4834,9 @@ static bool run_translation_service(void)
    /* Form request... */
    if (system_label)
    {
-      int i;
+      unsigned i;
       /* include game label if provided */
-      rf3 = (char *) malloc(16+strlen(system_label));
+      rf3 = (char *)malloc(16+strlen(system_label));
       memcpy(rf3, "\", \"label\": \"", 13*sizeof(uint8_t));
       memcpy(rf3+13, system_label, strlen(system_label));
       memcpy(rf3+13+strlen(system_label), "\"}\0", 3*sizeof(uint8_t));
@@ -4799,7 +4857,7 @@ static bool run_translation_service(void)
    memcpy(json_buffer, (const void*)rf1, 11*sizeof(uint8_t));
    memcpy(json_buffer+11, bmp64_buffer, (out_length)*sizeof(uint8_t));
    if (rf3)
-      memcpy(json_buffer+11+out_length, (const void*)rf3, (16+strlen(system_label))*sizeof(uint8_t));
+      memcpy(json_buffer+11+out_length, (const void*)rf3, (16+strlen(system_label))*sizeof(uint8_t));   
    else
       memcpy(json_buffer+11+out_length, (const void*)rf2, 3*sizeof(uint8_t));
    RARCH_LOG("Request size: %d\n", out_length);
@@ -4853,7 +4911,7 @@ static bool run_translation_service(void)
       /* mode */
       {
          char temp_string[PATH_MAX_LENGTH];
-         char *mode_chr                    = NULL;
+         const char *mode_chr                    = NULL;
          /*"image" is included for backwards compatability with
           * vgtranslate < 1.04 */
 
@@ -4869,12 +4927,15 @@ static bool run_translation_service(void)
          else if (settings->uints.ai_service_mode == 1)
             mode_chr = "sound,wav";
          else if (settings->uints.ai_service_mode == 2)
+            mode_chr = "text";
+         else if (settings->uints.ai_service_mode == 3)
          {
             if (use_overlay)
                mode_chr = "image,png,png-a,sound,wav";
             else
-               mode_chr = "image,png,sound,wav";
+               mode_chr = "image,png,sound,wav";         
          }
+
 
          snprintf(temp_string,
                sizeof(temp_string),
@@ -6267,15 +6328,17 @@ bool command_event(enum event_command cmd, void *data)
             }
             else
             {
+               if (is_accessibility_enabled())
+                   accessibility_speak((char*) msg_hash_to_str(MSG_UNPAUSED));
                command_event(CMD_EVENT_UNPAUSE, NULL);
             }
-         }
+         }       
          else
          {
            /* Don't pause - useful for Text-To-Speech since
             * the audio can't currently play while paused.
             * Also useful for cases when users don't want the
-            * core's sound to stop while translating. */
+            * core's sound to stop while translating. */       
             command_event(CMD_EVENT_AI_SERVICE_CALL, NULL);
          }
 #endif
@@ -6954,6 +7017,14 @@ TODO: Add a setting for these tweaks */
       case CMD_EVENT_PAUSE_TOGGLE:
          boolean        = runloop_paused;
          boolean        = !boolean;
+         if (is_accessibility_enabled())
+         {
+            if (boolean)
+               accessibility_speak((char*) msg_hash_to_str(MSG_PAUSED));
+            else
+               accessibility_speak((char*) msg_hash_to_str(MSG_UNPAUSED));
+         }
+
          runloop_paused = boolean;
          retroarch_pause_checks();
          break;
@@ -7406,11 +7477,26 @@ TODO: Add a setting for these tweaks */
          break;
 
       case CMD_EVENT_AI_SERVICE_CALL:
+      {
 #ifdef HAVE_TRANSLATE
+         settings_t *settings = configuration_settings;
+         if (settings->uints.ai_service_mode == 1 && is_ai_service_speech_running())
+         {
+            ai_service_speech_stop();
+            if (is_accessibility_enabled())
+               accessibility_speak("stopped.");
+         }
+         else if (is_accessibility_enabled() && settings->uints.ai_service_mode == 2 &&
+                  is_narrator_running())
+            accessibility_speak("stopped.");
+         else
+         {
             RARCH_LOG("AI Service Called...\n");
             run_translation_service();
+         }
 #endif
          break;
+      }
       case CMD_EVENT_NONE:
          return false;
    }
@@ -7621,7 +7707,7 @@ static void global_free(void)
 void main_exit(void *args)
 {
    settings_t *settings = configuration_settings;
-
+   
    if (cached_video_driver[0])
    {
       strcpy(settings->arrays.video_driver, cached_video_driver);
@@ -8480,7 +8566,7 @@ static dylib_t lib_handle;
 #define SYMBOL_VIDEOPROCESSOR(x) current_core->x = libretro_videoprocessor_##x
 #endif
 
-#ifdef HAVE_EASTEREGG
+#ifdef HAVE_GONG
 #define SYMBOL_GONG(x) current_core->x = libretro_gong_##x
 #endif
 
@@ -9328,7 +9414,7 @@ static bool rarch_environment_cb(unsigned cmd, void *data)
                         if (!description)
                            continue;
 
-                        RARCH_LOG("\tRetroPad, User %u, Button \"%s\" => \"%s\"\n",
+                        RARCH_LOG("\tRetroPad, Port %u, Button \"%s\" => \"%s\"\n",
                               p + 1, libretro_btn_desc[retro_id], description);
                      }
                   }
@@ -9363,7 +9449,7 @@ static bool rarch_environment_cb(unsigned cmd, void *data)
             system->disk_control_cb =
                *(const struct retro_disk_control_callback*)data;
          break;
-
+      
       case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
       {
          unsigned *cb = (unsigned*)data;
@@ -9393,7 +9479,7 @@ static bool rarch_environment_cb(unsigned cmd, void *data)
             video_driver_get_hw_context_internal();
 
          RARCH_LOG("[Environ]: SET_HW_RENDER.\n");
-
+         
          if (!dynamic_request_hw_context(
                   cb->context_type, cb->version_minor, cb->version_major))
             return false;
@@ -10345,7 +10431,7 @@ static bool init_libretro_symbols_custom(enum rarch_core_type type,
 #endif
          break;
       case CORE_TYPE_GONG:
-#ifdef HAVE_EASTEREGG
+#ifdef HAVE_GONG
          CORE_SYMBOLS(SYMBOL_GONG);
 #endif
          break;
@@ -13549,23 +13635,88 @@ static int16_t input_state_device(
          {
             /*
              * Apply turbo button if activated.
-             *
-             * If turbo button is held, all buttons pressed except
-             * for D-pad will go into a turbo mode. Until the button is
-             * released again, the input state will be modulated by a
-             * periodic pulse defined by the configured duty cycle.
              */
-            if (res && input_driver_turbo_btns.frame_enable[port])
-               input_driver_turbo_btns.enable[port] |= (1 << id);
-            else if (!res)
-               input_driver_turbo_btns.enable[port] &= ~(1 << id);
-
-            if (input_driver_turbo_btns.enable[port] & (1 << id))
+            if (settings->uints.input_turbo_mode == 1)
             {
-               /* if turbo button is enabled for this key ID */
-               res = res && ((input_driver_turbo_btns.count
-                        % settings->uints.input_turbo_period)
-                     < settings->uints.input_turbo_duty_cycle);
+               /* Pressing turbo button toggles turbo mode on or off. 
+                * Holding the button will
+                * pass through, else the pressed state will be modulated by a
+                * periodic pulse defined by the configured duty cycle.
+                */
+
+               /* Avoid detecting the turbo button being held as multiple toggles */
+               if (!input_driver_turbo_btns.frame_enable[port])
+                  input_driver_turbo_btns.turbo_pressed[port] &= ~(1<<31);
+               else if (input_driver_turbo_btns.turbo_pressed[port]>=0)
+               {
+                  input_driver_turbo_btns.turbo_pressed[port] |= (1<<31);
+                  /* Toggle turbo for selected buttons. */
+                  if (!input_driver_turbo_btns.enable[port])
+                  {
+                     static const int button_map[]={
+                        RETRO_DEVICE_ID_JOYPAD_B,
+                        RETRO_DEVICE_ID_JOYPAD_Y,
+                        RETRO_DEVICE_ID_JOYPAD_A,
+                        RETRO_DEVICE_ID_JOYPAD_X,
+                        RETRO_DEVICE_ID_JOYPAD_L,
+                        RETRO_DEVICE_ID_JOYPAD_R,
+                        RETRO_DEVICE_ID_JOYPAD_L2,
+                        RETRO_DEVICE_ID_JOYPAD_R2,
+                        RETRO_DEVICE_ID_JOYPAD_L3,
+                        RETRO_DEVICE_ID_JOYPAD_R3};
+                     input_driver_turbo_btns.enable[port] = 1 << button_map[
+                        MIN(
+                              sizeof(button_map)/sizeof(button_map[0])-1,
+                              settings->uints.input_turbo_default_button)];
+                  }
+                  input_driver_turbo_btns.mode1_enable[port] ^= 1;
+               }
+
+               if (input_driver_turbo_btns.turbo_pressed[port] & 1<<31)
+               {
+                  /* Avoid detecting buttons being held as multiple toggles */
+                  if (!res)
+                     input_driver_turbo_btns.turbo_pressed[port] &= ~(1 << id);
+                  else if (!(input_driver_turbo_btns.turbo_pressed[port] & (1 << id)))
+                  {
+                     uint16_t enable_new;
+                     input_driver_turbo_btns.turbo_pressed[port] |= 1 << id;
+                     /* Toggle turbo for pressed button but make 
+                      * sure at least one button has turbo */
+                     enable_new = input_driver_turbo_btns.enable[port] ^ (1 << id);
+                     if (enable_new)
+                        input_driver_turbo_btns.enable[port] = enable_new;
+                  }
+               }
+
+               if (!res && input_driver_turbo_btns.mode1_enable[port] &&
+                     input_driver_turbo_btns.enable[port] & (1 << id))
+               {
+                  /* if turbo button is enabled for this key ID */
+                  res = ((input_driver_turbo_btns.count
+                           % settings->uints.input_turbo_period)
+                        < settings->uints.input_turbo_duty_cycle);
+               }
+            }
+            else
+            {
+               /* If turbo button is held, all buttons pressed except
+                * for D-pad will go into a turbo mode. Until the button is
+                * released again, the input state will be modulated by a
+                * periodic pulse defined by the configured duty cycle.
+                */
+               if (res && input_driver_turbo_btns.frame_enable[port])
+                  input_driver_turbo_btns.enable[port] |= (1 << id);
+               else if (!res)
+                  input_driver_turbo_btns.enable[port] &= ~(1 << id);
+
+               if (input_driver_turbo_btns.enable[port] & (1 << id))
+               {
+                  /* if turbo button is enabled for this key ID */
+                  res = res && ((input_driver_turbo_btns.count
+                           % settings->uints.input_turbo_period)
+                        < settings->uints.input_turbo_duty_cycle);
+               }
             }
          }
 
@@ -13862,7 +14013,7 @@ static INLINE bool input_keys_pressed_other_sources(unsigned i,
 }
 
 static int16_t input_joypad_axis(const input_device_driver_t *drv,
-      unsigned port, uint32_t joyaxis)
+      unsigned port, uint32_t joyaxis, float normal_mag)
 {
    settings_t *settings           = configuration_settings;
    float input_analog_deadzone    = settings->floats.input_analog_deadzone;
@@ -13871,51 +14022,16 @@ static int16_t input_joypad_axis(const input_device_driver_t *drv,
 
    if (input_analog_deadzone)
    {
-      int16_t x, y;
-      float normalized;
-      float normal_mag;
-      /* 2/3 are the right analog X/Y axes */
-      unsigned x_axis      = 2;
-      unsigned y_axis      = 3;
-
-      /* 0/1 are the left analog X/Y axes */
-      if (AXIS_POS_GET(joyaxis) == AXIS_DIR_NONE)
-      {
-         /* current axis is negative         */
-         /* current stick is the left        */
-         if (AXIS_NEG_GET(joyaxis) < 2)
-         {
-            x_axis = 0;
-            y_axis = 1;
-         }
-      }
-      else
-      {
-         /* current axis is positive */
-         /* current stick is the left */
-         if (AXIS_POS_GET(joyaxis) < 2)
-         {
-            x_axis = 0;
-            y_axis = 1;
-         }
-      }
-
-      x                = drv->axis(port, AXIS_POS(x_axis))
-         + drv->axis(port, AXIS_NEG(x_axis));
-      y                = drv->axis(port, AXIS_POS(y_axis))
-         + drv->axis(port, AXIS_NEG(y_axis));
-      normal_mag       = (1.0f / 0x7fff) * sqrt(x * x + y * y);
-
-      /* if analog value is below the deadzone, ignore it */
+      /* if analog value is below the deadzone, ignore it
+       * normal magnitude is calculated radially for analog sticks
+       * and linearly for analog buttons */
       if (normal_mag <= input_analog_deadzone)
          return 0;
 
-      normalized = (1.0f / 0x7fff) * val;
-
-      /* now scale the "good" analog range appropriately,
-       * so we don't start out way above 0 */
-      val = 0x7fff * normalized * MIN(1.0f,
-         ((normal_mag - input_analog_deadzone)
+      /* due to the way normal_mag is calculated differently for buttons and
+       * sticks, this results in either a radial scaled deadzone for sticks
+       * or linear scaled deadzone for analog buttons */
+      val = val * MAX(1.0f,(1.0f / normal_mag)) * MIN(1.0f,((normal_mag - input_analog_deadzone)
           / (1.0f - input_analog_deadzone)));
    }
 
@@ -13991,7 +14107,6 @@ static int16_t input_joypad_axis(const input_device_driver_t *drv,
 
 void menu_input_driver_toggle(bool on)
 {
-   menu_input_t *menu_input = &menu_input_state;
 #ifdef HAVE_OVERLAY
    settings_t *settings     = configuration_settings;
 
@@ -14002,13 +14117,11 @@ void menu_input_driver_toggle(bool on)
        * inhibit 'select' input */
       if (settings->bools.input_overlay_hide_in_menu)
          if (settings->bools.input_overlay_enable && overlay_ptr && overlay_ptr->alive)
-            menu_input->select_inhibit = true;
+            menu_input_set_pointer_inhibit(true);
    }
    else
-      menu_input->select_inhibit = false;
-#else
-   menu_input->select_inhibit = false;
 #endif
+   menu_input_set_pointer_inhibit(false);
 }
 
 int16_t menu_input_read_mouse_hw(enum menu_input_mouse_hw_id id)
@@ -14553,7 +14666,7 @@ static unsigned menu_event(
 
    /* Populate menu_input_state
     * Note: dx, dy, ptr, y_accel, etc. entries are set elsewhere */
-   if (menu_input->select_inhibit)
+   if (menu_input->select_inhibit || menu_input->cancel_inhibit)
    {
       menu_input->pointer.active  = false;
       menu_input->pointer.pressed = false;
@@ -14614,6 +14727,13 @@ void menu_input_set_pointer_y_accel(float y_accel)
 {
    menu_input_t *menu_input    = &menu_input_state;
    menu_input->pointer.y_accel = y_accel;
+}
+
+void menu_input_set_pointer_inhibit(bool inhibit)
+{
+   menu_input_t *menu_input   = &menu_input_state;
+   menu_input->select_inhibit = inhibit;
+   menu_input->cancel_inhibit = inhibit;
 }
 
 void menu_input_reset(void)
@@ -14736,6 +14856,53 @@ static float menu_input_get_dpi(void)
    return dpi;
 }
 
+/* Used to close an active message box (help or info)
+ * TODO/FIXME: The way that message boxes are handled
+ * is complete garbage. generic_menu_iterate() and
+ * message boxes in general need a total rewrite.
+ * I consider this current 'close_messagebox' a hack,
+ * but at least it prevents undefined/dangerous
+ * behaviour... */
+static void menu_input_pointer_close_messagebox(void)
+{
+   const char *label = NULL;
+   bool pop_stack    = false;
+
+   /* Determine whether this is a help or info
+    * message box */
+   menu_entries_get_last_stack(NULL, &label, NULL, NULL, NULL);
+
+   /* > Info box */
+   if (string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_INFO_SCREEN)))
+      pop_stack = true;
+   /* > Help box */
+   if (string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_CONTROLS)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_WHAT_IS_A_CORE)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_LOADING_CONTENT)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_SCANNING_CONTENT)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_CHANGE_VIRTUAL_GAMEPAD)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_AUDIO_VIDEO_TROUBLESHOOTING)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_HELP_SEND_DEBUG_INFO)) ||
+       string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_CHEEVOS_DESCRIPTION)))
+   {
+      /* Have to set this to false, apparently...
+       * (c.f. generic_menu_iterate()) */
+      menu_dialog_set_active(false);
+      pop_stack = true;
+   }
+
+   /* Pop stack, if required */
+   if (pop_stack)
+   {
+      size_t selection     = menu_navigation_get_selection();
+      size_t new_selection = selection;
+
+      menu_entries_pop_stack(&new_selection, 0, 0);
+      menu_navigation_set_selection(selection);
+   }
+}
+
 static int menu_input_pointer_post_iterate(
       retro_time_t current_time,
       menu_file_list_cbs_t *cbs,
@@ -14759,9 +14926,20 @@ static int menu_input_pointer_post_iterate(
    static retro_time_t last_press_direction_time   = 0;
    bool attenuate_y_accel                          = true;
    bool osk_active                                 = menu_input_dialog_get_display_kb_internal();
+   bool messagebox_active                          = false;
    int ret                                         = 0;
    menu_input_pointer_hw_state_t *pointer_hw_state = &menu_input_pointer_hw_state;
    menu_input_t *menu_input                        = &menu_input_state;
+   menu_handle_t *menu_data                        = menu_driver_get_ptr();
+
+   /* Check whether a message box is currently
+    * being shown
+    * > Note: This ignores input bind dialogs,
+    *   since input binding overrides normal input
+    *   and must be handled separately... */
+   if (menu_data)
+      messagebox_active = BIT64_GET(menu_data->state, MENU_STATE_RENDER_MESSAGEBOX) &&
+            !string_is_empty(menu_data->menu_state_msg);
 
    /* If onscreen keyboard is shown and we currently have
     * active mouse input, highlight key under mouse cursor */
@@ -14814,9 +14992,10 @@ static int menu_input_pointer_post_iterate(
             accel1                    = 0.0f;
             last_press_direction_time = 0;
 
-            /* If we are not currently showing the onscreen keyboard,
-             * trigger a 'pointer down' event */
-            if (!osk_active)
+            /* If we are not currently showing the onscreen
+             * keyboard or a message box, trigger a 'pointer
+             * down' event */
+            if (!osk_active && !messagebox_active)
             {
                point.x       = x;
                point.y       = y;
@@ -14834,9 +15013,8 @@ static int menu_input_pointer_post_iterate(
          }
          else
          {
-            /* Pointer is being held down (i.e. for more than one frame)
-             * Note: We do not track movement while the onscreen
-             * keyboard is displayed */
+            /* Pointer is being held down
+             * (i.e. for more than one frame) */
             float dpi = menu_input_get_dpi();
 
             /* > Update deltas + acceleration & detect press direction
@@ -14871,87 +15049,106 @@ static int menu_input_pointer_post_iterate(
                    * trigger a 'dragged' state */
                   menu_input->pointer.dragged = true;
 
-                  /* Assign current deltas */
-                  menu_input->pointer.dx = x - last_x;
-                  menu_input->pointer.dy = y - last_y;
-
-                  /* Update maximum start->current deltas */
-                  if (dx_start > 0)
-                     dx_start_right_max = (dx_start_abs > dx_start_right_max) ?
-                           dx_start_abs : dx_start_right_max;
-                  else
-                     dx_start_left_max = (dx_start_abs > dx_start_left_max) ?
-                           dx_start_abs : dx_start_left_max;
-
-                  if (dy_start > 0)
-                     dy_start_down_max = (dy_start_abs > dy_start_down_max) ?
-                           dy_start_abs : dy_start_down_max;
-                  else
-                     dy_start_up_max = (dy_start_abs > dy_start_up_max) ?
-                           dy_start_abs : dy_start_up_max;
-
-                  /* Magic numbers... */
-                  menu_input->pointer.y_accel = (accel0 + accel1 + (float)menu_input->pointer.dy) / 3.0f;
-                  accel0                      = accel1;
-                  accel1                      = menu_input->pointer.y_accel;
-
-                  /* Acceleration decays over time - but if the value
-                   * has been set on this frame, attenuation should
-                   * be skipped */
-                  attenuate_y_accel = false;
-
-                  /* Check if ponter is being held in a particular
-                   * direction */
-                  menu_input->pointer.press_direction = MENU_INPUT_PRESS_DIRECTION_NONE;
-
-                  /* > Press directions are actually triggered as a pulse train,
-                   *   since a continuous direction prevents fine control in the
-                   *   context of menu actions (i.e. it would be the same
-                   *   as always holding down a cursor key all the time - too fast
-                   *   to control). We therefore apply a low pass filter, with
-                   *   a variable frequency based upon the distance the user has
-                   *   dragged the pointer */
-
-                  /* > Horizontal */
-                  if ((dx_start_abs >= dpi_threshold_press_direction_min) &&
-                      (dy_start_abs <  dpi_threshold_press_direction_tangent))
+                  /* Here we diverge:
+                   * > If onscreen keyboard or a message box is
+                   *   active, pointer deltas, acceleration and
+                   *   press direction must be inhibited
+                   * > If not, input is processed normally */
+                  if (osk_active || messagebox_active)
                   {
-                     press_direction = (dx_start > 0) ?
-                           MENU_INPUT_PRESS_DIRECTION_RIGHT : MENU_INPUT_PRESS_DIRECTION_LEFT;
-
-                     /* Get effective amplitude of press direction offset */
-                     press_direction_amplitude =
-                           (float)(dx_start_abs - dpi_threshold_press_direction_min) /
-                           (float)(dpi_threshold_press_direction_max - dpi_threshold_press_direction_min);
+                     /* Inhibit normal pointer input */
+                     menu_input->pointer.dx              = 0;
+                     menu_input->pointer.dy              = 0;
+                     menu_input->pointer.y_accel         = 0.0f;
+                     menu_input->pointer.press_direction = MENU_INPUT_PRESS_DIRECTION_NONE;
+                     accel0                              = 0.0f;
+                     accel1                              = 0.0f;
+                     attenuate_y_accel                   = false;
                   }
-                  /* > Vertical */
-                  else if ((dy_start_abs >= dpi_threshold_press_direction_min) &&
-                           (dx_start_abs <  dpi_threshold_press_direction_tangent))
+                  else
                   {
-                     press_direction = (dy_start > 0) ?
-                           MENU_INPUT_PRESS_DIRECTION_DOWN : MENU_INPUT_PRESS_DIRECTION_UP;
+                     /* Assign current deltas */
+                     menu_input->pointer.dx = x - last_x;
+                     menu_input->pointer.dy = y - last_y;
 
-                     /* Get effective amplitude of press direction offset */
-                     press_direction_amplitude =
-                           (float)(dy_start_abs - dpi_threshold_press_direction_min) /
-                           (float)(dpi_threshold_press_direction_max - dpi_threshold_press_direction_min);
-                  }
-
-                  if (press_direction != MENU_INPUT_PRESS_DIRECTION_NONE)
-                  {
-                     /* > Update low pass filter frequency */
-                     if (press_direction_amplitude > 1.0f)
-                        press_direction_delay = MENU_INPUT_PRESS_DIRECTION_DELAY_MIN;
+                     /* Update maximum start->current deltas */
+                     if (dx_start > 0)
+                        dx_start_right_max = (dx_start_abs > dx_start_right_max) ?
+                              dx_start_abs : dx_start_right_max;
                      else
-                        press_direction_delay = MENU_INPUT_PRESS_DIRECTION_DELAY_MIN +
-                              ((MENU_INPUT_PRESS_DIRECTION_DELAY_MAX - MENU_INPUT_PRESS_DIRECTION_DELAY_MIN)*
-                               (1.0f - press_direction_amplitude));
+                        dx_start_left_max = (dx_start_abs > dx_start_left_max) ?
+                              dx_start_abs : dx_start_left_max;
 
-                     /* > Apply low pass filter */
-                     if (current_time - last_press_direction_time > press_direction_delay)
+                     if (dy_start > 0)
+                        dy_start_down_max = (dy_start_abs > dy_start_down_max) ?
+                              dy_start_abs : dy_start_down_max;
+                     else
+                        dy_start_up_max = (dy_start_abs > dy_start_up_max) ?
+                              dy_start_abs : dy_start_up_max;
+
+                     /* Magic numbers... */
+                     menu_input->pointer.y_accel = (accel0 + accel1 + (float)menu_input->pointer.dy) / 3.0f;
+                     accel0                      = accel1;
+                     accel1                      = menu_input->pointer.y_accel;
+
+                     /* Acceleration decays over time - but if the value
+                      * has been set on this frame, attenuation should
+                      * be skipped */
+                     attenuate_y_accel = false;
+
+                     /* Check if pointer is being held in a particular
+                      * direction */
+                     menu_input->pointer.press_direction = MENU_INPUT_PRESS_DIRECTION_NONE;
+
+                     /* > Press directions are actually triggered as a pulse train,
+                      *   since a continuous direction prevents fine control in the
+                      *   context of menu actions (i.e. it would be the same
+                      *   as always holding down a cursor key all the time - too fast
+                      *   to control). We therefore apply a low pass filter, with
+                      *   a variable frequency based upon the distance the user has
+                      *   dragged the pointer */
+
+                     /* > Horizontal */
+                     if ((dx_start_abs >= dpi_threshold_press_direction_min) &&
+                         (dy_start_abs <  dpi_threshold_press_direction_tangent))
                      {
-                        menu_input->pointer.press_direction = press_direction;
-                        last_press_direction_time = current_time;
+                        press_direction = (dx_start > 0) ?
+                              MENU_INPUT_PRESS_DIRECTION_RIGHT : MENU_INPUT_PRESS_DIRECTION_LEFT;
+
+                        /* Get effective amplitude of press direction offset */
+                        press_direction_amplitude =
+                              (float)(dx_start_abs - dpi_threshold_press_direction_min) /
+                              (float)(dpi_threshold_press_direction_max - dpi_threshold_press_direction_min);
+                     }
+                     /* > Vertical */
+                     else if ((dy_start_abs >= dpi_threshold_press_direction_min) &&
+                              (dx_start_abs <  dpi_threshold_press_direction_tangent))
+                     {
+                        press_direction = (dy_start > 0) ?
+                              MENU_INPUT_PRESS_DIRECTION_DOWN : MENU_INPUT_PRESS_DIRECTION_UP;
+
+                        /* Get effective amplitude of press direction offset */
+                        press_direction_amplitude =
+                              (float)(dy_start_abs - dpi_threshold_press_direction_min) /
+                              (float)(dpi_threshold_press_direction_max - dpi_threshold_press_direction_min);
+                     }
+
+                     if (press_direction != MENU_INPUT_PRESS_DIRECTION_NONE)
+                     {
+                        /* > Update low pass filter frequency */
+                        if (press_direction_amplitude > 1.0f)
+                           press_direction_delay = MENU_INPUT_PRESS_DIRECTION_DELAY_MIN;
+                        else
+                           press_direction_delay = MENU_INPUT_PRESS_DIRECTION_DELAY_MIN +
+                                 ((MENU_INPUT_PRESS_DIRECTION_DELAY_MAX - MENU_INPUT_PRESS_DIRECTION_DELAY_MIN)*
+                                  (1.0f - press_direction_amplitude));
+
+                        /* > Apply low pass filter */
+                        if (current_time - last_press_direction_time > press_direction_delay)
+                        {
+                           menu_input->pointer.press_direction = press_direction;
+                           last_press_direction_time = current_time;
+                        }
                      }
                   }
                }
@@ -14972,16 +15169,18 @@ static int menu_input_pointer_post_iterate(
                    * - Halting the scroll immediately produces a very
                    *   unpleasant 'jerky' user experience. To avoid this,
                    *   we add a small delay between detecting a pointer
-                   *   down event and forcing y acceleration to zero */
-                  if (!menu_input->pointer.dragged)
+                   *   down event and forcing y acceleration to zero
+                   * NOTE: Of course, we must also 'reset' y acceleration
+                   * whenever the onscreen keyboard or a message box is
+                   * shown */
+                  if ((!menu_input->pointer.dragged &&
+                        (menu_input->pointer.press_duration > MENU_INPUT_Y_ACCEL_RESET_DELAY)) ||
+                      (osk_active || messagebox_active))
                   {
-                     if (menu_input->pointer.press_duration > MENU_INPUT_Y_ACCEL_RESET_DELAY)
-                     {
-                        menu_input->pointer.y_accel = 0.0f;
-                        accel0                      = 0.0f;
-                        accel1                      = 0.0f;
-                        attenuate_y_accel           = false;
-                     }
+                     menu_input->pointer.y_accel = 0.0f;
+                     accel0                      = 0.0f;
+                     accel1                      = 0.0f;
+                     attenuate_y_accel           = false;
                   }
                }
             }
@@ -15012,9 +15211,9 @@ static int menu_input_pointer_post_iterate(
 
          if (menu_input->pointer.dragged)
          {
-            /* Ponter has moved.
-             * When using a touchscreen, relasing a press
-             * resets the x/y postition - so cannot use
+            /* Pointer has moved.
+             * When using a touchscreen, releasing a press
+             * resets the x/y position - so cannot use
              * current hardware x/y values. Instead, use
              * previous position from last time that a
              * press was active */
@@ -15037,7 +15236,7 @@ static int menu_input_pointer_post_iterate(
          point.action  = action;
          point.gesture = MENU_INPUT_GESTURE_NONE;
 
-         /* On screen keyboard overrides normal menu input */
+         /* On screen keyboard overrides normal menu input... */
          if (osk_active)
          {
             /* If pointer has been 'dragged', then it counts as
@@ -15053,6 +15252,12 @@ static int menu_input_pointer_post_iterate(
                }
             }
          }
+         /* Message boxes override normal menu input...
+          * > If a message box is shown, any kind of pointer
+          *   gesture should close it */
+         else if (messagebox_active)
+            menu_input_pointer_close_messagebox();
+         /* Normal menu input */
          else
          {
             /* Detect gesture type */
@@ -15148,13 +15353,9 @@ static int menu_input_pointer_post_iterate(
    last_select_pressed = pointer_hw_state->select_pressed;
 
    /* Adjust acceleration
-    * > If onscreen keyboard is shown, acceleration must
-    *   be reset to zero
-    * > Otherwise, if acceleration has not been set on
-    *   this frame, apply normal attenuation */
-   if (osk_active)
-      menu_input->pointer.y_accel = 0.0f;
-   else if (attenuate_y_accel)
+    * > If acceleration has not been set on this frame,
+    *   apply normal attenuation */
+   if (attenuate_y_accel)
       menu_input->pointer.y_accel *= MENU_INPUT_Y_ACCEL_DECAY_FACTOR;
 
    /* If select has been released, disable any existing
@@ -15163,43 +15364,64 @@ static int menu_input_pointer_post_iterate(
       menu_input->select_inhibit = false;
 
    /* Cancel */
-   if (pointer_hw_state->cancel_pressed && !last_cancel_pressed)
+   if (!menu_input->cancel_inhibit &&
+       pointer_hw_state->cancel_pressed &&
+       !last_cancel_pressed)
    {
-      size_t selection = menu_navigation_get_selection();
-      ret = menu_entry_action(entry, selection, MENU_ACTION_CANCEL);
+      /* If currently showing a message box, close it */
+      if (messagebox_active)
+         menu_input_pointer_close_messagebox();
+      /* ...otherwise, invoke standard MENU_ACTION_CANCEL
+       * action */
+      else
+      {
+         size_t selection = menu_navigation_get_selection();
+         ret = menu_entry_action(entry, selection, MENU_ACTION_CANCEL);
+      }
    }
    last_cancel_pressed = pointer_hw_state->cancel_pressed;
 
+   /* If cancel has been released, disable any existing
+    * cancel inhibit */
+   if (!pointer_hw_state->cancel_pressed)
+      menu_input->cancel_inhibit = false;
+
    /* Up/Down
-    * Note: These always correspond to a mouse wheel, which
-    * handles differently from other inputs - i.e. we don't
-    * want a 'last pressed' check */
+    * > Note 1: These always correspond to a mouse wheel, which
+    *   handles differently from other inputs - i.e. we don't
+    *   want a 'last pressed' check
+    * > Note 2: If a message box is currently shown, must
+    *   inhibit input */
 
    /* > Up */
-   if (pointer_hw_state->up_pressed)
+   if (!messagebox_active && pointer_hw_state->up_pressed)
    {
       size_t selection = menu_navigation_get_selection();
       ret = menu_entry_action(entry, selection, MENU_ACTION_UP);
    }
 
    /* > Down */
-   if (pointer_hw_state->down_pressed)
+   if (!messagebox_active && pointer_hw_state->down_pressed)
    {
       size_t selection = menu_navigation_get_selection();
       ret = menu_entry_action(entry, selection, MENU_ACTION_DOWN);
    }
 
    /* Left/Right
-    * Note: These also always correspond to a mouse wheel...
-    * In this case, it's a mouse wheel *tilt* operation, which
-    * is incredibly annoying because holding a tilt direction
-    * rapidly toggles the input state. The repeat speed is so
-    * high that any sort of useable control is impossible - so
-    * we have to apply a 'low pass' filter by ignoring inputs
-    * that occur below a certain frequency... */
+    * > Note 1: These also always correspond to a mouse wheel...
+    *   In this case, it's a mouse wheel *tilt* operation, which
+    *   is incredibly annoying because holding a tilt direction
+    *   rapidly toggles the input state. The repeat speed is so
+    *   high that any sort of useable control is impossible - so
+    *   we have to apply a 'low pass' filter by ignoring inputs
+    *   that occur below a certain frequency...
+    * > Note 2: If a message box is currently shown, must
+    *   inhibit input */
 
    /* > Left */
-   if (pointer_hw_state->left_pressed && !last_left_pressed)
+   if (!messagebox_active &&
+       pointer_hw_state->left_pressed &&
+       !last_left_pressed)
    {
       if (current_time - last_left_action_time > MENU_INPUT_HORIZ_WHEEL_DELAY)
       {
@@ -15211,7 +15433,9 @@ static int menu_input_pointer_post_iterate(
    last_left_pressed = pointer_hw_state->left_pressed;
 
    /* > Right */
-   if (pointer_hw_state->right_pressed && !last_right_pressed)
+   if (!messagebox_active &&
+       pointer_hw_state->right_pressed &&
+       !last_right_pressed)
    {
       if (current_time - last_right_action_time > MENU_INPUT_HORIZ_WHEEL_DELAY)
       {
@@ -15292,9 +15516,11 @@ static void input_menu_keys_pressed(input_bits_t *p_new_state,
    for (i = 0; i < max_users; i++)
    {
       struct retro_keybind *auto_binds          = input_autoconf_binds[i];
+      struct retro_keybind *general_binds       = input_config_binds[i];
       binds[i]                                  = input_config_binds[i];
 
       input_push_analog_dpad(auto_binds, ANALOG_DPAD_LSTICK);
+      input_push_analog_dpad(general_binds, ANALOG_DPAD_LSTICK);
    }
 
    for (port = 0; port < port_max; port++)
@@ -15395,7 +15621,9 @@ static void input_menu_keys_pressed(input_bits_t *p_new_state,
    for (i = 0; i < max_users; i++)
    {
       struct retro_keybind *auto_binds    = input_autoconf_binds[i];
+      struct retro_keybind *general_binds = input_config_binds[i];
       input_pop_analog_dpad(auto_binds);
+      input_pop_analog_dpad(general_binds);
    }
 
    if (!display_kb)
@@ -15908,10 +16136,13 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
             : bind->joyaxis;
 
          /* Analog button. */
-         /* no deadzone/sensitivity correction for analog buttons currently */
          if (drv->axis)
-            res = abs(drv->axis(joypad_info.joy_idx, axis));
-
+         {
+            float normal_mag = 0.0f;
+            if (configuration_settings->floats.input_analog_deadzone)
+               normal_mag = fabs((1.0f / 0x7fff) * drv->axis(joypad_info.joy_idx, axis));
+            res = abs(input_joypad_axis(drv, joypad_info.joy_idx, axis, normal_mag));
+         }
          /* If the result is zero, it's got a digital button
           * attached to it instead */
          if (res == 0)
@@ -15930,10 +16161,18 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
       /* Analog sticks. Either RETRO_DEVICE_INDEX_ANALOG_LEFT
        * or RETRO_DEVICE_INDEX_ANALOG_RIGHT */
 
-      unsigned ident_minus                   = 0;
-      unsigned ident_plus                    = 0;
-      const struct retro_keybind *bind_minus = NULL;
-      const struct retro_keybind *bind_plus  = NULL;
+      unsigned ident_minus                     = 0;
+      unsigned ident_plus                      = 0;
+      unsigned ident_x_minus                   = 0;
+      unsigned ident_x_plus                    = 0;
+      unsigned ident_y_minus                   = 0;
+      unsigned ident_y_plus                    = 0;
+      const struct retro_keybind *bind_minus   = NULL;
+      const struct retro_keybind *bind_plus    = NULL;
+      const struct retro_keybind *bind_x_minus = NULL;
+      const struct retro_keybind *bind_x_plus  = NULL;
+      const struct retro_keybind *bind_y_minus = NULL;
+      const struct retro_keybind *bind_y_plus  = NULL;
 
       input_conv_analog_id_to_bind_id(idx, ident, ident_minus, ident_plus);
 
@@ -15943,21 +16182,68 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
       if (!bind_minus->valid || !bind_plus->valid)
          return 0;
 
+      input_conv_analog_id_to_bind_id(idx, RETRO_DEVICE_ID_ANALOG_X, ident_x_minus, ident_x_plus);
+
+      bind_x_minus = &binds[ident_x_minus];
+      bind_x_plus  = &binds[ident_x_plus];
+
+      if (!bind_x_minus->valid || !bind_x_plus->valid)
+         return 0;
+
+      input_conv_analog_id_to_bind_id(idx, RETRO_DEVICE_ID_ANALOG_Y, ident_y_minus, ident_y_plus);
+
+      bind_y_minus = &binds[ident_y_minus];
+      bind_y_plus  = &binds[ident_y_plus];
+
+      if (!bind_y_minus->valid || !bind_y_plus->valid)
+         return 0;
+
       if (drv->axis)
       {
-         uint32_t axis_minus    = (bind_minus->joyaxis == AXIS_NONE)
+         uint32_t axis_minus      = (bind_minus->joyaxis   == AXIS_NONE)
             ? joypad_info.auto_binds[ident_minus].joyaxis
             : bind_minus->joyaxis;
-         uint32_t axis_plus     = (bind_plus->joyaxis  == AXIS_NONE)
+         uint32_t axis_plus       = (bind_plus->joyaxis    == AXIS_NONE)
             ? joypad_info.auto_binds[ident_plus].joyaxis
             : bind_plus->joyaxis;
-         int16_t  pressed_minus = abs(
+         int16_t pressed_minus    = 0;
+         int16_t pressed_plus     = 0;
+         float normal_mag         = 0.0f;
+
+         /* normalized magnitude of stick actuation, needed for scaled
+          * radial deadzone */
+         if (configuration_settings->floats.input_analog_deadzone)
+         {
+            uint32_t x_axis_minus    = (bind_x_minus->joyaxis == AXIS_NONE)
+               ? joypad_info.auto_binds[ident_x_minus].joyaxis
+               : bind_x_minus->joyaxis;
+            uint32_t x_axis_plus     = (bind_x_plus->joyaxis  == AXIS_NONE)
+               ? joypad_info.auto_binds[ident_x_plus].joyaxis
+               : bind_x_plus->joyaxis;
+            uint32_t y_axis_minus    = (bind_y_minus->joyaxis == AXIS_NONE)
+               ? joypad_info.auto_binds[ident_y_minus].joyaxis
+               : bind_y_minus->joyaxis;
+            uint32_t y_axis_plus     = (bind_y_plus->joyaxis  == AXIS_NONE)
+               ? joypad_info.auto_binds[ident_y_plus].joyaxis
+               : bind_y_plus->joyaxis;
+            float x                  = 0.0f;
+            float y                  = 0.0f;
+
+            /* normalized magnitude for radial scaled analog deadzone */
+            x          = drv->axis(joypad_info.joy_idx, x_axis_plus)
+               + drv->axis(joypad_info.joy_idx, x_axis_minus);
+            y          = drv->axis(joypad_info.joy_idx, y_axis_plus)
+               + drv->axis(joypad_info.joy_idx, y_axis_minus);
+            normal_mag = (1.0f / 0x7fff) * sqrt(x * x + y * y);
+         }
+
+         pressed_minus = abs(
                input_joypad_axis(drv, joypad_info.joy_idx,
-                  axis_minus));
-         int16_t pressed_plus  = abs(
+                  axis_minus, normal_mag));
+         pressed_plus  = abs(
                input_joypad_axis(drv, joypad_info.joy_idx,
-                  axis_plus));
-         res                   = pressed_plus - pressed_minus;
+                  axis_plus, normal_mag));
+         res           = pressed_plus - pressed_minus;
       }
 
       if (res == 0)
@@ -16286,6 +16572,93 @@ void input_keyboard_event(bool down, unsigned code,
       uint32_t character, uint16_t mod, unsigned device)
 {
    static bool deferred_wait_keys;
+#ifdef HAVE_MENU
+   if (menu_input_dialog_get_display_kb() 
+         && down && is_accessibility_enabled())
+   {
+      if (code != 303 && code != 0)
+      {
+         char* say_char = (char*) malloc(sizeof(char)+1);
+         if (say_char != NULL)
+         {
+            char c = (char) character;
+            *say_char = c;
+
+            if (character == 127)
+               accessibility_speak("backspace");
+            else if (c == '`')
+               accessibility_speak("left quote");
+            else if (c == '`')
+               accessibility_speak("tilde");
+            else if (c == '!')
+               accessibility_speak("exclamation point");
+            else if (c == '@')
+               accessibility_speak("at sign");
+            else if (c == '#')
+               accessibility_speak("hash sign");
+            else if (c == '$')
+               accessibility_speak("dollar sign");
+            else if (c == '%')
+               accessibility_speak("percent sign");
+            else if (c == '^')
+               accessibility_speak("carrot");
+            else if (c == '&')
+               accessibility_speak("ampersand");
+            else if (c == '*')
+               accessibility_speak("asterisk");
+            else if (c == '(')
+               accessibility_speak("left bracket");
+            else if (c == ')')
+               accessibility_speak("right bracket");
+            else if (c == '-')
+               accessibility_speak("minus");
+            else if (c == '_')
+               accessibility_speak("underscore");
+            else if (c == '=')
+               accessibility_speak("equals");
+            else if (c == '+')
+               accessibility_speak("plus");
+            else if (c == '[')
+               accessibility_speak("left square bracket");
+            else if (c == '{')
+               accessibility_speak("left curl bracket");
+            else if (c == ']')
+               accessibility_speak("right square bracket");
+            else if (c == '}')
+               accessibility_speak("right curl bracket");
+            else if (c == '\\')
+               accessibility_speak("back slash");
+            else if (c == '|')
+               accessibility_speak("pipe");
+            else if (c == ';')
+               accessibility_speak("semicolon");
+            else if (c == ':')
+               accessibility_speak("colon");
+            else if (c == '\'')
+               accessibility_speak("single quote");
+            else if (c  == '\"')
+               accessibility_speak("double quote");
+            else if (c == ',')
+               accessibility_speak("comma");
+            else if (c == '<')
+               accessibility_speak("left angle bracket");
+            else if (c == '.')
+               accessibility_speak("period");
+            else if (c == '>')
+               accessibility_speak("right angle bracket");
+            else if (c == '/')
+               accessibility_speak("front slash");
+            else if (c == '?')
+               accessibility_speak("question mark");
+            else if (c == ' ')
+               accessibility_speak("space");
+            else if (character != 0)
+               accessibility_speak(say_char);
+            free(say_char);
+         }
+      }
+   }
+#endif
 
    if (deferred_wait_keys)
    {
@@ -18466,9 +18839,9 @@ static void audio_driver_sample(int16_t left, int16_t right)
    }
 
    if (!(runloop_paused                ||
-         !audio_driver_active     ||
-         !audio_driver_input_data ||
-         !audio_driver_output_samples_buf))
+		   !audio_driver_active     ||
+		   !audio_driver_input_data ||
+		   !audio_driver_output_samples_buf))
       audio_driver_flush(audio_driver_output_samples_conv_buf,
             audio_driver_data_ptr, runloop_slowmotion);
 
@@ -18648,7 +19021,8 @@ static void audio_driver_monitor_adjust_system_rates(void)
 {
    float timing_skew;
    settings_t *settings                   = configuration_settings;
-   float video_refresh_rate               = settings->floats.video_refresh_rate;
+   const float target_video_sync_rate     =
+      settings->floats.video_refresh_rate / settings->uints.video_swap_interval;
    float max_timing_skew                  = settings->floats.audio_max_timing_skew;
    struct retro_system_av_info *av_info   = &video_driver_av_info;
    const struct retro_system_timing *info =
@@ -18657,11 +19031,11 @@ static void audio_driver_monitor_adjust_system_rates(void)
    if (info->sample_rate <= 0.0)
       return;
 
-   timing_skew             = fabs(1.0f - info->fps / video_refresh_rate);
+   timing_skew             = fabs(1.0f - info->fps / target_video_sync_rate);
    audio_driver_input      = info->sample_rate;
 
    if (timing_skew <= max_timing_skew && !settings->bools.vrr_runloop_enable)
-      audio_driver_input *= (video_refresh_rate / info->fps);
+      audio_driver_input *= target_video_sync_rate / info->fps;
 
    RARCH_LOG("[Audio]: Set audio input rate to: %.2f Hz.\n",
          audio_driver_input);
@@ -19279,7 +19653,7 @@ bool audio_driver_callback(void)
 bool audio_driver_has_callback(void)
 {
    if (audio_callback.callback)
-      return true;
+	   return true;
    return false;
 }
 
@@ -19494,12 +19868,23 @@ static bool hw_render_context_is_gl(enum retro_hw_context_type type)
 
 bool *video_driver_get_threaded(void)
 {
+#if defined(__MACH__) && defined(__APPLE__) 
+   /* TODO/FIXME - force threaded video to disabled on Apple for now
+    * until NSWindow/UIWindow concurrency issues are taken care of */
+   video_driver_threaded = false;
+#endif
    return &video_driver_threaded;
 }
 
 void video_driver_set_threaded(bool val)
 {
+#if defined(__MACH__) && defined(__APPLE__) 
+   /* TODO/FIXME - force threaded video to disabled on Apple for now
+    * until NSWindow/UIWindow concurrency issues are taken care of */
+   video_driver_threaded = false;
+#else
    video_driver_threaded = val;
+#endif
 }
 
 const char *video_driver_get_ident(void)
@@ -23771,7 +24156,7 @@ static void retroarch_print_help(const char *arg0)
    printf("Usage: %s [OPTIONS]... [FILE]\n", arg0);
 
    {
-      char buf[2048];
+      char buf[2148];
       buf[0] = '\0';
 
       strlcpy(buf, "  -h, --help            Show this help message.\n", sizeof(buf));
@@ -23848,7 +24233,7 @@ static void retroarch_print_help(const char *arg0)
           "the device (1 to %d).\n", MAX_USERS);
 
    {
-      char buf[2048];
+      char buf[2148];
       buf[0] = '\0';
       strlcpy(buf, "                        Format is PORT:ID, where ID is a number "
             "corresponding to the particular device.\n", sizeof(buf));
@@ -23904,6 +24289,8 @@ static void retroarch_print_help(const char *arg0)
             "                        Path to save the screenshot to at the end of max-frames.\n", sizeof(buf));
       puts(buf);
    }
+   printf("      --accessibility\n"
+          "                        Enables accessibilty for blind users using text-to-speech.\n");
 }
 
 #define FFMPEG_RECORD_ARG "r:"
@@ -23986,6 +24373,7 @@ static void retroarch_parse_input_and_config(int argc, char *argv[])
       { "eof-exit",           0, NULL, RA_OPT_EOF_EXIT },
       { "version",            0, NULL, RA_OPT_VERSION },
       { "log-file",           1, NULL, RA_OPT_LOG_FILE },
+      { "accessibility",      0, NULL, RA_OPT_ACCESSIBILITY},
       { NULL, 0, NULL, 0 }
    };
 
@@ -24505,7 +24893,9 @@ static void retroarch_parse_input_and_config(int argc, char *argv[])
             case '?':
                retroarch_print_help(argv[0]);
                retroarch_fail(1, "retroarch_parse_input()");
-
+            case RA_OPT_ACCESSIBILITY:
+               accessibility_enabled = true;
+               break;
             default:
                RARCH_ERR("%s\n", msg_hash_to_str(MSG_ERROR_PARSING_ARGUMENTS));
                retroarch_fail(1, "retroarch_parse_input()");
@@ -24709,6 +25099,9 @@ bool retroarch_main_init(int argc, char *argv[])
 
    retroarch_parse_input_and_config(argc, argv);
 
+   if (is_accessibility_enabled())
+      accessibility_startup_message();
+
    for (int i = 0; i < argc; ++i)
    {
       RARCH_LOG("retroarch_main_init log argv[%d]: %s\n", i, argv[i]);
@@ -24834,7 +25227,7 @@ bool retroarch_main_init(int argc, char *argv[])
                }
                break;
 #endif
-#ifdef HAVE_EASTEREGG
+#ifdef HAVE_GONG
             case RARCH_CONTENT_GONG:
                retroarch_override_setting_set(RARCH_OVERRIDE_SETTING_LIBRETRO, NULL);
                retroarch_set_current_core_type(CORE_TYPE_GONG, false);
@@ -26050,7 +26443,8 @@ void runloop_msg_queue_push(const char *msg,
       enum message_queue_category category)
 {
    runloop_msg_queue_lock();
-
+   if (is_accessibility_enabled())
+      accessibility_speak_priority((char*) msg, 0);
 #if defined(HAVE_MENU) && defined(HAVE_MENU_WIDGETS)
    if (menu_widgets_inited)
    {
@@ -26358,9 +26752,6 @@ static enum runloop_state runloop_check_state(void)
    bool menu_is_alive                  = menu_driver_alive;
    unsigned menu_toggle_gamepad_combo  = settings->uints.input_menu_toggle_gamepad_combo;
    bool display_kb                     = menu_input_dialog_get_display_kb_internal();
-#ifdef HAVE_EASTEREGG
-   static uint64_t seq                 = 0;
-#endif
 #endif
 
 #ifdef HAVE_MENU_WIDGETS
@@ -26609,7 +27000,6 @@ static enum runloop_state runloop_check_state(void)
 
       bits_clear_bits(trigger_input.data, old_input.data,
             ARRAY_SIZE(trigger_input.data));
-
       action                    = (enum menu_action)menu_event(&current_bits, &trigger_input, display_kb);
       focused                   = pause_nonactive ? is_focused : true;
       focused                   = focused && !main_ui_companion_is_on_foreground;
@@ -26711,34 +27101,6 @@ static enum runloop_state runloop_check_state(void)
          if (settings->bools.audio_enable_menu &&
                !libretro_running)
             audio_driver_menu_sample();
-
-#ifdef HAVE_EASTEREGG
-         {
-            bool library_name_is_empty = string_is_empty(runloop_system.info.library_name);
-
-            if (library_name_is_empty && trigger_input.data[0])
-            {
-               seq |= trigger_input.data[0] & 0xF0;
-
-               if (seq == 1157460427127406720ULL)
-               {
-                  content_ctx_info_t content_info;
-                  content_info.argc                   = 0;
-                  content_info.argv                   = NULL;
-                  content_info.args                   = NULL;
-                  content_info.environ_get            = NULL;
-
-                  task_push_start_builtin_core(
-                        &content_info,
-                        CORE_TYPE_GONG, NULL, NULL);
-               }
-
-               seq <<= 8;
-            }
-            else if (!library_name_is_empty)
-               seq = 0;
-         }
-#endif
       }
 
       old_input                 = current_bits;
@@ -26750,9 +27112,6 @@ static enum runloop_state runloop_check_state(void)
    else
 #endif
    {
-#if defined(HAVE_MENU) && defined(HAVE_EASTEREGG)
-      seq = 0;
-#endif
       if (runloop_idle)
       {
          retro_ctx.poll_cb();
@@ -28783,4 +29142,498 @@ unsigned int retroarch_get_rotation(void)
 input_keyboard_line_t * get_input_keyboard_line(void)
 {
    return g_keyboard_line;
+}
+
+/* Accessibility */
+int speak_pid = 0;
+
+bool is_accessibility_enabled(void)
+{
+   settings_t *settings              = configuration_settings;
+   if (accessibility_enabled || settings->bools.accessibility_enable)
+      return true;
+   return false;
+}
+
+bool is_input_keyboard_display_on(void)
+{ 
+#ifdef HAVE_MENU
+   return menu_input_dialog_get_display_kb();
+#else
+   return false;
+#endif
+}
+
+bool accessibility_speak(const char* speak_text)
+{
+   return accessibility_speak_priority(speak_text, 10);
+}
+
+
+#if defined(__MACH__) && defined(__APPLE__) 
+#include <TargetConditionals.h>
+#if TARGET_OS_OSX && !defined(EMSCRIPTEN)
+#define _IS_OSX
+#endif
+#endif
+
+#if defined(_IS_OSX)
+static char* accessibility_mac_language_code(const char* language)
+{
+   if (string_is_equal(language,"en"))
+      return "Alex";
+   else if (string_is_equal(language,"it"))
+      return "Alice";
+   else if (string_is_equal(language,"sv"))
+      return "Alva";
+   else if (string_is_equal(language,"fr"))
+      return "Amelie";
+   else if (string_is_equal(language,"de"))
+      return "Anna";
+   else if (string_is_equal(language,"he"))
+      return "Carmit";
+   else if (string_is_equal(language,"id"))
+      return "Damayanti";
+   else if (string_is_equal(language,"es"))
+      return "Diego";
+   else if (string_is_equal(language,"nl"))
+      return "Ellen";
+   else if (string_is_equal(language,"ro"))
+      return "Ioana";
+   else if (string_is_equal(language,"pt_pt"))
+      return "Joana";
+   else if (string_is_equal(language,"pt_bt") || string_is_equal(language,"pt"))
+      return "Luciana";
+   else if (string_is_equal(language,"th"))
+      return "Kanya";
+   else if (string_is_equal(language,"ja"))
+      return "Kyoko";
+   else if (string_is_equal(language,"sk"))
+      return "Laura";
+   else if (string_is_equal(language,"hi"))
+      return "Lekha";
+   else if (string_is_equal(language,"ar"))
+      return "Maged";
+   else if (string_is_equal(language,"hu"))
+      return "Mariska";
+   else if (string_is_equal(language,"zh_tw") || string_is_equal(language,"zh"))
+      return "Mei-Jia";
+   else if (string_is_equal(language,"el"))
+      return "Melina";
+   else if (string_is_equal(language,"ru"))
+      return "Milena";
+   else if (string_is_equal(language,"nb"))
+      return "Nora";
+   else if (string_is_equal(language,"da"))
+      return "Sara";
+   else if (string_is_equal(language,"fi"))
+      return "Satu";
+   else if (string_is_equal(language,"zh_hk"))
+      return "Sin-ji";
+   else if (string_is_equal(language,"zh_cn"))
+      return "Ting-Ting";
+   else if (string_is_equal(language,"tr"))
+      return "Yelda";
+   else if (string_is_equal(language,"ko"))
+      return "Yuna";
+   else if (string_is_equal(language,"pl"))
+      return "Zosia";
+   else if (string_is_equal(language,"cs")) 
+      return "Zuzana";
+   else
+      return "";
+}
+
+bool is_narrator_running_macos(void)
+{
+   if (kill(speak_pid, 0) == 0)
+      return true;
+   return false;
+}
+
+static bool accessibility_speak_macos(
+      const char* speak_text, const char* voice, int priority)
+{
+   int pid;
+   char* language_speaker = accessibility_mac_language_code(voice);
+   char* speeds[10] = {"80", "100", "125", "150", "170", "210", "260", "310", "380", "450"};
+   settings_t *settings              = configuration_settings;
+   int speed = settings->uints.accessibility_narrator_speech_speed;
+
+   if (speed < 1)
+      speed = 1;
+   else if (speed > 10)
+      speed = 10;
+
+   if (priority < 10 && speak_pid > 0)
+   {
+      /* check if old pid is running */
+      if (is_narrator_running_macos())
+         return true;
+   }
+
+   if (speak_pid > 0)
+   {
+      /* Kill the running say */
+      kill(speak_pid, SIGTERM);
+      speak_pid = 0;
+   }
+
+   pid = fork();
+   if (pid < 0)
+   {
+      /* error */
+      RARCH_LOG("ERROR: could not fork for say command.\n");
+   }
+   else if (pid > 0)
+   {
+      /* parent process */
+      speak_pid = pid;
+
+      /* Tell the system that we'll ignore the exit status of the child 
+       * process.  This prevents zombie processes. */
+      signal(SIGCHLD,SIG_IGN);
+   }
+   else
+   { 
+      /* child process: replace process with the say command */ 
+      if (strlen(language_speaker)> 0)
+      {
+         char* cmd[] = {"say", "-v", NULL, 
+                        NULL, "-r", NULL, NULL};
+         cmd[2] = language_speaker;
+         cmd[3] = (char *) speak_text;
+         cmd[5] = speeds[speed-1];
+         execvp("say", cmd);
+      }
+      else
+      {
+         char* cmd[] = {"say", NULL, "-r", NULL,  NULL};
+         cmd[1] = (char*) speak_text;
+         cmd[3] = speeds[speed-1];
+         execvp("say",cmd);
+      }
+   }
+   return true;
+}
+#endif
+
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__) && !defined(EMSCRIPTEN)
+
+static const char *accessibility_win_language_code(const char* language)
+{
+   if (string_is_equal(language,"en"))
+      return "Microsoft David Desktop";
+   else if (string_is_equal(language,"it"))
+      return "Microsoft Cosimo Desktop";
+   else if (string_is_equal(language,"sv"))
+      return "Microsoft Bengt Desktop";
+   else if (string_is_equal(language,"fr"))
+      return "Microsoft Paul Desktop";
+   else if (string_is_equal(language,"de"))
+      return "Microsoft Stefan Desktop";
+   else if (string_is_equal(language,"he"))
+      return "Microsoft Hemant Desktop";
+   else if (string_is_equal(language,"id"))
+      return "Microsoft Asaf Desktop";
+   else if (string_is_equal(language,"es"))
+      return "Microsoft Pablo Desktop";
+   else if (string_is_equal(language,"nl"))
+      return "Microsoft Frank Desktop";
+   else if (string_is_equal(language,"ro"))
+      return "Microsoft Andrei Desktop";
+   else if (string_is_equal(language,"pt_pt"))
+      return "Microsoft Helia Desktop";
+   else if (string_is_equal(language,"pt_bt") || string_is_equal(language,"pt"))
+      return "Microsoft Daniel Desktop";
+   else if (string_is_equal(language,"th"))
+      return "Microsoft Pattara Desktop";
+   else if (string_is_equal(language,"ja"))
+      return "Microsoft Ichiro Desktop";
+   else if (string_is_equal(language,"sk"))
+      return "Microsoft Filip Desktop";
+   else if (string_is_equal(language,"hi"))
+      return "Microsoft Hemant Desktop";
+   else if (string_is_equal(language,"ar"))
+      return "Microsoft Naayf Desktop";
+   else if (string_is_equal(language,"hu"))
+      return "Microsoft Szabolcs Desktop";
+   else if (string_is_equal(language,"zh_tw") || string_is_equal(language,"zh"))
+      return "Microsoft Zhiwei Desktop";
+   else if (string_is_equal(language,"el"))
+      return "Microsoft Stefanos Desktop";
+   else if (string_is_equal(language,"ru"))
+      return "Microsoft Pavel Desktop";
+   else if (string_is_equal(language,"nb"))
+      return "Microsoft Jon Desktop";
+   else if (string_is_equal(language,"da"))
+      return "Microsoft Helle Desktop";
+   else if (string_is_equal(language,"fi"))
+      return "Microsoft Heidi Desktop";
+   else if (string_is_equal(language,"zh_hk"))
+      return "Microsoft Danny Desktop";
+   else if (string_is_equal(language,"zh_cn"))
+      return "Microsoft Kangkang Desktop";
+   else if (string_is_equal(language,"tr"))
+      return "Microsoft Tolga Desktop";
+   else if (string_is_equal(language,"ko"))
+      return "Microsoft Heami Desktop";
+   else if (string_is_equal(language,"pl"))
+      return "Microsoft Adam Desktop";
+   else if (string_is_equal(language,"cs")) 
+      return "Microsoft Jakub Desktop";
+   else
+      return "";
+}
+
+PROCESS_INFORMATION pi;
+bool pi_set = false;
+
+static bool terminate_win32_process(PROCESS_INFORMATION pi)
+{
+   TerminateProcess(pi.hProcess,0);
+   CloseHandle(pi.hProcess);
+   CloseHandle(pi.hThread);
+   return true;
+}
+
+static bool create_win32_process(char* cmd)
+{
+   STARTUPINFO si;
+   ZeroMemory(&si, sizeof(si));
+   si.cb = sizeof(si);
+   ZeroMemory(&pi, sizeof(pi));
+
+   if (!CreateProcess(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW,
+                      NULL, NULL, &si, &pi))
+   {
+      pi_set = false;
+      return false;
+   }
+   pi_set = true;
+   return true;
+}
+
+static bool is_narrator_running_windows(void)
+{
+   DWORD status = 0;
+   bool res;
+   if (pi_set == false)
+      return false;
+   res = GetExitCodeProcess(&pi, &status);
+   if (res && status == STILL_ACTIVE)
+      return true;
+   return false;
+}
+
+static bool accessibility_speak_windows(
+      const char* speak_text, const char* voice, int priority)
+{
+   char cmd[1200];
+   const char *language   = accessibility_win_language_code(voice);
+   bool res               = false;
+
+   settings_t *settings   = configuration_settings;
+   const char* speeds[10] = {"-10", "-7.5", "-5", "-2.5", "0", "2", "4", "6", "8", "10"};
+   int speed              = settings->uints.accessibility_narrator_speech_speed;
+
+   if (speed < 1)
+      speed = 1;
+   else if (speed > 10)
+      speed = 10;
+
+   if (priority < 10)
+   {
+      if (is_narrator_running_windows())
+         return true;
+   }
+
+   if (strlen(language) > 0) 
+      snprintf(cmd, sizeof(cmd),
+               "powershell.exe -NoProfile -WindowStyle Hidden -Command \"Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.SelectVoice(\\\"%s\\\"); $synth.Rate = %s; $synth.Speak(\\\"%s\\\");\"", language, speeds[speed-1], (char*) speak_text); 
+   else
+      snprintf(cmd, sizeof(cmd),
+               "powershell.exe -NoProfile -WindowStyle Hidden -Command \"Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.Rate = %s; $synth.Speak(\\\"%s\\\");\"", speeds[speed-1], (char*) speak_text); 
+   if (pi_set)
+      terminate_win32_process(pi);
+   res = create_win32_process(cmd);
+   if (!res)
+   {
+      RARCH_LOG("Create subprocess failed. Error: %d\n", GetLastError()); 
+   }
+   return true;
+}
+#endif
+
+#if (defined(__linux__) || defined(__unix__)) && !defined(EMSCRIPTEN)
+
+
+bool is_narrator_running_linux(void)
+{
+   if (kill(speak_pid, 0) == 0)
+      return true;
+   return false;
+}
+
+bool accessibility_speak_linux(
+      const char* speak_text, const char* language, int priority)
+{
+   int pid;
+   char* voice_out = (char *)malloc(3+strlen(language));
+   char* speed_out = (char *)malloc(3+3);
+   settings_t *settings              = configuration_settings;
+
+   const char* speeds[10] = {"80", "100", "125", "150", "170", "210", "260", "310", "380", "450"};
+   int speed = settings->uints.accessibility_narrator_speech_speed;
+
+   if (speed < 1)
+      speed = 1;
+   else if (speed > 10)
+      speed = 10;
+
+   strlcpy(voice_out, "-v", 3);
+   strlcat(voice_out, language, 5);
+
+   strlcpy(speed_out, "-s", 3);
+   strlcat(speed_out, speeds[speed-1], 6);
+
+   if (priority < 10 && speak_pid > 0)
+   {
+      /* check if old pid is running */
+      if (is_narrator_running_linux())
+         return true;
+   }
+
+   if (speak_pid > 0)
+   {
+      /* Kill the running espeak */
+      kill(speak_pid, SIGTERM);
+      speak_pid = 0;
+   }
+
+   pid = fork();
+   if (pid < 0)
+   {
+      /* error */
+      RARCH_LOG("ERROR: could not fork for espeak.\n");
+   }
+   else if (pid > 0)
+   {
+      /* parent process */
+      speak_pid = pid;
+
+      /* Tell the system that we'll ignore the exit status of the child 
+       * process.  This prevents zombie processes. */
+      signal(SIGCHLD,SIG_IGN);
+   }
+   else
+   { 
+      /* child process: replace process with the espeak command */ 
+      char* cmd[] = { (char*) "espeak", NULL, NULL, NULL, NULL};
+      cmd[1] = voice_out;
+      cmd[2] = speed_out;
+      cmd[3] = (char *) speak_text;
+      execvp("espeak", cmd);
+   }
+   return true;
+}
+#endif
+
+bool accessibility_speak_priority(const char* speak_text, int priority)
+{
+   RARCH_LOG("Spoke: %s\n", speak_text);
+
+   if (is_accessibility_enabled())
+   {
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__) && !defined(EMSCRIPTEN)
+      const char *voice = get_user_language_iso639_1(true);
+      return accessibility_speak_windows(speak_text, voice, priority);
+#elif defined(__APPLE__) && defined(_IS_OSX) && !defined(EMSCRIPTEN)
+      const char *voice = get_user_language_iso639_1(false);
+      return accessibility_speak_macos(speak_text, voice, priority);
+#elif (defined(__linux__) || defined(__unix__)) && !defined(EMSCRIPTEN)
+      const char *voice = get_user_language_iso639_1(true);
+      return accessibility_speak_linux(speak_text, voice, priority);
+#endif
+      RARCH_LOG("Platform not supported for accessibility.\n");
+      /* The following method is a fallback for other platforms to use the
+         AI Service url to do the TTS.  However, since the playback is done
+         via the audio mixer, which only processes the audio while the 
+         core is running, this playback method won't work.  When the audio
+         mixer can handle playing streams while the core is paused, then 
+         we can use this. */
+      /* 
+#if defined(HAVE_NETWORKING)
+         return accessibility_speak_ai_service(speak_text, voice, priority);
+#endif
+      */
+   }
+
+   return true;
+}
+
+bool is_narrator_running(void)
+{
+   if (is_accessibility_enabled())
+   {
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__) && !defined(EMSCRIPTEN)
+      return is_narrator_running_windows();
+#elif defined(__APPLE__) && defined(_IS_OSX) && !defined(EMSCRIPTEN)
+      return is_narrator_running_macos();
+#elif (defined(__linux__) || defined(__unix__)) && !defined(EMSCRIPTEN)
+      return is_narrator_running_linux();
+#endif
+   }
+   return true;
+}
+
+
+bool accessibility_speak_ai_service(const char* speak_text, const char* language, int priority)
+{
+#if defined(HAVE_NETWORKING) && defined(HAVE_TRANSLATE)
+   /* Call the AI service listed to do espeak for us. */ 
+   /* NOTE: This call works, but the audio mixer will not 
+    * play sound files while the core is paused, so it's
+    * not practical at the moment. */
+   unsigned i;
+   char new_ai_service_url[PATH_MAX_LENGTH];
+   char temp_string[PATH_MAX_LENGTH];
+   char json_buffer[2048];
+   char separator            = '?';
+   settings_t *settings      = configuration_settings;
+
+   strlcpy(new_ai_service_url, settings->arrays.ai_service_url, 
+           sizeof(new_ai_service_url));
+
+   if (strrchr(new_ai_service_url, '?') != NULL)
+      separator = '&';
+   snprintf(temp_string, sizeof(temp_string),
+            "%csource_lang=%s&target_lang=%s&output=espeak", 
+            separator, language, language);
+   strlcat(new_ai_service_url, temp_string, sizeof(new_ai_service_url));
+   
+   strlcpy(temp_string, speak_text, sizeof(temp_string));
+   for (i = 0; i < strlen(temp_string);i++)
+   {
+      if (temp_string[i]=='\"')
+         temp_string[i] = ' ';
+   } 
+   snprintf(json_buffer, sizeof(json_buffer),
+            "{\"text\": \"%s\"}", speak_text);
+   RARCH_LOG("SENDING accessibilty request... %s\n", new_ai_service_url);
+   task_push_http_post_transfer(new_ai_service_url,
+            json_buffer, true, NULL, handle_translation_cb, NULL);
+
+   return true;
+#else
+   return false;
+#endif
+}
+
+bool accessibility_startup_message(void)
+{
+   /* State that the narrator is on, and also include the first menu 
+      item we're on at startup. */
+   accessibility_speak("RetroArch accessibility on.  Main Menu Load Core.");
+   return true;
 }

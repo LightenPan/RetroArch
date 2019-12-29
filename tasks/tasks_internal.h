@@ -29,6 +29,10 @@
 #include "../config.h"
 #endif
 
+#if defined(HAVE_NETWORKING)
+#include "../core_updater_list.h"
+#endif
+
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
 /* Required for task_push_pl_entry_thumbnail_download() */
 #include "../playlist.h"
@@ -72,8 +76,22 @@ bool task_push_netplay_lan_scan_rooms(retro_task_callback_t cb);
 
 bool task_push_netplay_nat_traversal(void *nat_traversal_state, uint16_t port);
 
+/* Core updater tasks */
+void *task_push_get_core_updater_list(
+      core_updater_list_t* core_list, bool mute, bool refresh_menu);
+void *task_push_core_updater_download(
+      core_updater_list_t* core_list, const char *filename, bool mute, bool check_crc);
+void task_push_update_installed_cores(void);
+
 #ifdef HAVE_MENU
 bool task_push_pl_thumbnail_download(const char *system, const char *playlist_path);
+bool task_push_pl_entry_thumbnail_download(
+      const char *system,
+      playlist_t *playlist,
+      unsigned idx,
+      bool overwrite,
+      bool mute);
+	  
 bool yun_save_rom_state(char *path);
 bool yun_load_rom_state(char *path);
 
@@ -117,6 +135,8 @@ bool task_push_dbscan(
       retro_task_callback_t cb);
 #endif
 
+bool task_push_manual_content_scan(void);
+
 #ifdef HAVE_OVERLAY
 bool task_push_overlay_load_default(
       retro_task_callback_t cb,
@@ -130,7 +150,7 @@ bool task_push_overlay_load_default(
 
 bool task_check_decompress(const char *source_file);
 
-bool task_push_decompress(
+void *task_push_decompress(
       const char *source_file,
       const char *target_dir,
       const char *target_file,
@@ -138,7 +158,8 @@ bool task_push_decompress(
       const char *valid_ext,
       retro_task_callback_t cb,
       void *user_data,
-      void *frontend_userdata);
+      void *frontend_userdata,
+      bool mute);
 
 void task_file_load_handler(retro_task_t *task);
 

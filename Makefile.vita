@@ -23,8 +23,8 @@ ifeq ($(GRIFFIN_BUILD), 1)
 		DEFINES += -DHAVE_NETLOGGER
 	endif
 	INCDIRS += -I. -Ideps/7zip -Ilibretro-common/include -Ilibretro-common/include/compat/zlib -Ideps/stb
-	
 else
+
 	HAVE_NEON		:= 1
 	HAVE_MATH_NEON		:= 1
 	HAVE_FILTERS_BUILTIN	:= 1
@@ -41,6 +41,7 @@ else
 	HAVE_SOCKET_LEGACY	:= 1
 	HAVE_MENU		:= 1
 	HAVE_MENU_COMMON	:= 1
+        HAVE_MENU_WIDGETS = 1
 	HAVE_OVERLAY		:= 1
 	HAVE_VIDEO_LAYOUT := 0
 	HAVE_MATERIALUI		:= 1
@@ -97,7 +98,7 @@ LD      := $(CXX)
 LIBDIRS := -L.
 
 ARCHFLAGS := -march=armv7-a -mfpu=neon -mfloat-abi=hard -DVITA
-CFLAGS    += $(ARCHFLAGS) -mword-relocations -fno-optimize-sibling-calls -O2 -flto
+CFLAGS    += $(ARCHFLAGS) -mword-relocations -fno-optimize-sibling-calls -O2
 
 ifeq ($(DEBUG), 1)
    CFLAGS += -g
@@ -106,7 +107,7 @@ endif
 ASFLAGS := $(CFLAGS)
 LDFLAGS := -Wl,-q
 
-CFLAGS += -Wall -ffast-math
+CFLAGS += -Wall -ffast-math -g
 CFLAGS += -DRARCH_INTERNAL -DRARCH_CONSOLE
 CFLAGS += -DHAVE_FILTERS_BUILTIN $(DEFINES)
 

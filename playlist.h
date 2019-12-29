@@ -127,7 +127,7 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
 
 /**
  * playlist_init:
- * @path                  : Path to playlist contents file.
+ * @path            	   : Path to playlist contents file.
  * @size                : Maximum capacity of playlist size.
  *
  * Creates and initializes a playlist.
@@ -138,7 +138,7 @@ playlist_t *playlist_init(const char *path, size_t size);
 
 /**
  * playlist_free:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Frees playlist handle.
  */
@@ -146,7 +146,7 @@ void playlist_free(playlist_t *playlist);
 
 /**
  * playlist_clear:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Clears all playlist entries in playlist.
  **/
@@ -154,7 +154,7 @@ void playlist_clear(playlist_t *playlist);
 
 /**
  * playlist_size:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Gets size of playlist.
  * Returns: size of playlist.
@@ -163,7 +163,7 @@ size_t playlist_size(playlist_t *playlist);
 
 /**
  * playlist_capacity:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  *
  * Gets maximum capacity of playlist.
  * Returns: maximum capacity of playlist.
@@ -208,7 +208,7 @@ void playlist_resolve_path(enum playlist_file_mode mode,
 
 /**
  * playlist_push:
- * @playlist              : Playlist handle.
+ * @playlist        	   : Playlist handle.
  * @path                : Path of new playlist entry.
  * @core_path           : Core path of new playlist entry.
  * @core_name           : Core name of new playlist entry.
@@ -238,8 +238,7 @@ void playlist_get_index_by_path(playlist_t *playlist,
       const struct playlist_entry **entry);
 
 bool playlist_entry_exists(playlist_t *playlist,
-      const char *path,
-      const char *crc32);
+      const char *path);
 
 char *playlist_get_conf_path(playlist_t *playlist);
 

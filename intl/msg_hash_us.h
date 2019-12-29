@@ -833,6 +833,54 @@ MSG_HASH(
    "Content Downloader"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_UPDATE_INSTALLED_CORES,
+   "Update Installed Cores"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_UPDATE_INSTALLED_CORES,
+   "Update all installed cores to the latest version available."
+   )
+MSG_HASH(
+   MSG_FETCHING_CORE_LIST,
+   "Fetching core list..."
+   )
+MSG_HASH(
+   MSG_CORE_LIST_FAILED,
+   "Failed to retrieve core list!"
+   )
+MSG_HASH(
+   MSG_LATEST_CORE_INSTALLED,
+   "Latest version already installed: "
+   )
+MSG_HASH(
+   MSG_UPDATING_CORE,
+   "Updating core: "
+   )
+MSG_HASH(
+   MSG_DOWNLOADING_CORE,
+   "Downloading core: "
+   )
+MSG_HASH(
+   MSG_EXTRACTING_CORE,
+   "Extracting core: "
+   )
+MSG_HASH(
+   MSG_CORE_INSTALLED,
+   "Core installed: "
+   )
+MSG_HASH(
+   MSG_SCANNING_CORES,
+   "Scanning cores..."
+   )
+MSG_HASH(
+   MSG_CHECKING_CORE,
+   "Checking core: "
+   )
+MSG_HASH(
+   MSG_ALL_CORES_UPDATED,
+   "All installed cores at latest version"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_SCALE_FACTOR,
    "Menu Scale Factor"
    )
@@ -1518,8 +1566,16 @@ MSG_HASH(
    "Turbo Period"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_TURBO_MODE,
+   "Turbo Mode"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_TURBO_DEFAULT_BUTTON,
+   "Turbo Default Button"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_USER_BINDS,
-   "User %u Binds"
+   "Port %u Binds"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LATENCY_SETTINGS,
@@ -3778,6 +3834,10 @@ MSG_HASH(
    "Anti-Zenburn"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_RGUI_MENU_COLOR_THEME_FLUX,
+   "Flux"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_TRUE,
    "True"
    )
@@ -4581,7 +4641,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_USER_BINDS,
-   "Configure controls for this user."
+   "Configure controls for this port."
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LATENCY_SETTINGS,
@@ -5590,6 +5650,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_DUTY_CYCLE,
    "Describes how long the period of a turbo-enabled button should be. Numbers are described in frames."
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_TURBO_MODE,
+   "Selects the general behavior of turbo mode."
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_TURBO_DEFAULT_BUTTON,
+   "Default active button for Turbo Mode 'Single Button'."
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_VSYNC,
@@ -9523,6 +9591,14 @@ MSG_HASH(
    "Show or hide 'Input Settings' on the Settings screen."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_SETTINGS,
+   "Accessibility"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ACCESSIBILITY_SETTINGS,
+   "Change settings for the Accessibility narrator."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AI_SERVICE_SETTINGS,
    "AI Service"
    )
@@ -9919,6 +9995,10 @@ MSG_HASH(
    "Speech Mode"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AI_SERVICE_NARRATOR_MODE,
+   "Narrator Mode"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PRESET_REMOVE,
    "Remove"
    )
@@ -10071,4 +10151,228 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_AI_SERVICE_PAUSE,
    "Pauses core while screen is translated."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_LIST,
+   "Manual Scan"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_LIST,
+   "Configurable scan based on content file names. Does not require content to match the database."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DIR,
+   "Content Directory"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_DIR,
+   "Selects a directory to scan for content."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+   "System Name"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
+   "Specify a 'system name' with which to associate scanned content. Used to name to the generated playlist file and to identify playlist thumbnails."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_CUSTOM,
+   "Custom System Name"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SYSTEM_NAME_CUSTOM,
+   "Manually specify a 'system name' for scanned content. Only used when 'System Name' is set to '<Custom>'."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME,
+   "Core"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_CORE_NAME,
+   "Select a default core to use when launching scanned content."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_FILE_EXTS,
+   "File Extensions"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_FILE_EXTS,
+   "Space-delimited list of file types to include in the scan. If empty, includes all files - or if a core is specified, all files supported by the core."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SEARCH_ARCHIVES,
+   "Scan Inside Archives"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_SEARCH_ARCHIVES,
+   "When enabled, archive files (.zip, .7z, etc.) will be searched for valid/supported content. May have a significant impact on scan performance."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DAT_FILE,
+   "Arcade DAT File"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_DAT_FILE,
+   "Select a Logiqx or MAME List XML DAT file to enable automatic naming of scanned arcade content (MAME, FinalBurn Neo, etc.)."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_OVERWRITE,
+   "Overwrite Existing Playlist"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_OVERWRITE,
+   "When enabled, any existing playlist will be deleted before scanning content. When disabled, existing playlist entries are preserved and only content currently missing from the playlist will be added."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_START,
+   "Start Scan"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_START,
+   "Scan selected content."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_USE_CONTENT_DIR,
+   "<Content Directory>"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME_USE_CUSTOM,
+   "<Custom>"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME_DETECT,
+   "<Unspecified>"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_DAT_FILE_INVALID,
+   "Invalid arcade DAT file selected"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_DAT_FILE_TOO_LARGE,
+   "Selected arcade DAT file is too large (insufficient free memory)"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_DAT_FILE_LOAD_ERROR,
+   "Failed to load arcade DAT file (invalid format?)"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_INVALID_CONFIG,
+   "Invalid manual scan configuration"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_INVALID_CONTENT,
+   "No valid content detected"
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_START,
+   "Scanning content: "
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_IN_PROGRESS,
+   "Scanning: "
+   )
+MSG_HASH(
+   MSG_MANUAL_CONTENT_SCAN_END,
+   "Scan complete: "
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_ENABLED,
+   "Accessibility Enable"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ACCESSIBILITY_ENABLED,
+   "Turn on/off accessibility narrator for menu navigation"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ACCESSIBILITY_NARRATOR_SPEECH_SPEED,
+   "Set speech speed for the narrator, from fast to slow"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_NARRATOR_SPEECH_SPEED,
+   "Narrator Speech Speed"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_SCALING_SETTINGS,
+   "Scaling"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SCALING_SETTINGS,
+   "Change video scaling settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_FULLSCREEN_MODE_SETTINGS,
+   "Fullscreen Mode"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_FULLSCREEN_MODE_SETTINGS,
+   "Change fullscreen mode settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_WINDOWED_MODE_SETTINGS,
+   "Windowed Mode"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_WINDOWED_MODE_SETTINGS,
+   "Change windowed mode settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_OUTPUT_SETTINGS,
+   "Output"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_OUTPUT_SETTINGS,
+   "Change video output settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_SYNCHRONIZATION_SETTINGS,
+   "Synchronization"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SYNCHRONIZATION_SETTINGS,
+   "Change video synchronization settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AUDIO_OUTPUT_SETTINGS,
+   "Output"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_OUTPUT_SETTINGS,
+   "Change audio output settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AUDIO_SYNCHRONIZATION_SETTINGS,
+   "Synchronization"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_SYNCHRONIZATION_SETTINGS,
+   "Change audio synchronization settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AUDIO_RESAMPLER_SETTINGS,
+   "Resampler"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_RESAMPLER_SETTINGS,
+   "Change audio resampler settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_MENU_SETTINGS,
+   "Menu Controls"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_MENU_SETTINGS,
+   "Change menu control settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+   "Haptic Feedback/Vibration"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+   "Change haptic feedback and vibration settings."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_START_GONG,
+   "Start Gong"
    )

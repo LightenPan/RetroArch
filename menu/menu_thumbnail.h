@@ -42,6 +42,26 @@ enum menu_thumbnail_status
    MENU_THUMBNAIL_STATUS_MISSING
 };
 
+/* Defines thumbnail alignment within
+ * menu_thumbnail_draw() bounding box */
+enum menu_thumbnail_alignment
+{
+   MENU_THUMBNAIL_ALIGN_CENTRE = 0,
+   MENU_THUMBNAIL_ALIGN_TOP,
+   MENU_THUMBNAIL_ALIGN_BOTTOM,
+   MENU_THUMBNAIL_ALIGN_LEFT,
+   MENU_THUMBNAIL_ALIGN_RIGHT
+};
+
+/* Defines all possible thumbnail shadow
+ * effect types */
+enum menu_thumbnail_shadow_type
+{
+   MENU_THUMBNAIL_SHADOW_NONE = 0,
+   MENU_THUMBNAIL_SHADOW_DROP,
+   MENU_THUMBNAIL_SHADOW_OUTLINE
+};
+
 /* Holds all runtime parameters associated with
  * an entry thumbnail */
 typedef struct
@@ -53,6 +73,23 @@ typedef struct
    float alpha;
    float delay_timer;
 } menu_thumbnail_t;
+
+/* Holds all configuration parameters associated
+ * with a thumbnail shadow effect */
+typedef struct
+{
+   enum menu_thumbnail_shadow_type type;
+   float alpha;
+   struct
+   {
+      float x_offset;
+      float y_offset;
+   } drop;
+   struct
+   {
+      unsigned width;
+   } outline;
+} menu_thumbnail_shadow_t;
 
 /* Setters */
 
@@ -99,6 +136,17 @@ void menu_thumbnail_request(
       menu_thumbnail_path_data_t *path_data, enum menu_thumbnail_id thumbnail_id,
       playlist_t *playlist, size_t idx, menu_thumbnail_t *thumbnail);
 
+/* Requests loading of a specific thumbnail image file
+ * (may be used, for example, to load savestate images)
+ * - If operation fails, 'thumbnail->status' will be set to
+ *   MUI_THUMBNAIL_STATUS_MISSING
+ * - If operation is successful, 'thumbnail->status' will be
+ *   set to MUI_THUMBNAIL_STATUS_PENDING
+ * 'thumbnail' will be populated with texture info/metadata
+ * once the image load is complete */
+void menu_thumbnail_request_file(
+      const char *file_path, menu_thumbnail_t *thumbnail);
+
 /* Resets (and free()s the current texture of) the
  * specified thumbnail */
 void menu_thumbnail_reset(menu_thumbnail_t *thumbnail);
@@ -141,16 +189,29 @@ void menu_thumbnail_process_streams(
 
 /* Thumbnail rendering */
 
-/* Draws specified thumbnail centred (with aspect correct
- * scaling) within a rectangle of (width x height)
+/* Determines the actual screen dimensions of a
+ * thumbnail when centred with aspect correct
+ * scaling within a rectangle of (width x height) */
+void menu_thumbnail_get_draw_dimensions(
+      menu_thumbnail_t *thumbnail,
+      unsigned width, unsigned height, float scale_factor,
+      float *draw_width, float *draw_height);
+
+/* Draws specified thumbnail with specified alignment
+ * (and aspect correct scaling) within a rectangle of
+ * (width x height).
+ * 'shadow' defines an optional shadow effect (may be
+ * set to NULL if a shadow effect is not required).
  * NOTE: Setting scale_factor > 1.0f will increase the
  *       size of the thumbnail beyond the limits of the
- *       (width x height) rectangle (centring + aspect
+ *       (width x height) rectangle (alignment + aspect
  *       correct scaling is preserved). Use with caution */
 void menu_thumbnail_draw(
       video_frame_info_t *video_info, menu_thumbnail_t *thumbnail,
       float x, float y, unsigned width, unsigned height,
-      float alpha, float scale_factor);
+      enum menu_thumbnail_alignment alignment,
+      float alpha, float scale_factor,
+      menu_thumbnail_shadow_t *shadow);
 
 RETRO_END_DECLS
 
