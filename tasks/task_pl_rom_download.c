@@ -72,34 +72,44 @@ typedef struct pl_entry_rom_id
 
 typedef struct yun_save_rom_state_handle
 {
-	char save_state_path[1024];
-	retro_task_t *http_task;
-	void *save_state_buf;
-	size_t save_state_buf_size;
-	char save_state_buf_md5[64];
-	size_t seq;
-	size_t uploaded_file_size;
-	bool only_fragment_failed;
-	uint32_t fragment_buf_size;
+   char save_state_path[1024];
+   retro_task_t *http_task;
+   void *save_state_buf;
+   size_t save_state_buf_size;
+   char save_state_buf_md5[64];
+   size_t seq;
+   size_t uploaded_file_size;
+   bool only_fragment_failed;
+   uint32_t fragment_buf_size;
 } yun_save_rom_state_handle_t;
+
+typedef struct get_ext_game_info_handle
+{
+   char taskid[1024];
+   retro_task_t *http_task;
+   char system[1024];
+   char crc32[1024];
+   playlist_t *playlist;
+   uint32_t selected;
+} get_ext_game_info_handle_t;
 
 enum rom_download_status
 {
-	ROM_DOWNLOAD_BEGIN = 0,
-	ROM_DOWNLOAD_NORMAL,
-	ROM_DOWNLOAD_ZIP,
-	ROM_DOWNLOAD_P7Z,
-	ROM_DOWNLOAD_END
+   ROM_DOWNLOAD_BEGIN = 0,
+   ROM_DOWNLOAD_NORMAL,
+   ROM_DOWNLOAD_ZIP,
+   ROM_DOWNLOAD_P7Z,
+   ROM_DOWNLOAD_END
 };
 
 typedef struct rom_download_handle
 {
-	char rom_path[1024];
-	char label[1024];
-	char system[1024];
-	char download_dir[1024];
-	retro_task_t *http_task;
-	enum rom_download_status download_status;
+   char rom_path[1024];
+   char label[1024];
+   char system[1024];
+   char download_dir[1024];
+   retro_task_t *http_task;
+   enum rom_download_status download_status;
 } rom_download_handle_t;
 
 /*********************/
@@ -174,7 +184,7 @@ char *genYunSaveStateUrl(const char *savename, const char *save_buf_md5)
 }
 
 char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, int seq,
-											const char *fragment_save_buf_md5)
+                                 const char *fragment_save_buf_md5)
 {
    char save_state_url[PATH_MAX_LENGTH];
    char acc_query_str[1024] = {0};
@@ -182,21 +192,21 @@ char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5,
    snprintf(save_state_url, sizeof(save_state_url),
       "%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
       "http://wekafei.cn/api/UserGameData/SaveStateFragment",
-		acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+      acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
    return strdup(save_state_url);
 }
 
 void cpyYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, int seq,
-											const char *fragment_save_buf_md5, char *outurl, int outlen)
+                                 const char *fragment_save_buf_md5, char *outurl, int outlen)
 {
-	char save_state_url[PATH_MAX_LENGTH];
-	char acc_query_str[1024] = {0};
-	clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
-	snprintf(save_state_url, sizeof(save_state_url),
-		"%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
-		"http://wekafei.cn/api/UserGameData/SaveStateFragment",
-		acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
-	strlcpy(outurl, save_state_url, outlen);
+   char save_state_url[PATH_MAX_LENGTH];
+   char acc_query_str[1024] = {0};
+   clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
+   snprintf(save_state_url, sizeof(save_state_url),
+      "%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
+      "http://wekafei.cn/api/UserGameData/SaveStateFragment",
+      acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+   strlcpy(outurl, save_state_url, outlen);
 }
 
 char *genYunLoadStateUrl(char *loadname)
@@ -386,12 +396,12 @@ void yun_save_rom_state_cb(retro_task_t *task, void *task_data, void *user_data,
             *(found_string+i-start-1) = '\0';
             if (curr_state == 1)
             {
-               strncpy(status, found_string, sizeof(status));
+               strncpy(status, found_string, sizeof(status) - 1);
                curr_state = 0;
             }
             else if (curr_state == 2)
             {
-               strncpy(message, found_string, sizeof(message));
+               strncpy(message, found_string, sizeof(message) - 1);
                curr_state = 0;
             }
             else if (strcmp(found_string, "status")==0)
@@ -414,6 +424,9 @@ void yun_save_rom_state_cb(retro_task_t *task, void *task_data, void *user_data,
 
    if (found_string)
        free(found_string);
+
+   if (body_copy)
+      free(body_copy);
 
    if (strcmp(status, "SUCCESS") == 0)
    {
@@ -627,148 +640,148 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
 
 void task_push_rom_download_multi(rom_download_handle_t *pHandle, bool iszip, const char *basename)
 {
-	char local_save_path[1024] = {0};
-	fill_pathname_join(local_save_path, pHandle->download_dir, basename, sizeof(local_save_path));
-	// 获取rom下载地址
-	char url_query[1024] = {0};
-	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
-	char raw_url[1024] = {0};
-	strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
-	strlcat(raw_url, "/", sizeof(raw_url));
-	strlcat(raw_url, pHandle->system, sizeof(raw_url));
-	strlcat(raw_url, "/", sizeof(raw_url));
-	strlcat(raw_url, basename, sizeof(raw_url));
-	strlcat(raw_url, "?", sizeof(raw_url));
-	strlcat(raw_url, url_query, sizeof(raw_url));
+   char local_save_path[1024] = {0};
+   fill_pathname_join(local_save_path, pHandle->download_dir, basename, sizeof(local_save_path));
+   // 获取rom下载地址
+   char url_query[1024] = {0};
+   clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+   char raw_url[1024] = {0};
+   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+   strlcat(raw_url, "/", sizeof(raw_url));
+   strlcat(raw_url, pHandle->system, sizeof(raw_url));
+   strlcat(raw_url, "/", sizeof(raw_url));
+   strlcat(raw_url, basename, sizeof(raw_url));
+   strlcat(raw_url, "?", sizeof(raw_url));
+   strlcat(raw_url, url_query, sizeof(raw_url));
 
-	file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
-	if (!transf)
-		return; /* If this happens then everything is broken anyway... */
+   file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
+   if (!transf)
+      return; /* If this happens then everything is broken anyway... */
 
-	transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
-	if (iszip) {
-		transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ZIPROM;
-	}
-	strlcpy(transf->path, local_save_path, sizeof(transf->path));
-	strlcpy(transf->title, pHandle->label, sizeof(transf->title));
-	// strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
-	RARCH_LOG("task_push_rom_download_multi log info. "
-		"raw_url: %s, rom_path: %s, system: %s"
-		", download_dir: %s, iszip: %u, save_path: %s, title: %s\n",
-		raw_url, pHandle->rom_path, pHandle->system, pHandle->download_dir, iszip, local_save_path, transf->title);
-	task_push_http_transfer(raw_url, false, NULL, cb_generic_download, transf);
+   transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ROM;
+   if (iszip) {
+      transf->enum_idx = MENU_ENUM_LABEL_CB_SINGLE_ZIPROM;
+   }
+   strlcpy(transf->path, local_save_path, sizeof(transf->path));
+   strlcpy(transf->title, pHandle->label, sizeof(transf->title));
+   // strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
+   RARCH_LOG("task_push_rom_download_multi log info. "
+      "raw_url: %s, rom_path: %s, system: %s"
+      ", download_dir: %s, iszip: %u, save_path: %s, title: %s\n",
+      raw_url, pHandle->rom_path, pHandle->system, pHandle->download_dir, iszip, local_save_path, transf->title);
+   task_push_http_transfer(raw_url, false, NULL, cb_generic_download, transf);
 }
 
 static void free_rom_download_handle(rom_download_handle_t *pHandle)
 {
-	if (!pHandle)
-		return;
+   if (!pHandle)
+      return;
 
-	free(pHandle);
-	pHandle = NULL;
+   free(pHandle);
+   pHandle = NULL;
 }
 
 static void task_rom_download_handler(retro_task_t *task)
 {
-	if (!task)
-		goto task_finished;
+   if (!task)
+      goto task_finished;
 
-	if (task_get_cancelled(task))
-		goto task_finished;
+   if (task_get_cancelled(task))
+      goto task_finished;
 
-	rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
-	if (!pHandle)
-		goto task_finished;
+   rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
+   if (!pHandle)
+      goto task_finished;
 
-	// 状态结束
-	if (pHandle->download_status == ROM_DOWNLOAD_END)
-	{
-		goto task_finished;
-	}
+   // 状态结束
+   if (pHandle->download_status == ROM_DOWNLOAD_END)
+   {
+      goto task_finished;
+   }
 
-	// 确保只有一个http任务在执行
-	if (pHandle->http_task && !task_get_finished(pHandle->http_task))
-	{
-		return;
-	}
+   // 确保只有一个http任务在执行
+   if (pHandle->http_task && !task_get_finished(pHandle->http_task))
+   {
+      return;
+   }
 
-	bool iszip = false;
-	char new_basename[256] = {0};
-	const char *basename = path_basename(pHandle->rom_path);
-	if (strcmp(path_get_extension(basename), "cue") == 0)
-	{
-		iszip = true;
-	}
+   bool iszip = false;
+   char new_basename[256] = {0};
+   const char *basename = path_basename(pHandle->rom_path);
+   if (strcmp(path_get_extension(basename), "cue") == 0)
+   {
+      iszip = true;
+   }
 
-	switch (pHandle->download_status)
-	{
-	case ROM_DOWNLOAD_BEGIN:
-		{
-			pHandle->download_status = ROM_DOWNLOAD_NORMAL;
-			if (iszip)
-			{
-				pHandle->download_status = ROM_DOWNLOAD_ZIP;
-			}
-		}
-		break;
-	case ROM_DOWNLOAD_NORMAL:
-		{
-			strlcpy(new_basename, basename, sizeof(new_basename));
-			task_push_rom_download_multi(pHandle, iszip, new_basename);
-			pHandle->download_status = ROM_DOWNLOAD_END;
-		}
-		break;
-	case ROM_DOWNLOAD_ZIP:
-		{
-			// zip解压后最终目录是，两个文件名的目录
-			// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
-			char filename_buf[256] = {0};
-			strlcpy(filename_buf, basename, sizeof(filename_buf));
-			char *filename = path_remove_extension(filename_buf);
-			strlcpy(new_basename, filename, sizeof(new_basename));
-			strlcat(new_basename, ".zip", sizeof(new_basename));
-			task_push_rom_download_multi(pHandle, iszip, new_basename);
-			pHandle->download_status = ROM_DOWNLOAD_P7Z;
-		}
-		break;
-	case ROM_DOWNLOAD_P7Z:
-		{
-			// p7z解压后最终目录是，两个文件名的目录
-			// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
-			char filename_buf[256] = {0};
-			strlcpy(filename_buf, basename, sizeof(filename_buf));
-			char *filename = path_remove_extension(filename_buf);
-			strlcpy(new_basename, filename, sizeof(new_basename));
-			strlcat(new_basename, ".7z", sizeof(new_basename));
-			task_push_rom_download_multi(pHandle, iszip, new_basename);
-			pHandle->download_status = ROM_DOWNLOAD_END;
-		}
-	case ROM_DOWNLOAD_END:
-	default:
-		break;
-	}
-	return;
+   switch (pHandle->download_status)
+   {
+   case ROM_DOWNLOAD_BEGIN:
+      {
+         pHandle->download_status = ROM_DOWNLOAD_NORMAL;
+         if (iszip)
+         {
+            pHandle->download_status = ROM_DOWNLOAD_ZIP;
+         }
+      }
+      break;
+   case ROM_DOWNLOAD_NORMAL:
+      {
+         strlcpy(new_basename, basename, sizeof(new_basename));
+         task_push_rom_download_multi(pHandle, iszip, new_basename);
+         pHandle->download_status = ROM_DOWNLOAD_END;
+      }
+      break;
+   case ROM_DOWNLOAD_ZIP:
+      {
+         // zip解压后最终目录是，两个文件名的目录
+         // 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+         char filename_buf[256] = {0};
+         strlcpy(filename_buf, basename, sizeof(filename_buf));
+         char *filename = path_remove_extension(filename_buf);
+         strlcpy(new_basename, filename, sizeof(new_basename));
+         strlcat(new_basename, ".zip", sizeof(new_basename));
+         task_push_rom_download_multi(pHandle, iszip, new_basename);
+         pHandle->download_status = ROM_DOWNLOAD_P7Z;
+      }
+      break;
+   case ROM_DOWNLOAD_P7Z:
+      {
+         // p7z解压后最终目录是，两个文件名的目录
+         // 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+         char filename_buf[256] = {0};
+         strlcpy(filename_buf, basename, sizeof(filename_buf));
+         char *filename = path_remove_extension(filename_buf);
+         strlcpy(new_basename, filename, sizeof(new_basename));
+         strlcat(new_basename, ".7z", sizeof(new_basename));
+         task_push_rom_download_multi(pHandle, iszip, new_basename);
+         pHandle->download_status = ROM_DOWNLOAD_END;
+      }
+   case ROM_DOWNLOAD_END:
+   default:
+      break;
+   }
+   return;
 
 task_finished:
-	if (task)
-		task_set_finished(task, true);
+   if (task)
+      task_set_finished(task, true);
 
-	free_rom_download_handle(pHandle);
+   free_rom_download_handle(pHandle);
 }
 
 static bool task_rom_download_finder(retro_task_t *task, void *user_data)
 {
-	if (!task || !user_data)
-		return false;
+   if (!task || !user_data)
+      return false;
 
-	if (task->handler != task_rom_download_handler)
-		return false;
+   if (task->handler != task_rom_download_handler)
+      return false;
 
-	rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
-	if (!pHandle)
-		return false;
+   rom_download_handle_t *pHandle = (rom_download_handle_t*)task->state;
+   if (!pHandle)
+      return false;
 
-	return string_is_equal((const char*)user_data, pHandle->rom_path);
+   return string_is_equal((const char*)user_data, pHandle->rom_path);
 }
 
 bool task_push_pl_entry_rom_download(
@@ -778,101 +791,101 @@ bool task_push_pl_entry_rom_download(
       bool overwrite,
       bool mute)
 {
-	RARCH_LOG("task_push_pl_entry_rom_download start\n");
-	settings_t *settings = config_get_ptr();
-	if (!settings)
-		return false;
+   RARCH_LOG("task_push_pl_entry_rom_download start\n");
+   settings_t *settings = config_get_ptr();
+   if (!settings)
+      return false;
 
-	/* Sanity check */
-	if (!playlist)
-		return false;
+   /* Sanity check */
+   if (!playlist)
+      return false;
 
-	if (string_is_empty(system))
-		return false;
+   if (string_is_empty(system))
+      return false;
 
-	if (idx >= playlist_size(playlist))
-		return false;
+   if (idx >= playlist_size(playlist))
+      return false;
 
-	/* Only parse supported playlist types */
-	if (string_is_equal(system, "images_history") ||
-		string_is_equal(system, "music_history") ||
-		string_is_equal(system, "video_history"))
-		return false;
+   /* Only parse supported playlist types */
+   if (string_is_equal(system, "images_history") ||
+      string_is_equal(system, "music_history") ||
+      string_is_equal(system, "video_history"))
+      return false;
 
-	struct playlist_entry *p_playlist_entry = NULL;
-	playlist_get_index(playlist, idx, &p_playlist_entry);
-	if (p_playlist_entry == NULL)
-	{
-		return false;
-	}
+   struct playlist_entry *p_playlist_entry = NULL;
+   playlist_get_index(playlist, idx, &p_playlist_entry);
+   if (p_playlist_entry == NULL)
+   {
+      return false;
+   }
 
-	char real_rom_path[1024] = {0};
-	playlist_get_exist_rom_path(p_playlist_entry, real_rom_path, sizeof(real_rom_path));
-	RARCH_LOG("task_push_pl_entry_rom_download log path: %s, real_rom_path: %s\n",
-		p_playlist_entry->path, real_rom_path);
+   char real_rom_path[1024] = {0};
+   playlist_get_exist_rom_path(p_playlist_entry, real_rom_path, sizeof(real_rom_path));
+   RARCH_LOG("task_push_pl_entry_rom_download log path: %s, real_rom_path: %s\n",
+      p_playlist_entry->path, real_rom_path);
 
-	// 如果文件存在，就不需要再下载
-	if (path_is_valid(real_rom_path))
-	{
-		succ_msg_queue_push("游戏已下载");
-		return true;
-	}
+   // 如果文件存在，就不需要再下载
+   if (path_is_valid(real_rom_path))
+   {
+      succ_msg_queue_push("游戏已下载");
+      return true;
+   }
 
-	// 一些常量初始化
-	char db_name[1024] = {0};
-	strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
-	char *system_name = path_remove_extension(db_name);
-	char *basename = path_basename(p_playlist_entry->path);
-	char url_query[1024] = {0};
-	clac_retrogame_allinone_sign(url_query, sizeof(url_query));
+   // 一些常量初始化
+   char db_name[1024] = {0};
+   strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
+   char *system_name = path_remove_extension(db_name);
+   char *basename = path_basename(p_playlist_entry->path);
+   char url_query[1024] = {0};
+   clac_retrogame_allinone_sign(url_query, sizeof(url_query));
 
-	// 获取本地文件地址
-	char tmp_buf[1024] = {0};
-	char local_rom_path[1024] = {0};
-	fill_pathname_join(tmp_buf, settings->paths.directory_core_assets, system_name, sizeof(tmp_buf));
-	if (!path_is_valid(tmp_buf))
-	{
-		path_mkdir(tmp_buf);
-	}
+   // 获取本地文件地址
+   char tmp_buf[1024] = {0};
+   char local_rom_path[1024] = {0};
+   fill_pathname_join(tmp_buf, settings->paths.directory_core_assets, system_name, sizeof(tmp_buf));
+   if (!path_is_valid(tmp_buf))
+   {
+      path_mkdir(tmp_buf);
+   }
 
-	// 如果扩展名是.cue，需要去下载mgzip包，并解压到子文件夹
-	bool iszip = false;
-	char new_basename[256] = {0};
-	if (strcmp(path_get_extension(basename), "cue") == 0)
-	{
-		// mgzip解压后最终目录是，两个文件名的目录
-		// 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
-		char filename_buf[256] = {0};
-		strlcpy(filename_buf, basename, sizeof(filename_buf));
-		char *filename = path_remove_extension(filename_buf);
-		strlcpy(new_basename, filename, sizeof(new_basename));
-		strlcat(new_basename, ".zip", sizeof(new_basename));
-		iszip = true;
-	}
-	else
-	{
-		strlcpy(new_basename, basename, sizeof(new_basename));
-	}
-	fill_pathname_join(local_rom_path, tmp_buf, new_basename, sizeof(local_rom_path));
-	RARCH_LOG("task_push_pl_entry_rom_download log info. basename: %s, system_name: %s, local_rom_path: %s\n",
-		basename, system_name, local_rom_path);
+   // 如果扩展名是.cue，需要去下载mgzip包，并解压到子文件夹
+   bool iszip = false;
+   char new_basename[256] = {0};
+   if (strcmp(path_get_extension(basename), "cue") == 0)
+   {
+      // mgzip解压后最终目录是，两个文件名的目录
+      // 例如PCECD游戏hero.cue，则最终目录是downloads/PCECD/hero/hero.cue
+      char filename_buf[256] = {0};
+      strlcpy(filename_buf, basename, sizeof(filename_buf));
+      char *filename = path_remove_extension(filename_buf);
+      strlcpy(new_basename, filename, sizeof(new_basename));
+      strlcat(new_basename, ".zip", sizeof(new_basename));
+      iszip = true;
+   }
+   else
+   {
+      strlcpy(new_basename, basename, sizeof(new_basename));
+   }
+   fill_pathname_join(local_rom_path, tmp_buf, new_basename, sizeof(local_rom_path));
+   RARCH_LOG("task_push_pl_entry_rom_download log info. basename: %s, system_name: %s, local_rom_path: %s\n",
+      basename, system_name, local_rom_path);
 
-	// 获取正常rom下载地址
-	char raw_url[1024] = {0};
-	strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
-	strlcat(raw_url, "/", sizeof(raw_url));
-	strlcat(raw_url, system_name, sizeof(raw_url));
-	strlcat(raw_url, "/", sizeof(raw_url));
-	strlcat(raw_url, new_basename, sizeof(raw_url));
-	strlcat(raw_url, "?", sizeof(raw_url));
-	strlcat(raw_url, url_query, sizeof(raw_url));
-	if (!string_is_empty(raw_url))
-	{
-		RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
-			iszip, new_basename, system_name, local_rom_path, raw_url);
-		task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
-	}
-	return true;
+   // 获取正常rom下载地址
+   char raw_url[1024] = {0};
+   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+   strlcat(raw_url, "/", sizeof(raw_url));
+   strlcat(raw_url, system_name, sizeof(raw_url));
+   strlcat(raw_url, "/", sizeof(raw_url));
+   strlcat(raw_url, new_basename, sizeof(raw_url));
+   strlcat(raw_url, "?", sizeof(raw_url));
+   strlcat(raw_url, url_query, sizeof(raw_url));
+   if (!string_is_empty(raw_url))
+   {
+      RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
+         iszip, new_basename, system_name, local_rom_path, raw_url);
+      task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
+   }
+   return true;
 }
 
 bool task_push_pl_entry_rom_download_new_with_p7z(
@@ -920,36 +933,36 @@ bool task_push_pl_entry_rom_download_new_with_p7z(
    {
       succ_msg_queue_push("游戏已下载");
       return true;
-	}
+   }
 
-	// 分配任务上下文
-	rom_download_handle_t *pHandle = (rom_download_handle_t*)malloc(sizeof(rom_download_handle_t));
-	if (!pHandle)
-	{
-		error_msg_queue_push("分配任务上下文失败：%s", real_rom_path);
-		goto error;
-	}
+   // 分配任务上下文
+   rom_download_handle_t *pHandle = (rom_download_handle_t*)malloc(sizeof(rom_download_handle_t));
+   if (!pHandle)
+   {
+      error_msg_queue_push("分配任务上下文失败：%s", real_rom_path);
+      goto error;
+   }
 
-	// 获取该文件下载目录
-	char download_dir[1024] = {0};
-	char local_rom_path[1024] = {0};
-	fill_pathname_join(download_dir, settings->paths.directory_core_assets, system, sizeof(download_dir));
-	if (!path_is_valid(download_dir))
-	{
-		path_mkdir(download_dir);
-	}
+   // 获取该文件下载目录
+   char download_dir[1024] = {0};
+   char local_rom_path[1024] = {0};
+   fill_pathname_join(download_dir, settings->paths.directory_core_assets, system, sizeof(download_dir));
+   if (!path_is_valid(download_dir))
+   {
+      path_mkdir(download_dir);
+   }
 
-	// 获取rom列表上的系统名
-	char db_name[1024] = {0};
-	strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
-	char *system_name = path_remove_extension(db_name);
+   // 获取rom列表上的系统名
+   char db_name[1024] = {0};
+   strlcpy(db_name, p_playlist_entry->db_name, sizeof(db_name));
+   char *system_name = path_remove_extension(db_name);
 
-	strncpy(pHandle->rom_path, real_rom_path, sizeof(pHandle->rom_path));
-	strncpy(pHandle->download_dir, download_dir, sizeof(pHandle->download_dir));
-	strncpy(pHandle->label, p_playlist_entry->label, sizeof(pHandle->label));
-	strncpy(pHandle->system, system_name, sizeof(pHandle->system));
-	pHandle->http_task = NULL;
-	pHandle->download_status = ROM_DOWNLOAD_BEGIN;
+   strncpy(pHandle->rom_path, real_rom_path, sizeof(pHandle->rom_path));
+   strncpy(pHandle->download_dir, download_dir, sizeof(pHandle->download_dir));
+   strncpy(pHandle->label, p_playlist_entry->label, sizeof(pHandle->label));
+   strncpy(pHandle->system, system_name, sizeof(pHandle->system));
+   pHandle->http_task = NULL;
+   pHandle->download_status = ROM_DOWNLOAD_BEGIN;
 
    // 后台任务变量
    task_finder_data_t find_data;
@@ -973,12 +986,12 @@ bool task_push_pl_entry_rom_download_new_with_p7z(
 
 error:
    if (task)
-	{
-		if (task->title)
-		{
-			free(task->title);
-			task->title = NULL;
-		}
+   {
+      if (task->title)
+      {
+         free(task->title);
+         task->title = NULL;
+      }
 
       free(task);
       task = NULL;
@@ -992,264 +1005,264 @@ error:
    return false;
 }
 
-static void free_yun_save_rom_state_handle(yun_save_rom_state_handle_t *ysrsh)
-{
-	if (!ysrsh)
-		return;
-
-	if (ysrsh->save_state_buf)
-	{
-		free(ysrsh->save_state_buf);
-		ysrsh->save_state_buf = NULL;
-	}
-
-	free(ysrsh);
-	ysrsh = NULL;
-}
-
 void upload_yun_save_state_fragment_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
 {
-	RARCH_LOG("upload_yun_save_state_fragment_cb begin\n");
-	http_transfer_data_t *data = (http_transfer_data_t*)task_data;
-	yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t *)user_data;
-	char status[1024] = {0};
-	char message[1024] = {0};
-	char errmsg[1024] = {0};
+   RARCH_LOG("upload_yun_save_state_fragment_cb begin\n");
+   http_transfer_data_t *data = (http_transfer_data_t*)task_data;
+   yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t *)user_data;
+   char status[1024] = {0};
+   char message[1024] = {0};
+   char errmsg[1024] = {0};
 
-	// 遍历json的变量
-	char* body_copy                   = NULL;
-	char curr                         = 0;
-	int i                             = 0;
-	int start                         = -1;
-	char* found_string                = NULL;
-	int curr_state                    = 0;
+   // 遍历json的变量
+   char* body_copy                   = NULL;
+   char curr                         = 0;
+   int i                             = 0;
+   int start                         = -1;
+   char* found_string                = NULL;
+   int curr_state                    = 0;
 
-	if (!data || error || !ysrsh)
-		goto finish;
+   if (!data || error || !ysrsh)
+      goto finish;
 
-	data->data = (char*)realloc(data->data, data->len + 1);
-	if (!data->data)
-		goto finish;
+   data->data = (char*)realloc(data->data, data->len + 1);
+   if (!data->data)
+      goto finish;
 
-	data->data[data->len] = '\0';
+   data->data[data->len] = '\0';
 
-	/* Parse JSON body for the image and sound data */
-	body_copy = strdup(data->data);
-	while (true)
-	{
-		curr = (char)*(body_copy+i);
-		if (curr == '\0')
-			break;
-		if (curr == '\"')
-		{
-			if (start == -1)
-				start = i;
-			else
-			{
-				found_string = (char*)malloc(i-start);
-				strncpy(found_string, body_copy+start+1, i-start-1);
-				*(found_string+i-start-1) = '\0';
-				if (curr_state == 1)
-				{
-					strncpy(status, found_string, sizeof(status));
-					curr_state = 0;
-				}
-				else if (curr_state == 2)
-				{
-					strncpy(message, found_string, sizeof(message));
-					curr_state = 0;
-				}
-				else if (strcmp(found_string, "status")==0)
-				{
-					curr_state = 1;
-					free(found_string);
-				}
-				else if (strcmp(found_string, "message")==0)
-				{
-					curr_state = 2;
-					free(found_string);
-				}
-				else
-					curr_state = 0;
-				start = -1;
-			}
-		}
-		i++;
-	}
+   /* Parse JSON body for the image and sound data */
+   body_copy = strdup(data->data);
+   while (true)
+   {
+      curr = (char)*(body_copy+i);
+      if (curr == '\0')
+         break;
+      if (curr == '\"')
+      {
+         if (start == -1)
+            start = i;
+         else
+         {
+            found_string = (char*)malloc(i-start);
+            strncpy(found_string, body_copy+start+1, i-start-1);
+            *(found_string+i-start-1) = '\0';
+            if (curr_state == 1)
+            {
+               strncpy(status, found_string, sizeof(status) - 1);
+               curr_state = 0;
+            }
+            else if (curr_state == 2)
+            {
+               strncpy(message, found_string, sizeof(message) - 1);
+               curr_state = 0;
+            }
+            else if (strcmp(found_string, "status")==0)
+            {
+               curr_state = 1;
+               free(found_string);
+            }
+            else if (strcmp(found_string, "message")==0)
+            {
+               curr_state = 2;
+               free(found_string);
+            }
+            else
+               curr_state = 0;
+            start = -1;
+         }
+      }
+      i++;
+   }
 
-	if (found_string)
-		free(found_string);
+   if (found_string)
+      free(found_string);
 
-	if (strcmp(status, "SUCCESS") == 0)
-	{
-		// snprintf(errmsg, sizeof(errmsg), "云存档成功");
-		// runloop_msg_queue_push(errmsg, 2, 180, true,
-		// 	NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
-		ysrsh->uploaded_file_size = ysrsh->uploaded_file_size + ysrsh->fragment_buf_size;
-		ysrsh->seq++;
-		RARCH_LOG("upload_yun_save_state_fragment_cb succ. path: %s, next_seq: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
-			ysrsh->save_state_path, ysrsh->seq, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
-	}
-	else
-	{
-		snprintf(errmsg, sizeof(errmsg), "云存档失败，服务器错误信息为：%s", message);
-		runloop_msg_queue_push(errmsg, 2, 180, true,
-			NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
-		// 上传接口出错，需要释放hander
-		ysrsh->only_fragment_failed = true;
-	}
+   if (strcmp(status, "SUCCESS") == 0)
+   {
+      // snprintf(errmsg, sizeof(errmsg), "云存档成功");
+      // runloop_msg_queue_push(errmsg, 2, 180, true,
+      //    NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
+      ysrsh->uploaded_file_size = ysrsh->uploaded_file_size + ysrsh->fragment_buf_size;
+      ysrsh->seq++;
+      RARCH_LOG("upload_yun_save_state_fragment_cb succ. path: %s, next_seq: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
+         ysrsh->save_state_path, ysrsh->seq, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
+   }
+   else
+   {
+      snprintf(errmsg, sizeof(errmsg), "云存档失败，服务器错误信息为：%s", message);
+      runloop_msg_queue_push(errmsg, 2, 180, true,
+         NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+      // 上传接口出错，需要释放hander
+      ysrsh->only_fragment_failed = true;
+   }
 
 finish:
-	if (error)
-		RARCH_ERR("%s: %s\n", msg_hash_to_str(MSG_DOWNLOAD_FAILED), error);
+   if (error)
+      RARCH_ERR("%s: %s\n", msg_hash_to_str(MSG_DOWNLOAD_FAILED), error);
 
-	if (data)
-	{
-		if (data->data)
-			free(data->data);
-		free(data);
-	}
+   if (data)
+   {
+      if (data->data)
+         free(data->data);
+      free(data);
+   }
 
-	if (body_copy)
-		free(body_copy);
+   if (body_copy)
+      free(body_copy);
 }
 
 bool upload_yun_save_state_fragment(yun_save_rom_state_handle_t *ysrsh)
 {
-	if (!ysrsh)
-		return false;
+   if (!ysrsh)
+      return false;
 
-	if (ysrsh->uploaded_file_size >= ysrsh->save_state_buf_size)
-		return false;
+   if (ysrsh->uploaded_file_size >= ysrsh->save_state_buf_size)
+      return false;
 
-	const char show_errmsg[1024] = {0};
-	char *fragment_buf = ysrsh->save_state_buf + ysrsh->uploaded_file_size;
-	size_t fragment_buf_size = ysrsh->fragment_buf_size;
-	if (ysrsh->uploaded_file_size + ysrsh->fragment_buf_size > ysrsh->save_state_buf_size)
-	{
-		// 剩余未上传内容不足ysrsh->uploaded_file_size，则只上传剩余内容
-		fragment_buf_size = ysrsh->save_state_buf_size - ysrsh->uploaded_file_size;
-	}
-	RARCH_LOG("upload_yun_save_state_fragment log init info."
-		" fragment_buf_size: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
-		fragment_buf_size, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
+   const char show_errmsg[1024] = {0};
+   char *fragment_buf = ysrsh->save_state_buf + ysrsh->uploaded_file_size;
+   size_t fragment_buf_size = ysrsh->fragment_buf_size;
+   if (ysrsh->uploaded_file_size + ysrsh->fragment_buf_size > ysrsh->save_state_buf_size)
+   {
+      // 剩余未上传内容不足ysrsh->uploaded_file_size，则只上传剩余内容
+      fragment_buf_size = ysrsh->save_state_buf_size - ysrsh->uploaded_file_size;
+   }
+   RARCH_LOG("upload_yun_save_state_fragment log init info."
+      " fragment_buf_size: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
+      fragment_buf_size, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
 
 #ifdef HAVE_LIBNX
-	// switch libnx 如果多调用几个malloc，会崩溃，不知道是什么问题，这里用特殊逻辑计算base64
-	int b64_file_buf_len = 0;
-	char *b64_file_buf = NULL;
-	{
-		//定义base64编码表
-		const char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+   // switch libnx 如果多调用几个malloc，会崩溃，不知道是什么问题，这里用特殊逻辑计算base64
+   int b64_file_buf_len = 0;
+   char *b64_file_buf = NULL;
+   {
+      //定义base64编码表
+      const char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-		//计算经过base64编码后的字符串长度
-		int str_len = fragment_buf_size;
-		const char *str = fragment_buf;
-		int len = 0;
-		if(str_len % 3 == 0)
-			len = str_len/3*4;
-		else
-			len = (str_len/3+1)*4;
+      //计算经过base64编码后的字符串长度
+      int str_len = fragment_buf_size;
+      const char *str = fragment_buf;
+      int len = 0;
+      if(str_len % 3 == 0)
+         len = str_len/3*4;
+      else
+         len = (str_len/3+1)*4;
 
-		char *res = (char *)malloc(len + 1);
-		res[len] = '\0';
+      char *res = (char *)malloc(len + 1);
+      res[len] = '\0';
 
-		//以3个8位字符为一组进行编码
-		int i = 0, j = 0;
-		for(i = 0, j = 0; i < len - 2; j += 3, i += 4)
-		{
-			res[i] = base64_table[str[j]>>2]; //取出第一个字符的前6位并找出对应的结果字符
-			res[i+1] = base64_table[(str[j]&0x3)<<4 | (str[j+1]>>4)]; //将第一个字符的后位与第二个字符的前4位进行组合并找到对应的结果字符
-			res[i+2] = base64_table[(str[j+1]&0xf)<<2 | (str[j+2]>>6)]; //将第二个字符的后4位与第三个字符的前2位组合并找出对应的结果字符
-			res[i+3] = base64_table[str[j+2]&0x3f]; //取出第三个字符的后6位并找出结果字符
-		}
+      //以3个8位字符为一组进行编码
+      int i = 0, j = 0;
+      for(i = 0, j = 0; i < len - 2; j += 3, i += 4)
+      {
+         res[i] = base64_table[str[j]>>2]; //取出第一个字符的前6位并找出对应的结果字符
+         res[i+1] = base64_table[(str[j]&0x3)<<4 | (str[j+1]>>4)]; //将第一个字符的后位与第二个字符的前4位进行组合并找到对应的结果字符
+         res[i+2] = base64_table[(str[j+1]&0xf)<<2 | (str[j+2]>>6)]; //将第二个字符的后4位与第三个字符的前2位组合并找出对应的结果字符
+         res[i+3] = base64_table[str[j+2]&0x3f]; //取出第三个字符的后6位并找出结果字符
+      }
 
-		switch(str_len % 3)
-		{
-		case 1:
-			res[i - 2] = '=';
-			res[i - 1] = '=';
-			break;
-		case 2:
-			res[i - 1] = '=';
-			break;
-		}
+      switch(str_len % 3)
+      {
+      case 1:
+         res[i - 2] = '=';
+         res[i - 1] = '=';
+         break;
+      case 2:
+         res[i - 1] = '=';
+         break;
+      }
 
-		b64_file_buf = res;
-		b64_file_buf_len = len;
-		// RARCH_LOG("upload_yun_save_state_fragment log base64. b64_file_buf_len: %u, i: %u, b64_file_buf: %s\n",
-		// 	b64_file_buf_len, i, b64_file_buf);
-	}
+      b64_file_buf = res;
+      b64_file_buf_len = len;
+      // RARCH_LOG("upload_yun_save_state_fragment log base64. b64_file_buf_len: %u, i: %u, b64_file_buf: %s\n",
+      //    b64_file_buf_len, i, b64_file_buf);
+   }
 #else
-	int b64_file_buf_len = 0;
-	char *b64_file_buf = base64(fragment_buf, (int)fragment_buf_size, &b64_file_buf_len);
-	if (NULL == b64_file_buf || b64_file_buf_len == 0)
-	{
-		RARCH_LOG("upload_yun_save_state_fragment base64 failed.\n");
-		return false;
-	}
+   int b64_file_buf_len = 0;
+   char *b64_file_buf = base64(fragment_buf, (int)fragment_buf_size, &b64_file_buf_len);
+   if (NULL == b64_file_buf || b64_file_buf_len == 0)
+   {
+      RARCH_LOG("upload_yun_save_state_fragment base64 failed.\n");
+      return false;
+   }
 #endif
 
-	// 计算存档MD5保证存档是正确的
-	char fragment_buf_md5[64] = {0};
-	md5_hexdigest(fragment_buf, fragment_buf_size, fragment_buf_md5, sizeof(fragment_buf_md5));
-	const char *savename = path_basename(ysrsh->save_state_path);
-	char save_state_url[1024] = {0};
-	cpyYunSaveStateFragmentUrl(savename, ysrsh->save_state_buf_md5, ysrsh->seq, fragment_buf_md5, save_state_url, sizeof(save_state_url));
-	RARCH_LOG("upload_yun_save_state_fragment log info. "
-		"url: %s, save_state_buf_md5: %s, seq: %u"
-		", fragment_buf_md5: %s, fragment_buf_size: %u, b64_len: %u, uploaded_file_size: %u\n",
-		save_state_url, ysrsh->save_state_buf_md5, ysrsh->seq,
-		fragment_buf_md5, fragment_buf_size, b64_file_buf_len, ysrsh->uploaded_file_size);
-	ysrsh->http_task = (retro_task_t*)task_push_http_post_transfer(
-		save_state_url, b64_file_buf, true, NULL, upload_yun_save_state_fragment_cb, ysrsh);
-	free(b64_file_buf);
-	return true;
+   // 计算存档MD5保证存档是正确的
+   char fragment_buf_md5[64] = {0};
+   md5_hexdigest(fragment_buf, fragment_buf_size, fragment_buf_md5, sizeof(fragment_buf_md5));
+   const char *savename = path_basename(ysrsh->save_state_path);
+   char save_state_url[1024] = {0};
+   cpyYunSaveStateFragmentUrl(savename, ysrsh->save_state_buf_md5, ysrsh->seq, fragment_buf_md5, save_state_url, sizeof(save_state_url));
+   RARCH_LOG("upload_yun_save_state_fragment log info. "
+      "url: %s, save_state_buf_md5: %s, seq: %u"
+      ", fragment_buf_md5: %s, fragment_buf_size: %u, b64_len: %u, uploaded_file_size: %u\n",
+      save_state_url, ysrsh->save_state_buf_md5, ysrsh->seq,
+      fragment_buf_md5, fragment_buf_size, b64_file_buf_len, ysrsh->uploaded_file_size);
+   ysrsh->http_task = (retro_task_t*)task_push_http_post_transfer(
+      save_state_url, b64_file_buf, true, NULL, upload_yun_save_state_fragment_cb, ysrsh);
+   free(b64_file_buf);
+   return true;
+}
+
+static void task_push_yun_save_rom_state_handle_free(yun_save_rom_state_handle_t *ysrsh)
+{
+   if (!ysrsh)
+      return;
+
+   if (ysrsh->save_state_buf)
+   {
+      free(ysrsh->save_state_buf);
+      ysrsh->save_state_buf = NULL;
+   }
+
+   free(ysrsh);
+   ysrsh = NULL;
 }
 
 static void task_push_yun_save_rom_state_handler(retro_task_t *task)
 {
-	if (!task)
-		goto task_finished;
+   if (!task)
+      goto task_finished;
 
-	if (task_get_cancelled(task))
-		goto task_finished;
+   if (task_get_cancelled(task))
+      goto task_finished;
 
-	yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t*)task->state;
-	if (!ysrsh)
-		goto task_finished;
+   yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t*)task->state;
+   if (!ysrsh)
+      goto task_finished;
 
-	// 任意片段上传错误，认为上传失败
-	if (ysrsh->only_fragment_failed)
-		goto task_finished;
+   // 任意片段上传错误，认为上传失败
+   if (ysrsh->only_fragment_failed)
+      goto task_finished;
 
-	// 确保只有一个http任务在执行
-	if (ysrsh->http_task && !task_get_finished(ysrsh->http_task))
-	{
-		return;
-	}
+   // 确保只有一个http任务在执行
+   if (ysrsh->http_task && !task_get_finished(ysrsh->http_task))
+   {
+      return;
+   }
 
-	RARCH_LOG("task_push_yun_save_rom_state_handler log info. path: %s, seq: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
-		ysrsh->save_state_path, ysrsh->seq, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
-	// 如果上传内容没有完成，继续开启http任务上传
-	if (ysrsh->uploaded_file_size < ysrsh->save_state_buf_size)
-	{
-		// 发起新上传存档请求
-		upload_yun_save_state_fragment(ysrsh);
-		task_set_progress(task, (ysrsh->uploaded_file_size * 100) / ysrsh->save_state_buf_size);
-		return;
-	}
+   RARCH_LOG("task_push_yun_save_rom_state_handler log info. path: %s, seq: %u, uploaded_file_size: %u, save_state_buf_size: %u\n",
+      ysrsh->save_state_path, ysrsh->seq, ysrsh->uploaded_file_size, ysrsh->save_state_buf_size);
+   // 如果上传内容没有完成，继续开启http任务上传
+   if (ysrsh->uploaded_file_size < ysrsh->save_state_buf_size)
+   {
+      // 发起新上传存档请求
+      upload_yun_save_state_fragment(ysrsh);
+      task_set_progress(task, (ysrsh->uploaded_file_size * 100) / ysrsh->save_state_buf_size);
+      return;
+   }
 
-	task_set_progress(task, 100);
-	runloop_msg_queue_push("保存云存档成功", 2, 180, true,
-		NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
-	goto task_finished;
+   task_set_progress(task, 100);
+   runloop_msg_queue_push("保存云存档成功", 2, 180, true,
+      NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
+   goto task_finished;
 
-task_finished:
-	if (task)
-		task_set_finished(task, true);
+task_finished:   
+   if (task)
+      task_set_finished(task, true);
 
-	free_yun_save_rom_state_handle(ysrsh);
+   task_push_yun_save_rom_state_handle_free(ysrsh);
 }
 
 static bool task_push_yun_save_rom_state_finder(retro_task_t *task, void *user_data)
@@ -1284,18 +1297,18 @@ bool task_push_yun_save_rom_state(char *path)
    int64_t save_state_buf_size = 0;
    if (!path_is_valid(path))
    {
-		snprintf(show_errmsg, sizeof(show_errmsg), "存档文件无效：%s", path);
-		goto error;
+      snprintf(show_errmsg, sizeof(show_errmsg), "存档文件无效：%s", path);
+      goto error;
    }
 
    filestream_read_file(path, (void**)&save_state_buf, &save_state_buf_size);
    if (string_is_empty(save_state_buf) || save_state_buf_size == 0)
    {
-		snprintf(show_errmsg, sizeof(show_errmsg), "读取存档文件失败：%s", path);
-		goto error;
-	}
-	char save_state_buf_md5[64] = {0};
-	md5_hexdigest(save_state_buf, save_state_buf_size, save_state_buf_md5, sizeof(save_state_buf_md5));
+      snprintf(show_errmsg, sizeof(show_errmsg), "读取存档文件失败：%s", path);
+      goto error;
+   }
+   char save_state_buf_md5[64] = {0};
+   md5_hexdigest(save_state_buf, save_state_buf_size, save_state_buf_md5, sizeof(save_state_buf_md5));
 
    // 后台任务变量
    task_finder_data_t find_data;
@@ -1315,15 +1328,15 @@ bool task_push_yun_save_rom_state(char *path)
       snprintf(show_errmsg, sizeof(show_errmsg), "分配任务上下文失败：%s", path);
       goto error;
    }
-	strncpy(ysrsh->save_state_path, path, sizeof(ysrsh->save_state_path));
-	strncpy(ysrsh->save_state_buf_md5, save_state_buf_md5, sizeof(ysrsh->save_state_buf_md5));
+   strncpy(ysrsh->save_state_path, path, sizeof(ysrsh->save_state_path) - 1);
+   strncpy(ysrsh->save_state_buf_md5, save_state_buf_md5, sizeof(ysrsh->save_state_buf_md5) - 1);
    ysrsh->save_state_buf = save_state_buf;
    ysrsh->save_state_buf_size = save_state_buf_size;
    ysrsh->uploaded_file_size = 0;
    ysrsh->seq = 0;
-	ysrsh->only_fragment_failed = false;
-	ysrsh->http_task = NULL;
-	ysrsh->fragment_buf_size = 100*1024;
+   ysrsh->only_fragment_failed = false;
+   ysrsh->http_task = NULL;
+   ysrsh->fragment_buf_size = 100*1024;
 
    /* Configure task */
    task->handler                 = task_push_yun_save_rom_state_handler;
@@ -1359,3 +1372,341 @@ error:
    }
    return false;
 }
+
+
+void task_push_pl_entry_get_ext_game_info_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
+{
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb bgein. error: %s\n", error);
+
+   http_transfer_data_t *data         = (http_transfer_data_t*)task_data;
+   file_transfer_t *file_transfer     = (file_transfer_t *)user_data;
+   char status[1024]                  = {0};
+   char message[1024]                 = {0};
+   char has_achievements[1024]        = {0};
+   char errmsg[1024]                  = {0};
+
+   // 遍历json的变量
+   char* body_copy                   = NULL;
+   char curr                         = 0;
+   int i                             = 0;
+   int start                         = -1;
+   char* found_string                = NULL;
+   int curr_state                    = 0;
+
+   if (!data || error)
+      goto finish;
+
+   if (!file_transfer)
+      goto finish;
+
+   data->data = (char*)realloc(data->data, data->len + 1);
+   if (!data->data)
+      goto finish;
+
+   data->data[data->len] = '\0';
+
+   /* Parse JSON body for the image and sound data */
+   body_copy = strdup(data->data);
+   while (true)
+   {
+      curr = (char)*(body_copy+i);
+      if (curr == '\0')
+          break;
+      if (curr == '\"')
+      {
+         if (start == -1)
+            start = i;
+         else
+         {
+            found_string = (char*)malloc(i-start);
+            strncpy(found_string, body_copy+start+1, i-start-1);
+            *(found_string+i-start-1) = '\0';
+            if (curr_state == 1)
+            {
+               strncpy(status, found_string, sizeof(status) - 1);
+               curr_state = 0;
+            }
+            else if (curr_state == 2)
+            {
+               strncpy(message, found_string, sizeof(message) - 1);
+               curr_state = 0;
+            }
+            else if (curr_state == 3)
+            {
+               strncpy(has_achievements, found_string, sizeof(has_achievements) - 1);
+               curr_state = 0;
+            }
+            else if (strcmp(found_string, "status")==0)
+            {
+              curr_state = 1;
+              free(found_string);
+            }
+            else if (strcmp(found_string, "message")==0)
+            {
+              curr_state = 2;
+              free(found_string);
+            }
+            else if (strcmp(found_string, "has_achievements")==0)
+            {
+              curr_state = 3;
+              free(found_string);
+            }
+            else
+              curr_state = 0;
+            start = -1;
+         }
+      }
+      i++;
+   }
+
+   if (found_string)
+      free(found_string);
+
+   if (body_copy)
+      free(body_copy);
+
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result. "
+      "status: %s, message: %s, has_achievements: %s\n",
+      status, message, has_achievements);
+
+   if (strcmp(status, "SUCCESS") != 0)
+      goto finish;
+   
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result1. "
+      "status: %s, message: %s, has_achievements: %s\n",
+      status, message, has_achievements);
+   // 修改游戏信息
+   get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t *)file_transfer->user_data;
+   if (!handle)
+      goto finish;
+   
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result2. "
+      "selected: %u, playlist_size: %u\n",
+      handle->selected, playlist_size(handle->playlist));
+   if (handle->selected >= playlist_size(handle->playlist))
+      goto finish;
+   
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result3. "
+      "status: %s, message: %s, has_achievements: %s\n",
+      status, message, has_achievements);
+   struct playlist_entry *entry = NULL;
+   playlist_get_index(handle->playlist, handle->selected, &entry);
+   if (!entry)
+      goto finish;
+
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result4. "
+      "status: %s, message: %s, has_achievements: %s\n",
+      status, message, has_achievements);
+   if (0 == strcmp(has_achievements, "yes"))
+   {
+      succ_msg_queue_push("%s ☆☆有成就☆☆", entry->label);
+   }
+
+finish:
+   if (data)
+   {
+      if (data->data)
+      {
+         free(data->data);
+         data->data = NULL;
+      }
+      free(data);
+      data = NULL;
+   }
+
+   if (file_transfer)
+   {
+      free(file_transfer);
+      file_transfer = NULL;
+   }
+}
+
+static void task_push_pl_entry_get_ext_game_info_handle_free(get_ext_game_info_handle_t *handle)
+{
+   if (!handle)
+      return;
+
+   free(handle);
+   handle = NULL;
+}
+
+static void task_push_pl_entry_get_ext_game_info_handler(retro_task_t *task)
+{
+   if (!task)
+   {
+      RARCH_LOG("task_push_pl_entry_get_ext_game_info_handler invalid task.\n");
+      goto task_finished;
+   }
+
+   if (task_get_cancelled(task))
+   {
+      RARCH_LOG("task_push_pl_entry_get_ext_game_info_handler task_get_cancelled.\n");
+      goto task_finished;
+   }
+
+   get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t*)task->state;
+   if (!handle)
+   {
+      RARCH_LOG("task_push_pl_entry_get_ext_game_info_handler invalid handle.\n");
+      goto task_finished;
+   }
+
+   // 确保只有一个http任务在执行
+   if (handle->http_task)
+   {
+      if (task_get_finished(handle->http_task))
+      {
+         RARCH_LOG("task_push_pl_entry_get_ext_game_info_handler http_task finished.\n");
+         goto task_finished;
+      }
+      return;
+   }
+
+   // 没有任务，创建一个新任务，获取正常rom下载地址
+   char url[2048] = {0};
+   snprintf(url, sizeof(url),
+      "%s/api/RetroGameWiki/extGameInfo?platform=%s&crc32=%s",
+      file_path_str(FILE_PATH_WIKI_API_URL), handle->system, handle->crc32);
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info log http transfer. url: %s\n", url);
+
+   // 新建的http任务，需要透传get_ext_game_info_handle_t
+   file_transfer_t *file_transfer = (file_transfer_t *)malloc(sizeof(file_transfer_t));
+   if (!file_transfer)
+      goto task_finished;
+   file_transfer->user_data = handle;
+   handle->http_task = task_push_http_transfer(url, true, NULL, task_push_pl_entry_get_ext_game_info_cb, file_transfer);
+   return;
+
+task_finished:
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_handler finished.\n");
+   if (task)
+   {
+      task_set_finished(task, true);
+   }
+   task_push_pl_entry_get_ext_game_info_handle_free(handle);
+}
+
+static bool task_push_pl_entry_get_ext_game_info_finder(retro_task_t *task, void *user_data)
+{
+   if (!task || !user_data)
+      return false;
+
+   if (task->handler != task_push_pl_entry_get_ext_game_info_handler)
+      return false;
+
+   if (!task->state)
+      return false;
+
+   get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t*)task->state;
+   if (!handle)
+      return false;
+
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info_finder bgein. user_data: %s, taskid: %s\n",
+      (const char*)user_data, handle->taskid);
+   return string_is_equal((const char*)user_data, handle->taskid);
+}
+
+bool task_push_pl_entry_get_ext_game_info(
+      const char *system,
+      playlist_t *playlist,
+      unsigned idx,
+      bool mute)
+{
+   settings_t *settings = config_get_ptr();
+   if (!settings)
+      return false;
+   
+   bool cheevos_enable = settings->bools.cheevos_enable;
+   RARCH_LOG("task_push_pl_entry_get_ext_game_info begin. "
+      "system: %s, cheevos_enable: %d, mute: %d\n",
+      system, cheevos_enable, mute);
+   
+   if (!cheevos_enable)
+      return true;
+   
+   if (!settings)
+      return false;
+
+   /* Sanity check */
+   if (!playlist)
+      return false;
+
+   if (string_is_empty(system))
+      return false;
+
+   if (idx >= playlist_size(playlist))
+      return false;
+
+   /* Only parse supported playlist types */
+   if (string_is_equal(system, "images_history") ||
+      string_is_equal(system, "music_history") ||
+      string_is_equal(system, "video_history"))
+      return false;
+
+   struct playlist_entry *entry = NULL;
+   playlist_get_index(playlist, idx, &entry);
+   if (!entry)
+      return false;
+   
+   char crc32[1024] = {0};
+   fill_pathname_base_noext(crc32, entry->path, sizeof(crc32));
+   
+   char system_name[1024] = {0};
+   fill_pathname_base_noext(system_name, entry->db_name, sizeof(system_name));
+
+   // 后台任务变量
+   task_finder_data_t find_data;
+   retro_task_t *task = task_init();
+
+   /* Concurrent download of thumbnails for the same
+    * playlist is not allowed */
+   char taskid[1024] = {0};
+   snprintf(taskid, sizeof(taskid), "%s_%s", system, crc32);
+   find_data.func                = task_push_pl_entry_get_ext_game_info_finder;
+   find_data.userdata            = (void*)strdup(taskid);
+   if (task_queue_find(&find_data))
+      goto error;
+
+   // 分配任务上下文
+   get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t*)malloc(sizeof(get_ext_game_info_handle_t));
+   if (!handle)
+      goto error;
+
+   handle->http_task = NULL; // 必须初始化位空，不然会导致崩溃
+   snprintf(handle->taskid, sizeof(handle->taskid), "%s", taskid);
+   snprintf(handle->system, sizeof(handle->system), "%s", system);
+   snprintf(handle->crc32, sizeof(handle->crc32), "%s", crc32);
+   handle->playlist = playlist;
+   handle->selected = idx;
+   
+   /* Configure task */
+   task->handler                 = task_push_pl_entry_get_ext_game_info_handler;
+   task->state                   = handle;
+   task->title                   = strdup(entry->label);
+   task->alternative_look        = true;
+   task->progress                = 0;
+   task->mute                    = true;
+   task_queue_push(task);
+   return true;
+
+error:
+   if (task && task->title)
+   {
+      free(task->title);
+      task->title = NULL;
+   }
+
+   if (task)
+   {
+      free(task);
+      task = NULL;
+   }
+
+   if (handle)
+   {
+      free(handle);
+      handle = NULL;
+   }
+   return false;
+}
+

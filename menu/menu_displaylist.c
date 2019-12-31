@@ -2325,10 +2325,10 @@ static int menu_displaylist_parse_horizontal_content_actions(
                msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS),
                MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
       }
-		menu_entries_append_enum(info->list,
-			msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM),
-			msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM),
-			MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
+      menu_entries_append_enum(info->list,
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM),
+         msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM),
+         MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
    }
 #endif
 

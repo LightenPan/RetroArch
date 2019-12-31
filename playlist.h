@@ -121,6 +121,7 @@ struct playlist_entry
    unsigned last_played_hour;
    unsigned last_played_minute;
    unsigned last_played_second;
+   bool has_chievements; // 标识这个游戏是否有成就
 };
 
 void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_t size);

@@ -1173,6 +1173,7 @@ static char buildbot_server_url[] = "";
 #endif
 
 static char buildbot_assets_server_url[] = "http://wekafei.cn/cdn/RetroGame/libretro/assets/";
+static char network_wiki_api_url[] = "http://wekafei.cn";
 
 static char default_discord_app_id[] = "475456035851599874";
 

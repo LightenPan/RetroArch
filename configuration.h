@@ -661,9 +661,10 @@ typedef struct settings
       char netplay_password[128];
       char netplay_spectate_password[128];
       char netplay_server[255];
-      char network_buildbot_url[255];
-		char network_buildbot_assets_url[255];
-		char network_buildbot_base_url[255];
+      char network_buildbot_url[255];  // 下载服务器信息
+      char network_buildbot_assets_url[255];  // 下载服务器信息
+      char network_buildbot_base_url[255]; // 下载服务器信息
+      char network_wiki_api_url[255]; // WIKI API地址
       char browse_url[4096];
       char path_stream_url[8192];
 

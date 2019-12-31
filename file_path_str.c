@@ -177,6 +177,18 @@ const char *file_path_str(enum file_path_enum enum_idx)
             }
          }
          break;
+      case FILE_PATH_WIKI_API_URL:
+         {
+            str = "http://wekafei.cn";
+            const settings_t *settings = config_get_ptr();
+            if (settings && !string_is_empty(settings->paths.network_wiki_api_url))
+            {
+               // 替换成基础地址，方便国外用户使用
+               char base_url[256] = "http://wekafei.cn";
+               str = strreplace(str, base_url, settings->paths.network_wiki_api_url);
+            }
+         }
+         break;
       case FILE_PATH_CORE_THUMBNAILPACKS_URL:
          str = "http://thumbnailpacks.libretro.com";
          break;

@@ -1204,6 +1204,7 @@ static struct config_path_setting *populate_settings_path(settings_t *settings, 
    SETTING_PATH("core_updater_buildbot_base_url", settings->paths.network_buildbot_base_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_cores_url", settings->paths.network_buildbot_url, false, NULL, true);
    SETTING_PATH("core_updater_buildbot_assets_url", settings->paths.network_buildbot_assets_url, false, NULL, true);
+   SETTING_PATH("core_updater_wiki_api_url", settings->paths.network_wiki_api_url, false, NULL, true); // wiki api地址
 
    // 替换成基础地址，方便国外用户使用
    char base_url[256] = "http://wekafei.cn/cdn/RetroGame/libretro";
@@ -2186,6 +2187,8 @@ void config_set_defaults(void *data)
          sizeof(settings->paths.network_buildbot_url));
    strlcpy(settings->paths.network_buildbot_assets_url, buildbot_assets_server_url,
          sizeof(settings->paths.network_buildbot_assets_url));
+   strlcpy(settings->paths.network_wiki_api_url, network_wiki_api_url,
+         sizeof(settings->paths.network_wiki_api_url)); // 初始化wiki api地址
 
    // 用配置的url替换下载url，可以在配置文件中使用香港的机器
    strreplace(settings->paths.network_buildbot_url,

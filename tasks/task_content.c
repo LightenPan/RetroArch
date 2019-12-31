@@ -1897,7 +1897,7 @@ bool task_push_load_content_with_new_core_from_menu(
    char show_label[1024] = {0};
    if (label && !string_is_empty(label))
    {
-      strncpy(show_label, label, sizeof(show_label));
+      strncpy(show_label, label, sizeof(show_label) - 1);
    }
 
    // 如果是从文件打开，这里需要使用pathname
@@ -1905,7 +1905,7 @@ bool task_push_load_content_with_new_core_from_menu(
       || !label)
    {
       char *bashename = path_basename(fullpath);
-      strncpy(show_label, bashename, sizeof(show_label));
+      strncpy(show_label, bashename, sizeof(show_label) - 1);
    }
 
    content_information_ctx_t content_ctx;

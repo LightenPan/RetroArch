@@ -4376,10 +4376,10 @@ static int action_ok_download_generic(const char *path,
          path = "assets.zip";
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
-         path = file_path_str(FILE_PATH_SYSTEMS_ZIP);
+         path = "systems.zip";
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
-         path = file_path_str(FILE_PATH_PLAYLISTS_ZIP);
+         path = "playlists.zip";
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          path = "autoconfig.zip";

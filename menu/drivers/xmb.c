@@ -1043,6 +1043,28 @@ static void xmb_update_thumbnail_image(void *data)
    }
 }
 
+// 从服务器获取游戏信息
+static void xmb_update_ext_game_info(void *data)
+{
+   xmb_handle_t *xmb     = (xmb_handle_t*)data;
+   size_t selection      = menu_navigation_get_selection();
+   playlist_t *playlist  = playlist_get_cached();
+
+   if (!xmb)
+      return;
+
+   if (!playlist)
+      return;
+
+   /* Trigger thumbnail download */
+   
+   char *system = NULL;
+   if (menu_thumbnail_get_system(xmb->thumbnail_path_data, &system))
+   {
+      task_push_pl_entry_get_ext_game_info(system, playlist, selection, true);
+   }
+}
+
 static unsigned xmb_get_system_tab(xmb_handle_t *xmb, unsigned i)
 {
    if (i <= xmb->system_tab_end)
@@ -1104,7 +1126,7 @@ static void xmb_set_horizontal_list_title(void *data, const char *path, const ch
       if (!strstr(item_path, file_path_str(FILE_PATH_LPL_EXTENSION)))
          continue;
 
-      char *basename = path_basename(path);
+      const char *basename = path_basename(path);
       if (strcmp(item_path, basename) != 0)
          continue;
 
@@ -1136,7 +1158,7 @@ static void xmb_set_horizontal_list_logo(void *data, const char *path, const cha
       if (!strstr(item_path, file_path_str(FILE_PATH_LPL_EXTENSION)))
          continue;
 
-      char *basename = path_basename(path);
+      const char *basename = path_basename(path);
       if (strcmp(item_path, basename) != 0)
          continue;
 
@@ -1444,11 +1466,19 @@ static void xmb_selection_pointer_changed(
                   menu_thumbnail_cancel_pending_requests();
                   menu_thumbnail_reset(&xmb->thumbnails.right);
                   menu_thumbnail_reset(&xmb->thumbnails.left);
+                  
                }
+            }
+            
+            // 如果是游戏列表，从服务器获取当前游戏列表的额外信息
+            if (xmb->is_playlist)
+            {
+               xmb_update_ext_game_info(xmb);
             }
 
             if (update_thumbnails)
                xmb_update_thumbnail_image(xmb);
+
          }
 
          xmb_update_savestate_thumbnail_path(xmb, i);
