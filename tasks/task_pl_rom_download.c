@@ -1640,7 +1640,9 @@ bool task_push_pl_entry_get_ext_game_info(
    /* Only parse supported playlist types */
    if (string_is_equal(system, "images_history") ||
       string_is_equal(system, "music_history") ||
-      string_is_equal(system, "video_history"))
+      string_is_equal(system, "video_history") ||
+      string_is_equal(system, "favorites") ||
+      string_is_equal(system, "history"))
       return false;
 
    struct playlist_entry *entry = NULL;
