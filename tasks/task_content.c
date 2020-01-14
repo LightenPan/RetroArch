@@ -1744,6 +1744,7 @@ bool task_push_load_content_from_playlist_from_menu(
    rarch_ctl(RARCH_CTL_SET_SHUTDOWN, NULL);
    retroarch_menu_running_finished(true);
 #endif
+   RARCH_LOG("task_push_load_content_from_playlist_from_menu end.\n");
 
 end:
    if (content_ctx.name_ips)
@@ -1754,6 +1755,8 @@ end:
       free(content_ctx.name_ups);
    if (content_ctx.directory_system)
       free(content_ctx.directory_system);
+
+   RARCH_LOG("task_push_load_content_from_playlist_from_menu end2.\n");
 
    return ret;
 }

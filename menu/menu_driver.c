@@ -579,9 +579,9 @@ void menu_entry_set_value(uint32_t i, const char *s)
 
 bool menu_entry_is_password(menu_entry_t *entry)
 {
-	// return entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD;
-	return (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD
-		|| entry->enum_idx == MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD);
+   // return entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD;
+   return (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD
+      || entry->enum_idx == MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD);
 }
 
 uint32_t menu_entry_num_has_range(uint32_t i)
