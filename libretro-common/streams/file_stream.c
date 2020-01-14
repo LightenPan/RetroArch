@@ -531,7 +531,7 @@ int64_t filestream_read_file(const char *path, void **buf, int64_t *len)
    if (len)
       *len = ret;
 
-	RARCH_LOG("filestream_read_file log res. file: %s, content_buf_size: %u\n", path, content_buf_size);
+	// RARCH_LOG("filestream_read_file log res. file: %s, content_buf_size: %u\n", path, content_buf_size);
    return 1;
 
 error:

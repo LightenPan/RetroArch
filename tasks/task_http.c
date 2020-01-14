@@ -137,7 +137,7 @@ static int task_http_iterate_transfer(retro_task_t *task)
 
 static void task_http_transfer_handler(retro_task_t *task)
 {
-	RARCH_LOG("task_http_transfer_handler begin.\n");
+	// RARCH_LOG("task_http_transfer_handler begin.\n");
    http_transfer_data_t *data = NULL;
    http_handle_t        *http = (http_handle_t*)task->state;
 
@@ -167,7 +167,7 @@ static void task_http_transfer_handler(retro_task_t *task)
    if (http->error)
       goto task_finished;
 
-	RARCH_LOG("task_http_transfer_handler end.\n");
+	// RARCH_LOG("task_http_transfer_handler end.\n");
    return;
 
 task_finished:

@@ -185,8 +185,7 @@ const char *file_path_str(enum file_path_enum enum_idx)
             if (settings && !string_is_empty(settings->paths.network_wiki_api_url))
             {
                // 替换成基础地址，方便国外用户使用
-					char base_url[256] = {0};
-               str = strreplace(str, base_url, settings->paths.network_wiki_api_url);
+               str = strreplace(str, network_wiki_api_url, settings->paths.network_wiki_api_url);
             }
          }
          break;

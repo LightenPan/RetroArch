@@ -3923,36 +3923,37 @@ static void cb_decompressed(retro_task_t *task,
 }
 #endif
 
-static int action_ok_core_updater_list(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   core_updater_list_t *core_list = NULL;
-   bool refresh                   = true;
-
-   /* Get cached core updater list, initialising
-    * it if required */
-   core_list = core_updater_list_get_cached();
-
-   if (!core_list)
-   {
-      core_updater_list_init_cached(CORE_UPDATER_LIST_SIZE);
-      core_list = core_updater_list_get_cached();
-
-      if (!core_list)
-         return menu_cbs_exit();
-   }
-
-   /* Initial setup... */
-   menu_entries_ctl(MENU_ENTRIES_CTL_SET_REFRESH, &refresh);
-   generic_action_ok_command(CMD_EVENT_NETWORK_INIT);
-
-   /* Push core list update task */
-   task_push_get_core_updater_list(core_list, false, true);
-
-   return generic_action_ok_displaylist_push(
-         path, NULL, label, type, idx, entry_idx,
-         ACTION_OK_DL_CORE_UPDATER_LIST);
-}
+// 新版本有问题，回滚老版本
+// static int action_ok_core_updater_list(const char *path,
+//       const char *label, unsigned type, size_t idx, size_t entry_idx)
+// {
+//    core_updater_list_t *core_list = NULL;
+//    bool refresh                   = true;
+// 
+//    /* Get cached core updater list, initialising
+//     * it if required */
+//    core_list = core_updater_list_get_cached();
+// 
+//    if (!core_list)
+//    {
+//       core_updater_list_init_cached(CORE_UPDATER_LIST_SIZE);
+//       core_list = core_updater_list_get_cached();
+// 
+//       if (!core_list)
+//          return menu_cbs_exit();
+//    }
+// 
+//    /* Initial setup... */
+//    menu_entries_ctl(MENU_ENTRIES_CTL_SET_REFRESH, &refresh);
+//    generic_action_ok_command(CMD_EVENT_NETWORK_INIT);
+// 
+//    /* Push core list update task */
+//    task_push_get_core_updater_list(core_list, false, true);
+// 
+//    return generic_action_ok_displaylist_push(
+//          path, NULL, label, type, idx, entry_idx,
+//          ACTION_OK_DL_CORE_UPDATER_LIST);
+// }
 
 static int generic_action_ok_network(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx,
@@ -4060,7 +4061,7 @@ static int (funcname)(const char *path, const char *label, unsigned type, size_t
 
 default_action_ok_list(action_ok_core_content_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_LIST)
 default_action_ok_list(action_ok_core_content_dirs_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_DIRS_LIST)
-// default_action_ok_list(action_ok_core_updater_list, MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST)
+default_action_ok_list(action_ok_core_updater_list, MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST)
 default_action_ok_list(action_ok_core_updater_playlists, MENU_ENUM_LABEL_CB_CORE_UPDATER_PLAYLISTS)
 default_action_ok_list(action_ok_thumbnails_updater_list, MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_LIST)
 default_action_ok_list(action_ok_lakka_list, MENU_ENUM_LABEL_CB_LAKKA_LIST)
@@ -4461,21 +4462,22 @@ static int action_ok_core_content_download(const char *path,
          MENU_ENUM_LABEL_CB_CORE_CONTENT_DOWNLOAD);
 }
 
-static int action_ok_core_updater_download(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-#ifdef HAVE_NETWORKING
-   core_updater_list_t *core_list = core_updater_list_get_cached();
-
-   if (!core_list)
-      return menu_cbs_exit();
-
-   task_push_core_updater_download(
-      core_list, path, false, true);
-
-#endif
-   return 0;
-}
+// 新版本有问题，回滚老版本
+// static int action_ok_core_updater_download(const char *path,
+//       const char *label, unsigned type, size_t idx, size_t entry_idx)
+// {
+// #ifdef HAVE_NETWORKING
+//    core_updater_list_t *core_list = core_updater_list_get_cached();
+// 
+//    if (!core_list)
+//       return menu_cbs_exit();
+// 
+//    task_push_core_updater_download(
+//       core_list, path, false, true);
+// 
+// #endif
+//    return 0;
+// }
 
 static int action_ok_update_installed_cores(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
@@ -4589,7 +4591,7 @@ default_action_ok_download(action_ok_core_content_thumbnails, MENU_ENUM_LABEL_CB
 default_action_ok_download(action_ok_core_content_rom, MENU_ENUM_LABEL_CB_CORE_ROM_DOWNLOAD)
 default_action_ok_download(action_ok_thumbnails_updater_download, MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_DOWNLOAD)
 default_action_ok_download(action_ok_download_url, MENU_ENUM_LABEL_CB_DOWNLOAD_URL)
-// default_action_ok_download(action_ok_core_updater_download, MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD)
+default_action_ok_download(action_ok_core_updater_download, MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD)
 default_action_ok_download(action_ok_lakka_download, MENU_ENUM_LABEL_CB_LAKKA_DOWNLOAD)
 default_action_ok_download(action_ok_update_assets, MENU_ENUM_LABEL_CB_UPDATE_ASSETS)
 default_action_ok_download(action_ok_update_systems, MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS)
