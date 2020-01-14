@@ -89,6 +89,8 @@
 #define DEFAULT_MAX_PADS 4
 #elif defined(HAVE_XINPUT) && !defined(HAVE_DINPUT)
 #define DEFAULT_MAX_PADS 4
+#elif defined(DINGUX)
+#define DEFAULT_MAX_PADS 2
 #else
 #define DEFAULT_MAX_PADS 16
 #endif
@@ -471,7 +473,7 @@ static bool quick_menu_show_download_thumbnails         = true;
 static bool kiosk_mode_enable            = false;
 
 #define DEFAULT_MENU_HORIZONTAL_ANIMATION true
-static bool menu_horizontal_animation    = true;
+
 static bool menu_show_online_updater     = true;
 static bool menu_show_load_core          = true;
 static bool menu_show_load_content       = true;
@@ -592,7 +594,7 @@ static bool default_savefiles_in_content_dir = false;
 static bool default_systemfiles_in_content_dir = false;
 static bool default_screenshots_in_content_dir = false;
 
-#if defined(__CELLOS_LV2__) || defined(_XBOX1) || defined(_XBOX360)
+#if defined(__CELLOS_LV2__) || defined(_XBOX1) || defined(_XBOX360) || defined(DINGUX)
 static unsigned menu_toggle_gamepad_combo    = INPUT_TOGGLE_L3_R3;
 #elif defined(PS2) || defined(PSP)
 static unsigned menu_toggle_gamepad_combo    = INPUT_TOGGLE_HOLD_START;
@@ -631,7 +633,11 @@ static unsigned input_backtouch_toggle       = false;
 #define DEFAULT_CROP_OVERSCAN true
 
 /* Font size for on-screen messages. */
+#if defined(DINGUX)
+#define DEFAULT_FONT_SIZE 12
+#else
 #define DEFAULT_FONT_SIZE 32
+#endif
 
 /* Offset for where messages will be placed on-screen.
  * Values are in range [0.0, 1.0]. */
@@ -910,11 +916,11 @@ static const bool network_on_demand_thumbnails = false;
 static const bool network_on_demand_yunsavestate = false;
 
 /* Number of entries that will be kept in content history playlist file. */
-static const unsigned default_content_history_size = 100;
+static const unsigned default_content_history_size = 200;
 
 /* Number of entries that will be kept in content favorites playlist file.
  * -1 == 'unlimited' (99999) */
-static const int default_content_favorites_size = 100;
+static const int default_content_favorites_size = 200;
 
 /* Sort all playlists (apart from histories) alphabetically */
 static const bool playlist_sort_alphabetical = true;
@@ -1047,7 +1053,7 @@ static const bool content_runtime_log_aggregate = false;
 
 #if defined(__QNX__) || defined(_XBOX1) || defined(_XBOX360) || defined(__CELLOS_LV2__) || (defined(__MACH__) && defined(IOS)) || defined(ANDROID) || defined(WIIU) || defined(HAVE_NEON) || defined(GEKKO) || defined(__ARM_NEON__)
 static enum resampler_quality audio_resampler_quality_level = RESAMPLER_QUALITY_LOWER;
-#elif defined(PSP) || defined(_3DS) || defined(VITA) || defined(PS2)
+#elif defined(PSP) || defined(_3DS) || defined(VITA) || defined(PS2) || defined(DINGUX)
 static enum resampler_quality audio_resampler_quality_level = RESAMPLER_QUALITY_LOWEST;
 #else
 static enum resampler_quality audio_resampler_quality_level = RESAMPLER_QUALITY_NORMAL;

@@ -799,7 +799,7 @@ int vita2d_fini()
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureFragmentProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureTintFragmentProgramId);
 	sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureTintVertexProgramId);
-    sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureVertexProgramId);
+   sceGxmShaderPatcherUnregisterProgram(shaderPatcher, textureVertexProgramId);
 
 	sceGxmShaderPatcherDestroy(shaderPatcher);
 	fragment_usse_free(patcherFragmentUsseUid);

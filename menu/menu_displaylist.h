@@ -136,6 +136,7 @@ enum menu_displaylist_ctl_state
    DISPLAYLIST_ACHIEVEMENT_LIST,
    DISPLAYLIST_USER_BINDS_LIST,
    DISPLAYLIST_ACCOUNTS_LIST,
+   DISPLAYLIST_SUBSYSTEM_SETTINGS_LIST,
    DISPLAYLIST_MIXER_STREAM_SETTINGS_LIST,
    DISPLAYLIST_DRIVER_SETTINGS_LIST,
    DISPLAYLIST_VIDEO_FULLSCREEN_MODE_SETTINGS_LIST,
@@ -184,6 +185,7 @@ enum menu_displaylist_ctl_state
    DISPLAYLIST_UPDATER_SETTINGS_LIST,
    DISPLAYLIST_WIFI_SETTINGS_LIST,
    DISPLAYLIST_NETWORK_SETTINGS_LIST,
+   DISPLAYLIST_NETWORK_HOSTING_SETTINGS_LIST,
    DISPLAYLIST_NETPLAY_LAN_SCAN_SETTINGS_LIST,
    DISPLAYLIST_LAKKA_SERVICES_LIST,
    DISPLAYLIST_USER_SETTINGS_LIST,
@@ -301,8 +303,10 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type, menu_displaylist
 bool menu_displaylist_setting(menu_displaylist_ctx_parse_entry_t *entry);
 
 #ifdef HAVE_NETWORKING
-void netplay_refresh_rooms_menu(file_list_t *list);
+unsigned menu_displaylist_netplay_refresh_rooms(file_list_t *list);
 #endif
+
+bool menu_displaylist_has_subsystems(void);
 
 RETRO_END_DECLS
 

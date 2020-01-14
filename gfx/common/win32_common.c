@@ -1087,7 +1087,7 @@ static bool win32_monitor_set_fullscreen(
 #endif
 }
 
-void win32_show_cursor(bool state)
+void win32_show_cursor(void *data, bool state)
 {
 #if !defined(_XBOX)
    if (state)
@@ -1291,7 +1291,7 @@ void win32_set_window(unsigned *width, unsigned *height,
          window->set_focused(&main_window);
    }
 
-   win32_show_cursor(!fullscreen);
+   win32_show_cursor(NULL, !fullscreen);
 #endif
 }
 
@@ -1373,7 +1373,7 @@ BOOL IsIconic(HWND hwnd)
 }
 #endif
 
-bool win32_has_focus(void)
+bool win32_has_focus(void *data)
 {
    if (g_win32_inited)
       if (GetForegroundWindow() == main_window.hwnd)

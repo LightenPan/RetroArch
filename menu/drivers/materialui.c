@@ -2505,11 +2505,15 @@ static void materialui_render(void *data,
             menu_thumbnail_process_streams(
                mui->thumbnail_path_data, mui->playlist, i,
                &node->thumbnails.primary, &node->thumbnails.secondary,
-               on_screen);
+               on_screen,
+               settings->uints.menu_thumbnail_upscale_threshold,
+               settings->bools.network_on_demand_thumbnails);
          else
             menu_thumbnail_process_stream(
                   mui->thumbnail_path_data, MENU_THUMBNAIL_RIGHT,
-                  mui->playlist, i, &node->thumbnails.primary, on_screen);
+                  mui->playlist, i, &node->thumbnails.primary, on_screen,
+                  settings->uints.menu_thumbnail_upscale_threshold,
+                  settings->bools.network_on_demand_thumbnails);
       }
       else if (last_entry_found)
          break;
@@ -6675,19 +6679,14 @@ static int materialui_list_push(void *data, void *userdata,
 
             if (settings->bools.menu_show_load_content)
             {
-               const struct retro_subsystem_info* subsystem;
-
                entry.enum_idx      = MENU_ENUM_LABEL_LOAD_CONTENT_LIST;
                menu_displaylist_setting(&entry);
 
-               /* Core fully loaded, use the subsystem data */
-               if (system->subsystem.data)
-                     subsystem = system->subsystem.data;
-               /* Core not loaded completely, use the data we peeked on load core */
-               else
-                  subsystem = subsystem_data;
-
-               menu_subsystem_populate(subsystem, info);
+               if (menu_displaylist_has_subsystems())
+               {
+                  entry.enum_idx      = MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS;
+                  menu_displaylist_setting(&entry);
+               }
             }
 
             if (settings->bools.menu_content_show_history)
@@ -7394,6 +7393,12 @@ static void materialui_list_insert(
             node->icon_texture_index = MUI_TEXTURE_FOLDER;
             node->has_icon           = true;
             break;
+         case MENU_ROOM_LAN:
+         case MENU_ROOM_RELAY:
+         case MENU_ROOM:
+            node->icon_texture_index = MUI_TEXTURE_SETTINGS;
+            node->has_icon           = true;
+            break;
          default:
             if (
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_INFORMATION_LIST))              ||
@@ -7601,8 +7606,10 @@ static void materialui_list_insert(
                node->icon_texture_index = MUI_TEXTURE_CONFIGURATIONS;
                node->has_icon           = true;
             }
-            else if (string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_LOAD_CONTENT_LIST))
+            else if (
+                  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_LOAD_CONTENT_LIST))
                   ||
+                  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_SUBSYSTEM_ADD))
                   )
             {
@@ -7615,6 +7622,7 @@ static void materialui_list_insert(
                node->has_icon           = true;
             }
             else if (string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_NETPLAY)) ||
+                  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_NETWORK_HOSTING_SETTINGS)) ||
                      string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_NETWORK_INFORMATION))
                   )
             {

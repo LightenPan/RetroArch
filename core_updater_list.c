@@ -26,7 +26,6 @@
 #include <net/net_http.h>
 #include <retro_miscellaneous.h>
 
-#include "configuration.h"
 #include "file_path_special.h"
 #include "core_info.h"
 
@@ -400,9 +399,12 @@ static bool core_updater_list_set_crc(
  * associated paths to the specified core
  * updater list entry */
 static bool core_updater_list_set_paths(
-      core_updater_list_entry_t *entry, const char *filename_str)
+      core_updater_list_entry_t *entry,
+      const char *path_dir_libretro,
+      const char *path_libretro_info,
+      const char *network_buildbot_url,
+      const char *filename_str)
 {
-   settings_t *settings  = config_get_ptr();
    char *last_underscore = NULL;
    char *tmp_url         = NULL;
    char remote_core_path[PATH_MAX_LENGTH];
@@ -416,12 +418,12 @@ static bool core_updater_list_set_paths(
    local_info_path[0]  = '\0';
    display_name[0]     = '\0';
 
-   if (!entry || string_is_empty(filename_str) || !settings)
+   if (!entry || string_is_empty(filename_str))
       return false;
 
-   if (string_is_empty(settings->paths.directory_libretro) ||
-       string_is_empty(settings->paths.path_libretro_info) ||
-       string_is_empty(settings->paths.network_buildbot_url))
+   if (string_is_empty(path_dir_libretro) ||
+       string_is_empty(path_libretro_info) ||
+       string_is_empty(network_buildbot_url))
       return false;
 
    /* Check whether remote file is an archive */
@@ -439,7 +441,7 @@ static bool core_updater_list_set_paths(
    /* remote_core_path */
    fill_pathname_join(
          remote_core_path,
-         settings->paths.network_buildbot_url,
+         network_buildbot_url,
          filename_str,
          sizeof(remote_core_path));
 
@@ -462,7 +464,7 @@ static bool core_updater_list_set_paths(
    /* local_core_path */
    fill_pathname_join(
          local_core_path,
-         settings->paths.directory_libretro,
+         path_dir_libretro,
          filename_str,
          sizeof(local_core_path));
 
@@ -482,7 +484,7 @@ static bool core_updater_list_set_paths(
    /* local_info_path */
    fill_pathname_join_noext(
          local_info_path,
-         settings->paths.path_libretro_info,
+         path_libretro_info,
          filename_str,
          sizeof(local_info_path));
 
@@ -593,6 +595,9 @@ static bool core_updater_list_push_entry(
  * core updater list */
 static void core_updater_list_add_entry(
       core_updater_list_t *core_list,
+      const char *path_dir_libretro,
+      const char *path_libretro_info,
+      const char *network_buildbot_url,
       struct string_list *network_core_entry_list)
 {
    const char *date_str             = NULL;
@@ -631,7 +636,12 @@ static void core_updater_list_add_entry(
    if (!core_updater_list_set_crc(&entry, crc_str))
       goto error;
 
-   if (!core_updater_list_set_paths(&entry, filename_str))
+   if (!core_updater_list_set_paths(
+            &entry,
+            path_dir_libretro,
+            path_libretro_info,
+            network_buildbot_url,
+            filename_str))
       goto error;
 
    /* Add entry to list */
@@ -693,9 +703,12 @@ static void core_updater_list_qsort(core_updater_list_t *core_list)
  * core_updater_list_t object.
  * Returns false in the event of an error. */
 bool core_updater_list_parse_network_data(
-      core_updater_list_t *core_list, const char *data, size_t len)
+      core_updater_list_t *core_list,
+      const char *path_dir_libretro,
+      const char *path_libretro_info,
+      const char *network_buildbot_url,
+      const char *data, size_t len)
 {
-	RARCH_LOG("core_updater_list_parse_network_data. len: %u, data: %s\n", len, data);
 
    struct string_list *network_core_list       = NULL;
    struct string_list *network_core_entry_list = NULL;
@@ -731,6 +744,7 @@ bool core_updater_list_parse_network_data(
 
    /* Temporary data buffer is no longer required */
    free(data_buf);
+   data_buf = NULL;
 
    /* Loop over lines */
    for (i = 0; i < network_core_list->size; i++)
@@ -746,7 +760,11 @@ bool core_updater_list_parse_network_data(
       /* Parse listings info and add to core updater
        * list */
       core_updater_list_add_entry(
-            core_list, network_core_entry_list);
+            core_list,
+            path_dir_libretro,
+            path_libretro_info,
+            network_buildbot_url,
+            network_core_entry_list);
 
       /* Clean up */
       string_list_free(network_core_entry_list);

@@ -34,22 +34,18 @@
 #include "menu_cbs.h"
 #include "menu_entries.h"
 
-#include "../core_info.h"
-#include "../configuration.h"
-#include "../file_path_special.h"
 #include "../msg_hash.h"
 #include "../tasks/task_file_transfer.h"
 #include "../tasks/tasks_internal.h"
+#include "../configuration.h"
 
 unsigned print_buf_lines(file_list_t *list, char *buf,
       const char *label, int buf_size,
       enum msg_file_type type, bool append, bool extended)
 {
-   RARCH_LOG("print_buf_lines. buf_size: %u, buf: %s\n", buf_size, buf);
-
    char c;
    unsigned count   = 0;
-   int i, j         = 0;
+   int i, j         = 0; // 新版本有BUG，这里还原成老版本
    char *line_start = buf;
 
    if (!buf || !buf_size)

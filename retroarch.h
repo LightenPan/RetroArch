@@ -113,6 +113,7 @@ enum rarch_ctl_state
 
    /* Username */
    RARCH_CTL_HAS_SET_USERNAME,
+   RARCH_CTL_HAS_SET_SUBSYSTEMS,
 
    RARCH_CTL_TASK_INIT,
 
@@ -627,7 +628,6 @@ extern audio_driver_t audio_switch_thread;
 extern audio_driver_t audio_switch_libnx_audren;
 extern audio_driver_t audio_switch_libnx_audren_thread;
 extern audio_driver_t audio_rwebaudio;
-extern audio_driver_t audio_null;
 
 /* Recording */
 
@@ -727,7 +727,6 @@ typedef struct record_driver
 } record_driver_t;
 
 extern const record_driver_t record_ffmpeg;
-extern const record_driver_t record_null;
 
 /**
  * config_get_record_driver_options:
@@ -1903,6 +1902,7 @@ extern video_driver_t video_xenon360;
 extern video_driver_t video_xvideo;
 extern video_driver_t video_sdl;
 extern video_driver_t video_sdl2;
+extern video_driver_t video_sdl_dingux;
 extern video_driver_t video_vg;
 extern video_driver_t video_omap;
 extern video_driver_t video_exynos;
@@ -1916,7 +1916,6 @@ extern video_driver_t video_vga;
 extern video_driver_t video_fpga;
 extern video_driver_t video_sixel;
 extern video_driver_t video_network;
-extern video_driver_t video_null;
 
 extern const gfx_ctx_driver_t gfx_ctx_osmesa;
 extern const gfx_ctx_driver_t gfx_ctx_sdl_gl;
@@ -1974,7 +1973,6 @@ typedef struct location_driver
 
 extern location_driver_t location_corelocation;
 extern location_driver_t location_android;
-extern location_driver_t location_null;
 
 /**
  * config_get_location_driver_options:
@@ -2015,7 +2013,6 @@ extern camera_driver_t camera_v4l2;
 extern camera_driver_t camera_android;
 extern camera_driver_t camera_rwebcam;
 extern camera_driver_t camera_avfoundation;
-extern camera_driver_t camera_null;
 
 /**
  * config_get_camera_driver_options:

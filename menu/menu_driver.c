@@ -67,7 +67,6 @@
 #include "../ui/ui_companion_driver.h"
 #include "../verbosity.h"
 #include "../tasks/task_powerstate.h"
-#include "../playlist.h"
 #ifdef HAVE_NETWORKING
 #include "../core_updater_list.h"
 #endif
@@ -110,6 +109,68 @@ float osk_dark[16] =  {
 	0.00, 0.00, 0.00, 1,
 };
 
+static void *null_menu_init(void **userdata, bool video_is_threaded)
+{
+   menu_handle_t *menu = (menu_handle_t*)calloc(1, sizeof(*menu));
+
+   if (!menu)
+      return NULL;
+
+   return menu;
+}
+
+static int null_menu_iterate(void *data, void *userdata,
+      enum menu_action action) { return 1; }
+
+static menu_ctx_driver_t menu_ctx_null = {
+  NULL,  /* set_texture */
+  NULL,  /* render_messagebox */
+  null_menu_iterate,
+  NULL,  /* render */
+  NULL,  /* frame */
+  null_menu_init,
+  NULL,  /* free */
+  NULL,  /* context_reset */
+  NULL,  /* context_destroy */
+  NULL,  /* populate_entries */
+  NULL,  /* toggle */
+  NULL,  /* navigation_clear */
+  NULL,  /* navigation_decrement */
+  NULL,  /* navigation_increment */
+  NULL,  /* navigation_set */
+  NULL,  /* navigation_set_last */
+  NULL,  /* navigation_descend_alphabet */
+  NULL,  /* navigation_ascend_alphabet */
+  NULL,  /* lists_init */
+  NULL,  /* list_insert */
+  NULL,  /* list_prepend */
+  NULL,  /* list_delete */
+  NULL,  /* list_clear */
+  NULL,  /* list_cache */
+  NULL,  /* list_push */
+  NULL,  /* list_get_selection */
+  NULL,  /* list_get_size */
+  NULL,  /* list_get_entry */
+  NULL,  /* list_set_selection */
+  NULL,  /* bind_init */
+  NULL,  /* load_image */
+  "null",
+  NULL,  /* environ */
+  NULL,  /* update_thumbnail_path */
+  NULL,  /* update_thumbnail_image */
+  NULL,  /* refresh_thumbnail_image */
+  NULL,  /* set_thumbnail_system */
+  NULL,  /* get_thumbnail_system */
+  NULL,  /* set_thumbnail_content */
+  NULL,  /* osk_ptr_at_pos */
+  NULL,  /* update_savestate_thumbnail_path */
+  NULL,  /* update_savestate_thumbnail_image */
+  NULL,  /* pointer_down */
+  NULL,  /* pointer_up   */
+  NULL,  /* get_load_content_animation_data */
+  NULL   /* entry_action */
+};
+
 /* Menu drivers */
 static const menu_ctx_driver_t *menu_ctx_drivers[] = {
 #if defined(HAVE_MATERIALUI)
@@ -131,6 +192,25 @@ static const menu_ctx_driver_t *menu_ctx_drivers[] = {
    &menu_ctx_xui,
 #endif
    &menu_ctx_null,
+   NULL
+};
+
+static menu_display_ctx_driver_t menu_display_ctx_null = {
+   NULL, /* draw */
+   NULL, /* draw_pipeline */
+   NULL, /* viewport */
+   NULL, /* blend_begin */
+   NULL, /* blend_end   */
+   NULL, /* restore_clear_color   */
+   NULL, /* clear_color   */
+   NULL, /* get_default_mvp   */
+   NULL, /* get_default_vertices */
+   NULL, /* get_default_tex_coords */
+   NULL, /* font_init_first */
+   MENU_VIDEO_DRIVER_GENERIC,
+   "null",
+   false,
+   NULL,
    NULL
 };
 
@@ -259,8 +339,6 @@ struct menu_list
 	size_t playlist_hashids[256][2];
 	size_t current_playlist_item_size;
 };
-
-#define menu_entries_need_refresh() ((!menu_entries_nonblocking_refresh) && menu_entries_need_refresh)
 
 menu_handle_t *menu_driver_get_ptr(void)
 {
@@ -867,7 +945,7 @@ int menu_entry_action(
 
    if (cbs && cbs->action_refresh)
    {
-      if (menu_entries_need_refresh())
+      if (menu_entries_need_refresh)
       {
          bool refresh               = false;
          file_list_t *menu_stack    = menu_entries_get_menu_stack_ptr(0);
@@ -949,7 +1027,7 @@ static menu_list_t *menu_list_new(void)
    list->menu_stack_size       = 1;
    list->selection_buf_size    = 1;
    list->selection_buf         = NULL;
-   list->playlist_hashids_size         = 0;
+   list->playlist_hashids_size = 0;
    list->current_playlist_item_size = 0;
    list->menu_stack            = (file_list_t**)
       calloc(list->menu_stack_size, sizeof(*list->menu_stack));
@@ -4297,176 +4375,6 @@ void hex32_to_rgba_normalized(uint32_t hex, float* rgba, float alpha)
    rgba[2] = rgba[6] = rgba[10] = rgba[14] = ((hex >> 0 ) & 0xFF) * (1.0f / 255.0f); /* b */
    rgba[3] = rgba[7] = rgba[11] = rgba[15] = alpha;
 }
-
-void menu_subsystem_populate(const struct retro_subsystem_info* subsystem, menu_displaylist_info_t *info)
-{
-   settings_t *settings = config_get_ptr();
-   /* Note: Create this string here explicitly (rather than
-    * using a #define elsewhere) since we need to be aware of
-    * its length... */
-#if defined(__APPLE__)
-   /* UTF-8 support is currently broken on Apple devices... */
-   static const char utf8_star_char[] = "*";
-#else
-   /* <BLACK STAR>
-    * UCN equivalent: "\u2605" */
-   static const char utf8_star_char[] = "\xE2\x98\x85";
-#endif
-   char star_char[16];
-   unsigned i = 0;
-   int n = 0;
-   bool is_rgui = string_is_equal(settings->arrays.menu_driver, "rgui");
-   
-   /* Select appropriate 'star' marker for subsystem menu entries
-    * (i.e. RGUI does not support unicode, so use a 'standard'
-    * character fallback) */
-   snprintf(star_char, sizeof(star_char), "%s", is_rgui ? "*" : utf8_star_char);
-   
-   if (subsystem && subsystem_current_count > 0)
-   {
-      for (i = 0; i < subsystem_current_count; i++, subsystem++)
-      {
-         char s[PATH_MAX_LENGTH];
-         if (content_get_subsystem() == i)
-         {
-            if (content_get_subsystem_rom_id() < subsystem->num_roms)
-            {
-               snprintf(s, sizeof(s),
-                  "Load %s %s",
-                  subsystem->desc,
-                  star_char);
-               
-               /* If using RGUI with sublabels disabled, add the
-                * appropriate text to the menu entry itself... */
-               if (is_rgui && !settings->bools.menu_show_sublabels)
-               {
-                  char tmp[PATH_MAX_LENGTH];
-                  
-                  n = snprintf(tmp, sizeof(tmp),
-                     "%s [%s %s]", s, "Current Content:",
-                     subsystem->roms[content_get_subsystem_rom_id()].desc);
-
-                  /* Stupid GCC will warn about snprintf() truncation even though
-                   * we couldn't care less about it (if the menu entry label gets
-                   * truncated then the string will already be too long to view in
-                   * any usable manner on screen, so the fact that the end is
-                   * missing is irrelevant). There are two ways to silence this noise:
-                   * 1) Make the destination buffers large enough that text cannot be
-                   *    truncated. This is a waste of memory.
-                   * 2) Check the snprintf() return value (and take action). This is
-                   *    the most harmless option, so we just print a warning if anything
-                   *    is truncated.
-                   * To reiterate: The actual warning generated here is pointless, and
-                   * should be ignored. */
-                  if ((n < 0) || (n >= PATH_MAX_LENGTH))
-                  {
-                     if (verbosity_is_enabled())
-                     {
-                        RARCH_WARN("Menu subsystem entry: Description label truncated.\n");
-                     }
-                  }
-
-                  strlcpy(s, tmp, sizeof(s));
-               }
-               
-               menu_entries_append_enum(info->list,
-                  s,
-                  msg_hash_to_str(MENU_ENUM_LABEL_SUBSYSTEM_ADD),
-                  MENU_ENUM_LABEL_SUBSYSTEM_ADD,
-                  MENU_SETTINGS_SUBSYSTEM_ADD + i, 0, 0);
-            }
-            else
-            {
-               snprintf(s, sizeof(s),
-                  "Start %s %s",
-                  subsystem->desc,
-                  star_char);
-               
-               /* If using RGUI with sublabels disabled, add the
-                * appropriate text to the menu entry itself... */
-               if (is_rgui && !settings->bools.menu_show_sublabels)
-               {
-                  unsigned j = 0;
-                  char rom_buff[PATH_MAX_LENGTH];
-                  char tmp[PATH_MAX_LENGTH];
-                  rom_buff[0] = '\0';
-
-                  for (j = 0; j < content_get_subsystem_rom_id(); j++)
-                  {
-                     strlcat(rom_buff,
-                           path_basename(content_get_subsystem_rom(j)), sizeof(rom_buff));
-                     if (j != content_get_subsystem_rom_id() - 1)
-                        strlcat(rom_buff, "|", sizeof(rom_buff));
-                  }
-
-                  if (!string_is_empty(rom_buff))
-                  {
-                     n = snprintf(tmp, sizeof(tmp), "%s [%s]", s, rom_buff);
-                     
-                     /* More snprintf() gcc warning suppression... */
-                     if ((n < 0) || (n >= PATH_MAX_LENGTH))
-                     {
-                        if (verbosity_is_enabled())
-                        {
-                           RARCH_WARN("Menu subsystem entry: Description label truncated.\n");
-                        }
-                     }
-                     
-                     strlcpy(s, tmp, sizeof(s));
-                  }
-               }
-               
-               menu_entries_append_enum(info->list,
-                  s,
-                  msg_hash_to_str(MENU_ENUM_LABEL_SUBSYSTEM_LOAD),
-                  MENU_ENUM_LABEL_SUBSYSTEM_LOAD,
-                  MENU_SETTINGS_SUBSYSTEM_LOAD, 0, 0);
-            }
-         }
-         else
-         {
-            snprintf(s, sizeof(s),
-               "Load %s",
-               subsystem->desc);
-            
-            /* If using RGUI with sublabels disabled, add the
-             * appropriate text to the menu entry itself... */
-            if (is_rgui && !settings->bools.menu_show_sublabels)
-            {
-               /* This check is probably not required (it's not done
-                * in menu_cbs_sublabel.c action_bind_sublabel_subsystem_add(),
-                * anyway), but no harm in being safe... */
-               if (subsystem->num_roms > 0)
-               {
-                  char tmp[PATH_MAX_LENGTH];
-                  
-                  n = snprintf(tmp, sizeof(tmp),
-                     "%s [%s %s]", s, "Current Content:",
-                     subsystem->roms[0].desc);
-                  
-                  /* More snprintf() gcc warning suppression... */
-                  if ((n < 0) || (n >= PATH_MAX_LENGTH))
-                  {
-                     if (verbosity_is_enabled())
-                     {
-                        RARCH_WARN("Menu subsystem entry: Description label truncated.\n");
-                     }
-                  }
-
-                  strlcpy(s, tmp, sizeof(s));
-               }
-            }
-            
-            menu_entries_append_enum(info->list,
-               s,
-               msg_hash_to_str(MENU_ENUM_LABEL_SUBSYSTEM_ADD),
-               MENU_ENUM_LABEL_SUBSYSTEM_ADD,
-               MENU_SETTINGS_SUBSYSTEM_ADD + i, 0, 0);
-         }
-      }
-   }
-}
-
 
 void get_current_menu_value(char* retstr, size_t max)
 {

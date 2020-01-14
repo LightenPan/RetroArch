@@ -508,17 +508,17 @@ static bool gbm_choose_xrgb8888_cb(void *display_data, EGLDisplay dpy, EGLConfig
    (void)display_data;
 
    /* Makes sure we have 8 bit color. */
-   if (!eglGetConfigAttrib(dpy, config, EGL_RED_SIZE, &r))
+   if (!egl_get_config_attrib(dpy, config, EGL_RED_SIZE, &r))
       return false;
-   if (!eglGetConfigAttrib(dpy, config, EGL_GREEN_SIZE, &g))
+   if (!egl_get_config_attrib(dpy, config, EGL_GREEN_SIZE, &g))
       return false;
-   if (!eglGetConfigAttrib(dpy, config, EGL_BLUE_SIZE, &b))
+   if (!egl_get_config_attrib(dpy, config, EGL_BLUE_SIZE, &b))
       return false;
 
    if (r != 8 || g != 8 || b != 8)
       return false;
 
-   if (!eglGetConfigAttrib(dpy, config, EGL_NATIVE_VISUAL_ID, &id))
+   if (!egl_get_config_attrib(dpy, config, EGL_NATIVE_VISUAL_ID, &id))
       return false;
 
    return id == GBM_FORMAT_XRGB8888;
@@ -839,7 +839,7 @@ static bool gfx_ctx_drm_bind_api(void *video_driver,
          if ((major * 1000 + minor) >= 3001)
             return false;
 #endif
-         return eglBindAPI(EGL_OPENGL_API);
+         return egl_bind_api(EGL_OPENGL_API);
 #else
          break;
 #endif
@@ -850,13 +850,13 @@ static bool gfx_ctx_drm_bind_api(void *video_driver,
          if (major >= 3)
             return false;
 #endif
-         return eglBindAPI(EGL_OPENGL_ES_API);
+         return egl_bind_api(EGL_OPENGL_ES_API);
 #else
          break;
 #endif
       case GFX_CTX_OPENVG_API:
 #if defined(HAVE_EGL) && defined(HAVE_VG)
-         return eglBindAPI(EGL_OPENVG_API);
+         return egl_bind_api(EGL_OPENVG_API);
 #endif
       case GFX_CTX_NONE:
       default:
@@ -875,8 +875,6 @@ static gfx_ctx_proc_t gfx_ctx_drm_get_proc_address(const char *symbol)
       case GFX_CTX_OPENVG_API:
 #ifdef HAVE_EGL
          return egl_get_proc_address(symbol);
-#else
-         break;
 #endif
       case GFX_CTX_NONE:
       default:

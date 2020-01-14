@@ -358,21 +358,22 @@ void MainWindow::onPlaylistFilesDropped(QStringList files)
 /* Takes a list of files and folders and adds them to the currently selected playlist. Folders will have their contents added recursively. */
 void MainWindow::addFilesToPlaylist(QStringList files)
 {
+   int i;
    QStringList list;
    QString currentPlaylistPath;
    QListWidgetItem *currentItem = m_listWidget->currentItem();
    QByteArray currentPlaylistArray;
    QScopedPointer<QProgressDialog> dialog(NULL);
-   PlaylistEntryDialog *playlistDialog = playlistEntryDialog();
    QHash<QString, QString> selectedCore;
    QHash<QString, QString> itemToAdd;
    QString selectedDatabase;
    QString selectedName;
    QString selectedPath;
    QStringList selectedExtensions;
+   PlaylistEntryDialog *playlistDialog = playlistEntryDialog();
    const char *currentPlaylistData = NULL;
    playlist_t *playlist = NULL;
-   int i;
+   settings_t *settings                = config_get_ptr();
 
    /* Assume a blank list means we will manually enter in all fields. */
    if (files.isEmpty())
@@ -611,11 +612,11 @@ void MainWindow::addFilesToPlaylist(QStringList files)
          entry.crc32 = const_cast<char*>("00000000|crc");
          entry.db_name = const_cast<char*>(databaseData);
 
-         playlist_push(playlist, &entry);
+         playlist_push(playlist, &entry, settings->bools.playlist_fuzzy_archive_match);
       }
    }
 
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
    playlist_free(playlist);
 
    reloadPlaylists();
@@ -623,7 +624,6 @@ void MainWindow::addFilesToPlaylist(QStringList files)
 
 bool MainWindow::updateCurrentPlaylistEntry(const QHash<QString, QString> &contentHash)
 {
-   QString playlistPath = getCurrentPlaylistPath();
    QString path;
    QString label;
    QString corePath;
@@ -637,6 +637,8 @@ bool MainWindow::updateCurrentPlaylistEntry(const QHash<QString, QString> &conte
    QByteArray coreNameArray;
    QByteArray dbNameArray;
    QByteArray crc32Array;
+   settings_t *settings         = config_get_ptr();
+   QString playlistPath         = getCurrentPlaylistPath();
    const char *playlistPathData = NULL;
    const char *pathData = NULL;
    const char *labelData = NULL;
@@ -648,7 +650,9 @@ bool MainWindow::updateCurrentPlaylistEntry(const QHash<QString, QString> &conte
    unsigned index = 0;
    bool ok = false;
 
-   if (playlistPath.isEmpty() || contentHash.isEmpty() || !contentHash.contains("index"))
+   if (  playlistPath.isEmpty() || 
+         contentHash.isEmpty()  || 
+         !contentHash.contains("index"))
       return false;
 
    index = contentHash.value("index").toUInt(&ok);
@@ -727,7 +731,7 @@ bool MainWindow::updateCurrentPlaylistEntry(const QHash<QString, QString> &conte
       playlist_update(playlist, index, &entry);
    }
 
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
    playlist_free(playlist);
 
    reloadPlaylists();
@@ -750,15 +754,16 @@ void MainWindow::onPlaylistWidgetContextMenuRequested(const QPoint&)
    QScopedPointer<QAction> downloadAllThumbnailsThisPlaylistAction;
    QPointer<QAction> selectedAction;
    QPoint cursorPos = QCursor::pos();
-   QListWidgetItem *selectedItem = m_listWidget->itemAt(m_listWidget->viewport()->mapFromGlobal(cursorPos));
    QDir playlistDir(settings->paths.directory_playlist);
-   QString playlistDirAbsPath = playlistDir.absolutePath();
    QString currentPlaylistDirPath;
    QString currentPlaylistPath;
    QString currentPlaylistFileName;
    QFile currentPlaylistFile;
    QFileInfo currentPlaylistFileInfo;
    QMap<QString, const core_info_t*> coreList;
+   QListWidgetItem *selectedItem    = m_listWidget->itemAt(
+         m_listWidget->viewport()->mapFromGlobal(cursorPos));
+   QString playlistDirAbsPath       = playlistDir.absolutePath();
    core_info_list_t *core_info_list = NULL;
    unsigned i = 0;
    int j = 0;
@@ -948,7 +953,8 @@ void MainWindow::onPlaylistWidgetContextMenuRequested(const QPoint&)
          }
 
          /* Write changes to disk */
-         playlist_write_file(playlist);
+         playlist_write_file(playlist,
+               settings->bools.playlist_use_old_format);
 
          /* Free playlist, if required */
          if (loadPlaylist)
@@ -1275,14 +1281,15 @@ bool MainWindow::currentPlaylistIsAll()
 
 void MainWindow::deleteCurrentPlaylistItem()
 {
-   QString playlistPath = getCurrentPlaylistPath();
    QByteArray playlistArray;
+   QString playlistPath                = getCurrentPlaylistPath();
    QHash<QString, QString> contentHash = getCurrentContentHash();
    playlist_t *playlist = NULL;
    const char *playlistData = NULL;
    unsigned index = 0;
    bool ok = false;
    bool isAllPlaylist = currentPlaylistIsAll();
+   settings_t *settings                = config_get_ptr();
 
    if (isAllPlaylist)
       return;
@@ -1307,7 +1314,7 @@ void MainWindow::deleteCurrentPlaylistItem()
    playlist = playlist_init(playlistData, COLLECTION_SIZE);
 
    playlist_delete_index(playlist, index);
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
    playlist_free(playlist);
 
    reloadPlaylists();

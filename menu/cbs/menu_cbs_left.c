@@ -395,6 +395,7 @@ static int playlist_association_left(unsigned type, const char *label,
 {
    char core_path[PATH_MAX_LENGTH];
    size_t i, next, current          = 0;
+   settings_t *settings             = config_get_ptr();
    playlist_t *playlist             = playlist_get_cached();
    core_info_list_t *core_info_list = NULL;
    core_info_t *core_info           = NULL;
@@ -453,7 +454,7 @@ static int playlist_association_left(unsigned type, const char *label,
    /* Update playlist */
    playlist_set_default_core_path(playlist, core_info->path);
    playlist_set_default_core_name(playlist, core_info->display_name);
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
 
    return 0;
 }
@@ -462,6 +463,7 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
       bool wraparound)
 {
    enum playlist_label_display_mode label_display_mode;
+   settings_t *settings             = config_get_ptr();
    playlist_t *playlist             = playlist_get_cached();
 
    if (!playlist)
@@ -475,7 +477,7 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
       label_display_mode = LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX;
 
    playlist_set_label_display_mode(playlist, label_display_mode);
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
 
    return 0;
 }
@@ -483,6 +485,7 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
 static void playlist_thumbnail_mode_left(playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id,
       bool wraparound)
 {
+   settings_t *settings                        = config_get_ptr();
    enum playlist_thumbnail_mode thumbnail_mode =
          playlist_get_thumbnail_mode(playlist, thumbnail_id);
 
@@ -492,7 +495,7 @@ static void playlist_thumbnail_mode_left(playlist_t *playlist, enum playlist_thu
       thumbnail_mode = PLAYLIST_THUMBNAIL_MODE_BOXARTS;
 
    playlist_set_thumbnail_mode(playlist, thumbnail_id, thumbnail_mode);
-   playlist_write_file(playlist);
+   playlist_write_file(playlist, settings->bools.playlist_use_old_format);
 }
 
 static int playlist_right_thumbnail_mode_left(unsigned type, const char *label,
@@ -524,8 +527,14 @@ static int playlist_left_thumbnail_mode_left(unsigned type, const char *label,
 static int manual_content_scan_system_name_left(unsigned type, const char *label,
       bool wraparound)
 {
+#ifdef HAVE_LIBRETRODB
+   settings_t *settings                                            = config_get_ptr();
    struct string_list *system_name_list                            =
-         manual_content_scan_get_menu_system_name_list();
+      manual_content_scan_get_menu_system_name_list(settings->paths.path_content_database);
+#else
+   struct string_list *system_name_list                            =
+      manual_content_scan_get_menu_system_name_list(NULL);
+#endif
    const char *current_system_name                                 = NULL;
    enum manual_content_scan_system_name_type next_system_name_type =
          MANUAL_CONTENT_SCAN_SYSTEM_NAME_DATABASE;

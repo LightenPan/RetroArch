@@ -989,10 +989,11 @@ static void xmb_update_savestate_thumbnail_path(void *data, unsigned i)
 
 static void xmb_update_thumbnail_image(void *data)
 {
+   const char *core_name = NULL;
    xmb_handle_t *xmb     = (xmb_handle_t*)data;
    size_t selection      = menu_navigation_get_selection();
    playlist_t *playlist  = playlist_get_cached();
-   const char *core_name = NULL;
+   settings_t *settings  = config_get_ptr();
 
    if (!xmb)
       return;
@@ -1013,7 +1014,9 @@ static void xmb_update_thumbnail_image(void *data)
             MENU_THUMBNAIL_RIGHT,
             playlist,
             selection,
-            &xmb->thumbnails.right);
+            &xmb->thumbnails.right,
+            settings->uints.menu_thumbnail_upscale_threshold,
+            settings->bools.network_on_demand_thumbnails);
       /* Left thumbnail */
       else if (menu_thumbnail_is_enabled(xmb->thumbnail_path_data, MENU_THUMBNAIL_LEFT))
          menu_thumbnail_request(
@@ -1021,7 +1024,9 @@ static void xmb_update_thumbnail_image(void *data)
             MENU_THUMBNAIL_LEFT,
             playlist,
             selection,
-            &xmb->thumbnails.left);
+            &xmb->thumbnails.left,
+            settings->uints.menu_thumbnail_upscale_threshold,
+            settings->bools.network_on_demand_thumbnails);
    }
    else
    {
@@ -1031,7 +1036,9 @@ static void xmb_update_thumbnail_image(void *data)
          MENU_THUMBNAIL_RIGHT,
          playlist,
          selection,
-         &xmb->thumbnails.right);
+         &xmb->thumbnails.right,
+         settings->uints.menu_thumbnail_upscale_threshold,
+         settings->bools.network_on_demand_thumbnails);
 
       /* Left thumbnail */
       menu_thumbnail_request(
@@ -1039,7 +1046,9 @@ static void xmb_update_thumbnail_image(void *data)
          MENU_THUMBNAIL_LEFT,
          playlist,
          selection,
-         &xmb->thumbnails.left);
+         &xmb->thumbnails.left,
+         settings->uints.menu_thumbnail_upscale_threshold,
+         settings->bools.network_on_demand_thumbnails);
    }
 }
 
@@ -1342,7 +1351,8 @@ static void xmb_set_thumbnail_content(void *data, const char *s)
 
 static void xmb_update_savestate_thumbnail_image(void *data)
 {
-   xmb_handle_t *xmb = (xmb_handle_t*)data;
+   xmb_handle_t *xmb    = (xmb_handle_t*)data;
+   settings_t *settings = config_get_ptr();
    if (!xmb)
       return;
 
@@ -1363,7 +1373,8 @@ static void xmb_update_savestate_thumbnail_image(void *data)
           !string_is_equal(xmb->savestate_thumbnail_file_path, xmb->prev_savestate_thumbnail_file_path))
          menu_thumbnail_request_file(
                xmb->savestate_thumbnail_file_path,
-               &xmb->thumbnails.savestate);
+               &xmb->thumbnails.savestate,
+               settings->uints.menu_thumbnail_upscale_threshold);
    }
 }
 
@@ -2601,6 +2612,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_SET_CORE_ASSOCIATION:
          return xmb->textures.list[XMB_TEXTURE_CORE];
       case MENU_ENUM_LABEL_LOAD_CONTENT_LIST:
+      case MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS:
       case MENU_ENUM_LABEL_SCAN_FILE:
          return xmb->textures.list[XMB_TEXTURE_FILE];
       case MENU_ENUM_LABEL_ONLINE_UPDATER:
@@ -2748,6 +2760,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_NETWORK_SETTINGS:
       case MENU_ENUM_LABEL_WIFI_SETTINGS:
       case MENU_ENUM_LABEL_NETWORK_INFO_ENTRY:
+      case MENU_ENUM_LABEL_NETWORK_HOSTING_SETTINGS:
          return xmb->textures.list[XMB_TEXTURE_NETWORK];
 #endif
       case MENU_ENUM_LABEL_SHUTDOWN:
@@ -6432,19 +6445,16 @@ static int xmb_list_push(void *data, void *userdata,
 
             if (settings->bools.menu_show_load_content)
             {
-               const struct retro_subsystem_info* subsystem;
-
                entry.enum_idx      = MENU_ENUM_LABEL_LOAD_CONTENT_LIST;
                menu_displaylist_setting(&entry);
-               /* Core fully loaded, use the subsystem data */
-               if (system->subsystem.data)
-                     subsystem = system->subsystem.data;
-               /* Core not loaded completely, use the data we peeked on load core */
-               else
-                  subsystem = subsystem_data;
 
-               menu_subsystem_populate(subsystem, info);
+               if (menu_displaylist_has_subsystems())
+               {
+                  entry.enum_idx      = MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS;
+                  menu_displaylist_setting(&entry);
+               }
             }
+
 
             if (settings->bools.menu_show_load_disc)
             {

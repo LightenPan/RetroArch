@@ -1,30 +1,30 @@
 #ifdef HAVE_LAKKA_SWITCH
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SWITCH_GPU_PROFILE,
-   "GPU Overclock"
-   )
+    MENU_ENUM_LABEL_VALUE_SWITCH_GPU_PROFILE,
+    "GPU Overclock"
+    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_SWITCH_GPU_PROFILE,
-   "Overclock or underclock the Switch GPU"
-   )
+    MENU_ENUM_SUBLABEL_SWITCH_GPU_PROFILE,
+    "Overclock or underclock the Switch GPU"
+    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SWITCH_BACKLIGHT_CONTROL,
-   "Screen brightness"
-   )
+    MENU_ENUM_LABEL_VALUE_SWITCH_BACKLIGHT_CONTROL,
+    "Screen brightness"
+    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_SWITCH_BACKLIGHT_CONTROL,
-   "Increase or decrease the Switch screen brightness"
-   )
+    MENU_ENUM_SUBLABEL_SWITCH_BACKLIGHT_CONTROL,
+    "Increase or decrease the Switch screen brightness"
+    )
 #endif
 #if defined(HAVE_LAKKA_SWITCH) || defined(HAVE_LIBNX)
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SWITCH_CPU_PROFILE,
-   "CPU Overclock"
-   )
+    MENU_ENUM_LABEL_VALUE_SWITCH_CPU_PROFILE,
+    "CPU Overclock"
+    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_SWITCH_CPU_PROFILE,
-   "Overclock the Switch CPU"
-   )
+    MENU_ENUM_SUBLABEL_SWITCH_CPU_PROFILE,
+    "Overclock the Switch CPU"
+    )
 #endif
 MSG_HASH(
    MSG_COMPILER,
@@ -284,7 +284,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_TAB,
-   "Netplay Rooms"
+    "Netplay"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ASK_ARCHIVE,
@@ -802,15 +802,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS,
-   "Disk Cycle Tray Status"
+    "Cycle Disk Tray"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND,
-   "Disk Image Append"
+    "Insert Disk"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DISK_INDEX,
-   "Disk Index"
+    "Current Disk Index"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DISK_OPTIONS,
@@ -879,6 +879,10 @@ MSG_HASH(
 MSG_HASH(
    MSG_ALL_CORES_UPDATED,
    "All installed cores at latest version"
+    )
+MSG_HASH(
+    MSG_NUM_CORES_UPDATED,
+    "cores updated: "
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_SCALE_FACTOR,
@@ -2168,16 +2172,16 @@ MSG_HASH(
    "On-Demand Thumbnail Downloads"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "On-Demand Cloud Save State"
+    MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
+    "Automatically download missing thumbnail images while browsing playlists. Has a severe performance impact."
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
-   "Automatically download missing thumbnail images while browsing playlists. Has a severe performance impact."
+    MENU_ENUM_LABEL_VALUE_NETWORK_HOSTING_SETTINGS,
+    "Host"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "Automatically upload cloud save state when finish save state. Has a severe performance impact."
+    MENU_ENUM_LABEL_VALUE_SUBSYSTEM_SETTINGS,
+    "Subsystems"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETWORK_SETTINGS,
@@ -6698,7 +6702,8 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_DISK_INDEX,
-   "Change the disk index."
+    "Change the current disk if more than one is inserted. Open the tray before attempting to change disks.\n"
+    "If RetroArch is configured to pause on menu toggle the tray open/close action may not register in the core. If that's the case remember to go back to the game for a few frames after every disk control action."
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_DISK_OPTIONS,

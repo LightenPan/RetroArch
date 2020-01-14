@@ -108,7 +108,7 @@ bool create_gles_context(void* corewindow)
       goto error;
    }
 
-   if (!uwp_egl_create_surface(&uwp_egl))
+   if (!egl_create_surface(&uwp_egl, uwp_get_corewindow()))
       goto error;
 
    return true;
@@ -270,17 +270,6 @@ static void gfx_ctx_uwp_input_driver(void *data,
    }
 }
 
-static bool gfx_ctx_uwp_has_focus(void *data)
-{
-   return win32_has_focus();
-}
-
-static void gfx_ctx_uwp_show_mouse(void* data, bool state)
-{
-   (void)data;
-   win32_show_cursor(state);
-}
-
 static enum gfx_ctx_api gfx_ctx_uwp_get_api(void *data)
 {
    return uwp_api;
@@ -351,7 +340,7 @@ const gfx_ctx_driver_t gfx_ctx_uwp = {
    NULL, /* update title */
    gfx_ctx_uwp_check_window,
    gfx_ctx_uwp_set_resize,
-   gfx_ctx_uwp_has_focus,
+   win32_has_focus,
    NULL, /* suppress screensaver */
    true, /* has_windowed */
    gfx_ctx_uwp_swap_buffers,
@@ -359,7 +348,7 @@ const gfx_ctx_driver_t gfx_ctx_uwp = {
    gfx_ctx_uwp_get_proc_address,
    NULL,
    NULL,
-   gfx_ctx_uwp_show_mouse,
+   win32_show_cursor,
    "uwp",
    gfx_ctx_uwp_get_flags, /* get flags */
    NULL, /* set flags */

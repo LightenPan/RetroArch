@@ -725,8 +725,6 @@ void menu_driver_destroy(void);
 
 void hex32_to_rgba_normalized(uint32_t hex, float* rgba, float alpha);
 
-void menu_subsystem_populate(const struct retro_subsystem_info* subsystem, menu_displaylist_info_t *info);
-
 menu_handle_t *menu_driver_get_ptr(void);
 
 extern uintptr_t menu_display_white_texture;
@@ -750,7 +748,6 @@ extern menu_display_ctx_driver_t menu_display_ctx_vga;
 extern menu_display_ctx_driver_t menu_display_ctx_fpga;
 extern menu_display_ctx_driver_t menu_display_ctx_switch;
 extern menu_display_ctx_driver_t menu_display_ctx_sixel;
-extern menu_display_ctx_driver_t menu_display_ctx_null;
 
 extern menu_ctx_driver_t menu_ctx_ozone;
 extern menu_ctx_driver_t menu_ctx_xui;
@@ -758,7 +755,6 @@ extern menu_ctx_driver_t menu_ctx_rgui;
 extern menu_ctx_driver_t menu_ctx_mui;
 extern menu_ctx_driver_t menu_ctx_xmb;
 extern menu_ctx_driver_t menu_ctx_stripes;
-extern menu_ctx_driver_t menu_ctx_null;
 
 RETRO_END_DECLS
 

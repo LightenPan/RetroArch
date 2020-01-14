@@ -144,6 +144,7 @@ enum video_driver_enum
    VIDEO_XVIDEO,
    VIDEO_SDL,
    VIDEO_SDL2,
+   VIDEO_SDL_DINGUX,
    VIDEO_EXT,
    VIDEO_WII,
    VIDEO_WIIU,
@@ -321,7 +322,7 @@ enum midi_driver_enum
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_METAL;
 #elif defined(HAVE_VITA2D)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_VITA2D;
-#elif defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(__CELLOS_LV2__)
+#elif (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(__CELLOS_LV2__)) && !defined(__WINRT__)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GL;
 #elif defined(HAVE_OPENGL_CORE)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GL_CORE;
@@ -347,8 +348,6 @@ static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_D3D9;
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_D3D8;
 #elif defined(HAVE_VG)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_VG;
-#elif defined(HAVE_VITA2D)
-static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_VITA2D;
 #elif defined(PSP)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_PSP1;
 #elif defined(PS2)
@@ -359,10 +358,12 @@ static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_CTR;
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_SWITCH;
 #elif defined(HAVE_XVIDEO)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_XVIDEO;
-#elif defined(HAVE_SDL)
+#elif defined(HAVE_SDL) && !defined(HAVE_SDL_DINGUX)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_SDL;
 #elif defined(HAVE_SDL2)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_SDL2;
+#elif defined(HAVE_SDL_DINGUX)
+static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_SDL_DINGUX;
 #elif defined(_WIN32) && !defined(_XBOX)
 static enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GDI;
 #elif defined(DJGPP)
@@ -810,6 +811,8 @@ const char *config_get_default_video(void)
          return "switch";
       case VIDEO_XVIDEO:
          return "xvideo";
+      case VIDEO_SDL_DINGUX:
+         return "sdl_dingux";
       case VIDEO_SDL:
          return "sdl";
       case VIDEO_SDL2:

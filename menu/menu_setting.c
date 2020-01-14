@@ -1,7 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2017 - Daniel De Matteis
- *  Copyright (C) 2014-2017 - Jean-Andr¨¦ Santoni
+ *  Copyright (C) 2014-2017 - Jean-André Santoni
  *  Copyright (C) 2016-2019 - Brad Parker
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
@@ -7504,6 +7504,14 @@ static bool setting_append_list(
                &subgroup_info,
                parent_group);
 
+         CONFIG_ACTION(
+               list, list_info,
+               MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS,
+               MENU_ENUM_LABEL_VALUE_SUBSYSTEM_SETTINGS,
+               &group_info,
+               &subgroup_info,
+               parent_group);
+
          if (settings->bools.history_list_enable)
          {
             CONFIG_ACTION(
@@ -11704,7 +11712,7 @@ static bool setting_append_list(
          (*list)[list_info->index - 1].ui_type   = ST_UI_TYPE_UINT_COMBOBOX;
          (*list)[list_info->index - 1].action_ok = &setting_action_ok_uint;
          (*list)[list_info->index - 1].offset_by = 1;
-         menu_settings_list_current_add_range(list, list_info, 1, 6, 1, true, true);
+         menu_settings_list_current_add_range(list, list_info, 1, 12, 1, true, true);
 
 #if defined(HAVE_DYNAMIC) || defined(HAVE_DYLIB)
          CONFIG_BOOL(
@@ -15143,7 +15151,7 @@ static bool setting_append_list(
                general_write_handler,
                general_read_handler);
          (*list)[list_info->index - 1].action_ok     = &setting_action_ok_uint;
-         menu_settings_list_current_add_range(list, list_info, 0.0f, (float)COLLECTION_SIZE, 1.0f, true, false);
+         menu_settings_list_current_add_range(list, list_info, 1.0f, (float)COLLECTION_SIZE, 1.0f, true, false);
 
          END_SUB_GROUP(list, list_info, parent_group);
 

@@ -182,6 +182,8 @@ generic_deferred_push(deferred_push_retro_achievements_settings_list,DISPLAYLIST
 generic_deferred_push(deferred_push_updater_settings_list,          DISPLAYLIST_UPDATER_SETTINGS_LIST)
 generic_deferred_push(deferred_push_wifi_settings_list,             DISPLAYLIST_WIFI_SETTINGS_LIST)
 generic_deferred_push(deferred_push_network_settings_list,          DISPLAYLIST_NETWORK_SETTINGS_LIST)
+generic_deferred_push(deferred_push_subsystem_settings_list,          DISPLAYLIST_SUBSYSTEM_SETTINGS_LIST)
+generic_deferred_push(deferred_push_network_hosting_settings_list,          DISPLAYLIST_NETWORK_HOSTING_SETTINGS_LIST)
 generic_deferred_push(deferred_push_lakka_services_list,            DISPLAYLIST_LAKKA_SERVICES_LIST)
 generic_deferred_push(deferred_push_user_settings_list,             DISPLAYLIST_USER_SETTINGS_LIST)
 generic_deferred_push(deferred_push_directory_settings_list,        DISPLAYLIST_DIRECTORY_SETTINGS_LIST)
@@ -235,6 +237,8 @@ generic_deferred_push(deferred_push_switch_backlight_control,       DISPLAYLIST_
 
 generic_deferred_push(deferred_push_manual_content_scan_list,       DISPLAYLIST_MANUAL_CONTENT_SCAN_LIST)
 generic_deferred_push(deferred_push_manual_content_scan_dat_file,   DISPLAYLIST_MANUAL_CONTENT_SCAN_DAT_FILES)
+
+generic_deferred_push(deferred_push_file_browser_select_sideload_core, DISPLAYLIST_FILE_BROWSER_SELECT_SIDELOAD_CORE)
 
 static int deferred_push_cursor_manager_list_deferred(
       menu_displaylist_info_t *info)
@@ -715,6 +719,8 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_DEFERRED_RETRO_ACHIEVEMENTS_SETTINGS_LIST, deferred_push_retro_achievements_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_UPDATER_SETTINGS_LIST, deferred_push_updater_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_NETWORK_SETTINGS_LIST, deferred_push_network_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_SUBSYSTEM_SETTINGS_LIST, deferred_push_subsystem_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_NETWORK_HOSTING_SETTINGS_LIST, deferred_push_network_hosting_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_WIFI_SETTINGS_LIST, deferred_push_wifi_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_LAKKA_SERVICES_LIST, deferred_push_lakka_services_list},
       {MENU_ENUM_LABEL_DEFERRED_USER_SETTINGS_LIST, deferred_push_user_settings_list},
@@ -1168,6 +1174,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
          case MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_DAT_FILE:
             BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_manual_content_scan_dat_file);
             break;
+         case MENU_ENUM_LABEL_SIDELOAD_CORE_LIST:
+            BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_file_browser_select_sideload_core);
+            break;
          default:
             return -1;
       }
@@ -1386,6 +1395,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
             break;
          case MENU_LABEL_MANUAL_CONTENT_SCAN_DAT_FILE:
             BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_manual_content_scan_dat_file);
+            break;
+         case MENU_LABEL_SIDELOAD_CORE_LIST:
+            BIND_ACTION_DEFERRED_PUSH(cbs, deferred_push_file_browser_select_sideload_core);
             break;
          default:
             return -1;

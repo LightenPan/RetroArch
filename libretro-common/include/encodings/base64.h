@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdlib.h>  
-#include <string.h>  
 
 #include <retro_common_api.h>
 
@@ -44,13 +42,6 @@ const static unsigned char unb64[]={
 
 char* base64(const void* binaryData, int len, int *flen);
 unsigned char* unbase64(const char* ascii, int len, int *flen);
-
-char *base64_encode(const char *str, int str_len, int *outlen);
-
-unsigned char *bae64_decode(unsigned char *code);
-
-int Base64encode_len(int len);
-int Base64encode(char *encoded, const char *string, int len);
 
 RETRO_END_DECLS
 

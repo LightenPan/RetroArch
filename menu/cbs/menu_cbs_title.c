@@ -317,7 +317,6 @@ default_title_macro(action_get_download_core_content_list,      MENU_ENUM_LABEL_
 default_title_macro(action_get_user_accounts_list,              MENU_ENUM_LABEL_VALUE_ACCOUNTS_LIST)
 default_title_macro(action_get_core_information_list,           MENU_ENUM_LABEL_VALUE_CORE_INFORMATION)
 default_title_macro(action_get_core_list,                       MENU_ENUM_LABEL_VALUE_CORE_LIST)
-default_title_macro(action_get_sideload_core_list,              MENU_ENUM_LABEL_VALUE_SIDELOAD_CORE_LIST)
 default_title_macro(action_get_online_updater_list,             MENU_ENUM_LABEL_VALUE_ONLINE_UPDATER)
 default_title_macro(action_get_netplay_list,                    MENU_ENUM_LABEL_VALUE_NETPLAY)
 default_title_macro(action_get_online_thumbnails_updater_list,  MENU_ENUM_LABEL_VALUE_THUMBNAILS_UPDATER_LIST)
@@ -376,6 +375,8 @@ default_title_macro(action_get_menu_sounds_list,                MENU_ENUM_LABEL_
 default_title_macro(action_get_menu_file_browser_settings_list, MENU_ENUM_LABEL_VALUE_MENU_FILE_BROWSER_SETTINGS)
 default_title_macro(action_get_retro_achievements_settings_list,MENU_ENUM_LABEL_VALUE_RETRO_ACHIEVEMENTS_SETTINGS)
 default_title_macro(action_get_wifi_settings_list,              MENU_ENUM_LABEL_VALUE_WIFI_SETTINGS)
+default_title_macro(action_get_network_hosting_settings_list,           MENU_ENUM_LABEL_VALUE_NETWORK_HOSTING_SETTINGS)
+default_title_macro(action_get_subsystem_settings_list,           MENU_ENUM_LABEL_VALUE_SUBSYSTEM_SETTINGS)
 default_title_macro(action_get_network_settings_list,           MENU_ENUM_LABEL_VALUE_NETWORK_SETTINGS)
 default_title_macro(action_get_netplay_lan_scan_settings_list,  MENU_ENUM_LABEL_VALUE_NETPLAY_LAN_SCAN_SETTINGS)
 #ifdef HAVE_LAKKA
@@ -540,6 +541,16 @@ default_title_generic_macro(action_get_title_list_rdb_entry_bbfc_rating,MENU_ENU
 default_title_generic_macro(action_get_title_list_rdb_entry_max_users,MENU_ENUM_LABEL_VALUE_DATABASE_CURSOR_LIST_ENTRY_MAX_USERS)
 default_title_generic_macro(action_get_title_list_rdb_entry_database_info,MENU_ENUM_LABEL_VALUE_DATABASE_CURSOR_LIST_ENTRY_DATABASE_INFO)
 
+static int action_get_sideload_core_list(const char *path, const char *label,
+      unsigned menu_type, char *s, size_t len)
+{
+   strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SIDELOAD_CORE_LIST), len);
+   strlcat(s, " ", len);
+   if (!string_is_empty(path))
+      strlcat(s, path, len);
+   return 0;
+}
+
 static int action_get_title_default(const char *path, const char *label,
       unsigned menu_type, char *s, size_t len)
 {
@@ -664,6 +675,8 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       {MENU_ENUM_LABEL_DEFERRED_RETRO_ACHIEVEMENTS_SETTINGS_LIST,     action_get_retro_achievements_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_WIFI_SETTINGS_LIST,                   action_get_wifi_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_UPDATER_SETTINGS_LIST,                action_get_updater_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_NETWORK_HOSTING_SETTINGS_LIST,                action_get_network_hosting_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_SUBSYSTEM_SETTINGS_LIST,                action_get_subsystem_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_NETWORK_SETTINGS_LIST,                action_get_network_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_NETPLAY_LAN_SCAN_SETTINGS_LIST,       action_get_netplay_lan_scan_settings_list},
 #ifdef HAVE_LAKKA
@@ -704,6 +717,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       {MENU_ENUM_LABEL_DEFERRED_INPUT_HAPTIC_FEEDBACK_SETTINGS_LIST,              action_get_input_haptic_feedback_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_VIDEO_WINDOWED_MODE_SETTINGS_LIST,              action_get_video_windowed_mode_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_VIDEO_FULLSCREEN_MODE_SETTINGS_LIST,              action_get_video_fullscreen_mode_settings_list},
+      {MENU_ENUM_LABEL_SIDELOAD_CORE_LIST, action_get_sideload_core_list},
    };
 
    if (cbs->setting)
@@ -889,9 +903,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_CORE_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_core_list);
-            break;
-         case MENU_ENUM_LABEL_SIDELOAD_CORE_LIST:
-            BIND_ACTION_GET_TITLE(cbs, action_get_sideload_core_list);
             break;
          case MENU_ENUM_LABEL_LOAD_CONTENT_SPECIAL:
             BIND_ACTION_GET_TITLE(cbs, action_get_load_content_special);
@@ -1251,9 +1262,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
             BIND_ACTION_GET_TITLE(cbs, action_get_core_information_list);
             break;
          case MENU_LABEL_CORE_LIST:
-            BIND_ACTION_GET_TITLE(cbs, action_get_core_list);
-            break;
-         case MENU_LABEL_SIDELOAD_CORE_LIST:
             BIND_ACTION_GET_TITLE(cbs, action_get_core_list);
             break;
          case MENU_ENUM_LABEL_LOAD_CONTENT_SPECIAL:

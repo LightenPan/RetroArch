@@ -379,6 +379,7 @@ static void ozone_update_thumbnail_image(void *data)
 {
    ozone_handle_t *ozone = (ozone_handle_t*)data;
    size_t selection      = menu_navigation_get_selection();
+   settings_t *settings  = config_get_ptr();
    playlist_t *playlist  = playlist_get_cached();
 
    if (!ozone)
@@ -396,7 +397,10 @@ static void ozone_update_thumbnail_image(void *data)
          MENU_THUMBNAIL_RIGHT,
          playlist,
          selection,
-         &ozone->thumbnails.right);
+         &ozone->thumbnails.right,
+         settings->uints.menu_thumbnail_upscale_threshold,
+         settings->bools. network_on_demand_thumbnails
+         );
 
       /* Left thumbnail is simply reset */
       menu_thumbnail_reset(&ozone->thumbnails.left);
@@ -409,7 +413,9 @@ static void ozone_update_thumbnail_image(void *data)
          MENU_THUMBNAIL_RIGHT,
          playlist,
          selection,
-         &ozone->thumbnails.right);
+         &ozone->thumbnails.right,
+         settings->uints.menu_thumbnail_upscale_threshold,
+         settings->bools. network_on_demand_thumbnails);
 
       /* Left thumbnail */
       menu_thumbnail_request(
@@ -417,7 +423,9 @@ static void ozone_update_thumbnail_image(void *data)
          MENU_THUMBNAIL_LEFT,
          playlist,
          selection,
-         &ozone->thumbnails.left);
+         &ozone->thumbnails.left,
+         settings->uints.menu_thumbnail_upscale_threshold,
+         settings->bools. network_on_demand_thumbnails);
    }
 }
 
@@ -831,19 +839,14 @@ static int ozone_list_push(void *data, void *userdata,
 
             if (settings->bools.menu_show_load_content)
             {
-               const struct retro_subsystem_info* subsystem;
-
                entry.enum_idx      = MENU_ENUM_LABEL_LOAD_CONTENT_LIST;
                menu_displaylist_setting(&entry);
 
-               /* Core fully loaded, use the subsystem data */
-               if (system->subsystem.data)
-                     subsystem = system->subsystem.data;
-               /* Core not loaded completely, use the data we peeked on load core */
-               else
-                  subsystem = subsystem_data;
-
-               menu_subsystem_populate(subsystem, info);
+               if (menu_displaylist_has_subsystems())
+               {
+                  entry.enum_idx      = MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS;
+                  menu_displaylist_setting(&entry);
+               }
             }
 
             if (settings->bools.menu_show_load_disc)
@@ -1809,7 +1812,8 @@ static void ozone_populate_entries(void *data, const char *path, const char *lab
    ozone->is_playlist         = ozone_is_playlist(ozone, true);
    ozone->is_db_manager_list  = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_DATABASE_MANAGER_LIST));
    ozone->is_file_list        = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_FAVORITES));
-   ozone->is_quick_menu       = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RPL_ENTRY_ACTIONS));
+   ozone->is_quick_menu       = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RPL_ENTRY_ACTIONS)) ||
+                                string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_CONTENT_SETTINGS));
 
    if (ozone->categories_selection_ptr == ozone->categories_active_idx_old)
    {

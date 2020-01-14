@@ -221,7 +221,7 @@ static config_file_t *core_info_list_iterate(
          info_path_base_size);
 
 // PSV要去掉下划线
-#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(PS2) && !defined(HW_WUP))
+#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP) && !defined(_3DS) && !defined(VITA) && !defined(PS2) && !defined(HW_WUP))
    {
       char *substr = strrchr(info_path_base, '_');
       if (substr)
@@ -305,13 +305,9 @@ static core_info_list_t *core_info_list_new(const char *path,
       const char *base_path = contents->elems[i].data;
       config_file_t *conf   = core_info_list_iterate(base_path,
             path_basedir);
-      // RARCH_LOG("core_info_list_new log conf. size: %u, base_path: %s, path_basedir: %s\n",
-      //    contents->size, base_path, path_basedir);
 
       if (conf)
       {
-         RARCH_LOG("core_info_list_new log conf. base_path: %s, path_basedir: %s\n",
-            base_path, path_basedir);
          char *tmp           = NULL;
 
          if (config_get_string(conf, "display_name", &tmp)

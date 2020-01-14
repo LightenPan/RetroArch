@@ -108,6 +108,7 @@ typedef struct update_installed_cores_handle
    size_t list_size;
    size_t list_index;
    size_t installed_index;
+   unsigned num_updated;
    enum update_installed_cores_status status;
 } update_installed_cores_handle_t;
 
@@ -295,18 +296,24 @@ static void task_core_updater_get_list_handler(retro_task_t *task)
          break;
       case CORE_UPDATER_LIST_END:
          {
+            settings_t *settings    = config_get_ptr();
+
             /* Parse HTTP transfer data */
             if (list_handle->http_data)
                core_updater_list_parse_network_data(
                      list_handle->core_list,
+                     settings->paths.directory_libretro,
+                     settings->paths.path_libretro_info,
+                     settings->paths.network_buildbot_url,
                      list_handle->http_data->data,
                      list_handle->http_data->len);
 
             /* Enable menu refresh, if required */
 #if defined(RARCH_INTERNAL) && defined(HAVE_MENU)
-            menu_entries_ctl(
-                  MENU_ENTRIES_CTL_UNSET_REFRESH,
-                  &list_handle->refresh_menu);
+            if (list_handle->refresh_menu)
+               menu_entries_ctl(
+                     MENU_ENTRIES_CTL_UNSET_REFRESH,
+                     &list_handle->refresh_menu);
 #endif
          }
          /* fall-through */
@@ -1073,6 +1080,9 @@ static void task_update_installed_cores_handler(retro_task_t *task)
 
                task_set_title(task, strdup(task_title));
 
+               /* Increment 'updated cores' counter */
+               update_installed_handle->num_updated++;
+
                /* Wait for download to complete */
                update_installed_handle->status = UPDATE_INSTALLED_CORES_WAIT_DOWNLOAD;
             }
@@ -1105,10 +1115,31 @@ static void task_update_installed_cores_handler(retro_task_t *task)
             /* Set final task title */
             task_free_title(task);
 
-            task_set_title(task,
-                  (update_installed_handle->list_size > 0) ?
-                        strdup(msg_hash_to_str(MSG_ALL_CORES_UPDATED)) :
-                        strdup(msg_hash_to_str(MSG_CORE_LIST_FAILED)));
+            /* > Check whether core list was fetched
+             *   successfully */
+            if (update_installed_handle->list_size > 0)
+            {
+               /* > Check whether a non-zero number of cores
+                *   were updated */
+               if (update_installed_handle->num_updated > 0)
+               {
+                  char task_title[PATH_MAX_LENGTH];
+
+                  task_title[0] = '\0';
+
+                  snprintf(
+                        task_title, sizeof(task_title), "%s [%s%u]",
+                        msg_hash_to_str(MSG_ALL_CORES_UPDATED),
+                        msg_hash_to_str(MSG_NUM_CORES_UPDATED),
+                        update_installed_handle->num_updated);
+
+                  task_set_title(task, strdup(task_title));
+               }
+               else
+                  task_set_title(task, strdup(msg_hash_to_str(MSG_ALL_CORES_UPDATED)));
+            }
+            else
+               task_set_title(task, strdup(msg_hash_to_str(MSG_CORE_LIST_FAILED)));
          }
          /* fall-through */
       default:
@@ -1156,6 +1187,7 @@ void task_push_update_installed_cores(void)
    update_installed_handle->list_size       = 0;
    update_installed_handle->list_index      = 0;
    update_installed_handle->installed_index = 0;
+   update_installed_handle->num_updated     = 0;
    update_installed_handle->status          = UPDATE_INSTALLED_CORES_BEGIN;
 
    if (!update_installed_handle->core_list)

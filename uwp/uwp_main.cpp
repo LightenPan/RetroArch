@@ -18,10 +18,13 @@
 #include <windows.devices.enumeration.h>
 
 #include <encodings/utf.h>
+#include <string/stdstring.h>
 #include <lists/string_list.h>
 #include <queues/task_queue.h>
 #include <retro_timers.h>
 
+#include "configuration.h"
+#include "paths.h"
 #include "uwp_main.h"
 #include "../retroarch.h"
 #include "../frontend/frontend.h"
@@ -30,11 +33,6 @@
 #include "uwp_func.h"
 #include "uwp_async.h"
 
-#if defined(HAVE_OPENGL) && defined(HAVE_ANGLE)
-#ifndef HAVE_EGL
-#define HAVE_EGL       1
-#endif
-#endif
 
 using namespace RetroArchUWP;
 
@@ -378,10 +376,31 @@ void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)
 	// aware that a deferral may not be held indefinitely. After about five seconds,
 	// the app will be forced to exit.
 	SuspendingDeferral^ deferral = args->SuspendingOperation->GetDeferral();
+	auto app = this;
 
-	create_task([this, deferral]()
+	create_task([app, deferral]()
 	{
 		// TODO: Maybe creating a save state here would be a good idea?
+		settings_t* settings = config_get_ptr();
+		if (settings->bools.config_save_on_exit) {
+			if (!path_is_empty(RARCH_PATH_CONFIG))
+			{
+				const char* config_path = path_get(RARCH_PATH_CONFIG);
+				bool path_exists = !string_is_empty(config_path);
+				if (path_exists && config_save_file(config_path))
+				{
+					RARCH_LOG("[config] %s \"%s\".\n",
+						msg_hash_to_str(MSG_SAVED_NEW_CONFIG_TO),
+						config_path);
+				}
+				else if (path_exists)
+				{
+					RARCH_ERR("[config] %s \"%s\".\n",
+						msg_hash_to_str(MSG_FAILED_SAVING_CONFIG_TO),
+						config_path);
+				}
+			}
+		}
 
 		deferral->Complete();
 	});
@@ -548,7 +567,7 @@ void App::OnPackageInstalling(PackageCatalog^ sender, PackageInstallingEventArgs
 // Implement UWP equivalents of various win32_* functions
 extern "C" {
 
-	bool win32_has_focus(void)
+	bool win32_has_focus(void *data)
 	{
 		return App::GetInstance()->IsWindowFocused();
 	}
@@ -583,7 +602,7 @@ extern "C" {
 		return true;
 	}
 
-	void win32_show_cursor(bool state)
+	void win32_show_cursor(void *data, bool state)
 	{
 		CoreWindow::GetForCurrentThread()->PointerCursor = state ? ref new CoreCursor(CoreCursorType::Arrow, 0) : nullptr;
 	}
@@ -643,36 +662,16 @@ extern "C" {
 		return (void*)CoreWindow::GetForCurrentThread();
 	}
 
-#ifdef HAVE_EGL
 	/* A special version of egl_create_surface to properly handle DPI scaling. */
-	bool uwp_egl_create_surface(egl_ctx_data_t* egl)
-	{
-		EGLint window_attribs[] = {
-			EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
-			EGL_NONE,
-		};
 
-		double scale = DisplayInformation::GetForCurrentView()->RawPixelsPerViewPixel;
 
 		/* Why Microsoft uses a WinRT class for sending parameters to EGL?! */
-		PropertySet^ prop = ref new PropertySet();
-		prop->Insert(L"EGLNativeWindowTypeProperty", CoreWindow::GetForCurrentThread());
-		prop->Insert(L"EGLRenderResolutionScaleProperty", PropertyValue::CreateSingle(scale));
 
-		egl->surf = eglCreateWindowSurface(egl->dpy, egl->config, (EGLNativeWindowType)(prop), window_attribs);
 
-		if (egl->surf == EGL_NO_SURFACE)
-			return false;
 
 		/* Connect the context to the surface. */
-		if (!eglMakeCurrent(egl->dpy, egl->surf, egl->surf, egl->ctx))
-			return false;
 
-		RARCH_LOG("[EGL]: Current context: %p.\n", (void*)eglGetCurrentContext());
 
-		return true;
-	}
-#endif
 
 	void uwp_fill_installed_core_packages(struct string_list *list)
 	{
