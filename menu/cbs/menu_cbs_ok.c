@@ -6453,7 +6453,6 @@ static int action_ok_pl_entry_content_thumbnails(const char *path,
 #endif
 
 #ifdef HAVE_NETWORKING
-// todo del
 static int action_ok_pl_entry_content_rom(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {

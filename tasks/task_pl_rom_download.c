@@ -31,6 +31,7 @@
 #include "../file_path_special.h"
 #include "../playlist.h"
 #include "../libretro-common/include/rhash.h"
+#include "../config.def.h"
 
 #ifdef RARCH_INTERNAL
 #ifdef HAVE_MENU
@@ -178,8 +179,8 @@ char *genYunSaveStateUrl(const char *savename, const char *save_buf_md5)
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
-      "%s?%s&savename=%s&save_buf_md5=%s",
-      "http://wekafei.cn/api/UserGameData/SaveState", acc_query_str, savename, save_buf_md5);
+      "%s/api/UserGameData/SaveState?%s&savename=%s&save_buf_md5=%s",
+      network_wiki_api_url, acc_query_str, savename, save_buf_md5);
    return strdup(save_state_url);
 }
 
@@ -190,9 +191,8 @@ char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5,
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
-      "%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
-      "http://wekafei.cn/api/UserGameData/SaveStateFragment",
-      acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+      "%s/api/UserGameData/SaveStateFragment?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
+      network_wiki_api_url, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
    return strdup(save_state_url);
 }
 
@@ -203,9 +203,8 @@ void cpyYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, 
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
-      "%s?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
-      "http://wekafei.cn/api/UserGameData/SaveStateFragment",
-      acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+      "%s/api/UserGameData/SaveStateFragment?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
+      network_wiki_api_url, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
    strlcpy(outurl, save_state_url, outlen);
 }
 
@@ -215,8 +214,8 @@ char *genYunLoadStateUrl(char *loadname)
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(load_state_url, sizeof(load_state_url),
-      "%s?%s&loadname=%s",
-      "http://wekafei.cn/api/UserGameData/LoadState", acc_query_str, loadname);
+      "%s/api/UserGameData/LoadState?%s&loadname=%s",
+      network_wiki_api_url, acc_query_str, loadname);
    return strdup(load_state_url);
 }
 
@@ -634,7 +633,7 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
    strlcpy(transf->path, savepath, sizeof(transf->path));
    strlcpy(transf->title, title, sizeof(transf->title));
    // strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
-   RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
+	RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
    task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
 }
 
