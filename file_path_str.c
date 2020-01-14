@@ -156,24 +156,24 @@ const char *file_path_str(enum file_path_enum enum_idx)
          break;
       case FILE_PATH_CORE_THUMBNAILS_URL:
          {
-            str = "https://gindex.retrogame.workers.dev/thumbnails";
+            str = "http://gindex.retrogame.workers.dev/thumbnails";
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
             {
                // 替换成基础地址，方便国外用户使用
-               char base_url[256] = "https://gindex.retrogame.workers.dev";
+               char base_url[256] = "http://gindex.retrogame.workers.dev";
                str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
             }
          }
          break;
       case FILE_PATH_ROM_URL:
          {
-            str = "https://gindex.retrogame.workers.dev/roms";
+            str = "http://gindex.retrogame.workers.dev/roms";
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
             {
                // 替换成基础地址，方便国外用户使用
-               char base_url[256] = "https://gindex.retrogame.workers.dev";
+               char base_url[256] = "http://gindex.retrogame.workers.dev";
                str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
             }
          }

@@ -875,6 +875,13 @@ bool task_push_pl_entry_rom_download(
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
+	// new_basename需要urlencode不然可能会下载不了
+	{
+		char *tmp = NULL;
+		net_http_urlencode(&tmp, new_basename);
+		strncpy(new_basename, tmp, sizeof(new_basename));
+		free(tmp);
+	}
    strlcat(raw_url, new_basename, sizeof(raw_url));
    strlcat(raw_url, "?", sizeof(raw_url));
    strlcat(raw_url, url_query, sizeof(raw_url));
