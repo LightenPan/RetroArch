@@ -26626,6 +26626,7 @@ void retroarch_set_current_core_type(enum rarch_core_type type, bool explicitly_
  **/
 void retroarch_fail(int error_code, const char *error)
 {
+   RARCH_LOG("retroarch_fail begin.\n");
    /* We cannot longjmp unless we're in retroarch_main_init().
     * If not, something went very wrong, and we should
     * just exit right away. */
@@ -26637,6 +26638,7 @@ void retroarch_fail(int error_code, const char *error)
 
 bool retroarch_main_quit(void)
 {
+   RARCH_LOG("retroarch_main_quit begin.\n");
 #ifdef HAVE_DISCORD
    if (discord_is_inited)
    {
@@ -26665,6 +26667,7 @@ bool retroarch_main_quit(void)
    runloop_shutdown_initiated = true;
    retroarch_menu_running_finished(true);
 
+   RARCH_LOG("retroarch_main_quit end.\n");
    return true;
 }
 
