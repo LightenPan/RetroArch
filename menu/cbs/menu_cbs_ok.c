@@ -4392,13 +4392,21 @@ static int action_ok_download_generic(const char *path,
 #endif
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
+#ifdef VITA
+         path = "assets_vita.zip";
+#else
          path = "assets.zip";
+#endif
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
          path = "systems.zip";
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+#ifdef VITA
+         path = "assets_vita.zip";
+#else
          path = "playlists.zip";
+#endif
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          path = "autoconfig.zip";
