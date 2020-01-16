@@ -2100,7 +2100,12 @@ void config_set_defaults(void *data)
       strlcpy(settings->arrays.menu_driver,
             def_menu,  sizeof(settings->arrays.menu_driver));
 #ifdef HAVE_XMB
+   // vita使用系统字体显示中文，避免vita崩溃问题
+#ifdef VITA
+   *settings->paths.path_menu_xmb_font            = "sa0:data/font/pvf/cn0.pvf";
+#else
    *settings->paths.path_menu_xmb_font            = '\0';
+#endif
 #endif
 
    strlcpy(settings->arrays.discord_app_id,
