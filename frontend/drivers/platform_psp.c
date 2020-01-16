@@ -338,7 +338,7 @@ static void frontend_psp_exec(const char *path, bool should_load_game)
    RARCH_LOG("Attempt to load executable: [%s].\n", path);
 #if defined(VITA)
    RARCH_LOG("Attempt to load executable: %d [%s].\n", args, argp);
-   int ret =  sceAppMgrLoadExec(path, args==0? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
+   int ret = sceAppMgrLoadExec(path, args==0? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
    RARCH_LOG("Attempt to load executable: [%d].\n", ret);
 #else
    exitspawn_kernel(path, args, argp);
