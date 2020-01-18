@@ -24,6 +24,7 @@
 #define HAVE_ONLINE_UPDATER 1
 #define HAVE_UPDATE_ASSETS 1
 #define HAVE_UPDATE_CORES 1
+#define HAVE_ACCESSIBILITY 1
 #endif
 
 #if !defined(__WINRT__)
