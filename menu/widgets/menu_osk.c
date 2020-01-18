@@ -100,20 +100,24 @@ void menu_event_osk_append(int ptr)
    is_rgui = string_is_equal(settings->arrays.menu_driver, "rgui");
 
 #ifdef HAVE_LANGEXTRA
-   if (string_is_equal(osk_grid[ptr],"\xe2\x87\xa6")) /* backspace character */
+   if (string_is_equal(osk_grid[ptr],"Bksp")) /* backspace character */
       input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
-   else if (string_is_equal(osk_grid[ptr],"\xe2\x8f\x8e")) /* return character */
+   else if (string_is_equal(osk_grid[ptr], "\nBksp"))
+      input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
+   else if (string_is_equal(osk_grid[ptr],"Enter")) /* return character */
+      input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+   else if (string_is_equal(osk_grid[ptr], "\nEnter"))
       input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
    else
-   if (string_is_equal(osk_grid[ptr],"\xe2\x87\xa7")) /* up arrow */
+   if (string_is_equal(osk_grid[ptr],"Upper")) /* up arrow */
       menu_event_set_osk_idx(OSK_UPPERCASE_LATIN);
-   else if (string_is_equal(osk_grid[ptr],"\xe2\x87\xa9")) /* down arrow */
+   else if (string_is_equal(osk_grid[ptr],"Lower")) /* down arrow */
       menu_event_set_osk_idx(OSK_LOWERCASE_LATIN);
-   else if (string_is_equal(osk_grid[ptr],"\xe2\x8a\x95")) /* plus sign (next button) */
+   else if (string_is_equal(osk_grid[ptr],"Next")) /* plus sign (next button) */
 #else
    if (string_is_equal(osk_grid[ptr], "Bksp"))
       input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
-   if (string_is_equal(osk_grid[ptr], "\nBksp"))
+   else if (string_is_equal(osk_grid[ptr], "\nBksp"))
       input_keyboard_event(true, '\x7f', '\x7f', 0, RETRO_DEVICE_KEYBOARD);
    else if (string_is_equal(osk_grid[ptr], "Enter"))
       input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
