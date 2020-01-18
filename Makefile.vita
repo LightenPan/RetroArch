@@ -25,9 +25,9 @@ ifeq ($(GRIFFIN_BUILD), 1)
 	INCDIRS += -I. -Ideps/7zip -Ilibretro-common/include -Ilibretro-common/include/compat/zlib -Ideps/stb
 else
 
-        HAVE_UPDATE_ASSETS      := 1
-        HAVE_ONLINE_UPDATER     := 1
-	HAVE_NEON		:= 1
+	HAVE_UPDATE_ASSETS	:= 1
+	HAVE_ONLINE_UPDATER	:= 1
+	HAVE_NEON			:= 1
 	HAVE_MATH_NEON		:= 1
 	HAVE_FILTERS_BUILTIN	:= 1
 	HAVE_LANGEXTRA		:= 1
@@ -43,7 +43,7 @@ else
 	HAVE_SOCKET_LEGACY	:= 1
 	HAVE_MENU		:= 1
 	HAVE_MENU_COMMON	:= 1
-    HAVE_MENU_WIDGETS = 1
+	HAVE_MENU_WIDGETS = 1
 	HAVE_OVERLAY		:= 1
 	HAVE_VIDEO_LAYOUT := 0
 	HAVE_MATERIALUI		:= 1

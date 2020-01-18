@@ -235,7 +235,7 @@ for f in `ls -v *_${platform}.${EXT}`; do
       # TODO PS2 should be able to compile in parallel
       make -C ../ -f Makefile.${platform} $OPTS $whole_archive $big_stack || exit 1
    else
-      make -C ../ -f Makefile.${platform} $OPTS $whole_archive $big_stack -j3 || exit 1
+      make -C ../ -f Makefile.${platform} $OPTS $whole_archive $big_stack -j8 || exit 1
    fi
 
    # Do manual executable step
