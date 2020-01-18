@@ -1546,7 +1546,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST_HARDCORE:
          case MENU_ENUM_LABEL_SAVE_STATE:
          case MENU_ENUM_LABEL_LOAD_STATE:
-         case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+         case MENU_ENUM_LABEL_YUN_LOAD_STATE: // �ƴ浵
             BIND_ACTION_GET_VALUE(cbs,
                   menu_action_setting_disp_set_label_menu_more);
             break;
@@ -1758,7 +1758,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
       case MENU_SETTINGS_CUSTOM_BIND_DEFAULT_ALL:
       case MENU_SETTING_ACTION:
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE:
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // �ƴ浵
       case 7:   /* Run */
       case MENU_SETTING_ACTION_DELETE_ENTRY:
       case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:

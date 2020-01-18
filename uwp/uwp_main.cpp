@@ -25,6 +25,7 @@
 
 #include "configuration.h"
 #include "paths.h"
+
 #include "uwp_main.h"
 #include "../retroarch.h"
 #include "../frontend/frontend.h"
@@ -32,7 +33,6 @@
 #include "../verbosity.h"
 #include "uwp_func.h"
 #include "uwp_async.h"
-
 
 using namespace RetroArchUWP;
 
@@ -387,6 +387,7 @@ void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)
 			{
 				const char* config_path = path_get(RARCH_PATH_CONFIG);
 				bool path_exists = !string_is_empty(config_path);
+
 				if (path_exists && config_save_file(config_path))
 				{
 					RARCH_LOG("[config] %s \"%s\".\n",
@@ -603,9 +604,9 @@ extern "C" {
 	}
 
 	void win32_show_cursor(void *data, bool state)
-	{
-		CoreWindow::GetForCurrentThread()->PointerCursor = state ? ref new CoreCursor(CoreCursorType::Arrow, 0) : nullptr;
-	}
+   {
+      CoreWindow::GetForCurrentThread()->PointerCursor = state ? ref new CoreCursor(CoreCursorType::Arrow, 0) : nullptr;
+   }
 
 
 	bool win32_get_metrics(void* data,
@@ -661,17 +662,6 @@ extern "C" {
 	{
 		return (void*)CoreWindow::GetForCurrentThread();
 	}
-
-	/* A special version of egl_create_surface to properly handle DPI scaling. */
-
-
-		/* Why Microsoft uses a WinRT class for sending parameters to EGL?! */
-
-
-
-		/* Connect the context to the surface. */
-
-
 
 	void uwp_fill_installed_core_packages(struct string_list *list)
 	{

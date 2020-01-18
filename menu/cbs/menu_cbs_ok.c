@@ -195,6 +195,8 @@ static enum msg_hash_enums action_ok_dl_to_enum(unsigned lbl)
          return MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME;
       case ACTION_OK_DL_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME:
          return MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME;
+      case ACTION_OK_DL_DROPDOWN_BOX_LIST_DISK_INDEX:
+         return MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_DISK_INDEX;
       case ACTION_OK_DL_MIXER_STREAM_SETTINGS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_MIXER_STREAM_SETTINGS_LIST;
       case ACTION_OK_DL_ACCOUNTS_LIST:
@@ -536,6 +538,15 @@ int generic_action_ok_displaylist_push(const char *path,
          info_label         = msg_hash_to_str(
                MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME);
          info.enum_idx      = MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME;
+         dl_type            = DISPLAYLIST_GENERIC;
+         break;
+      case ACTION_OK_DL_DROPDOWN_BOX_LIST_DISK_INDEX:
+         info.type          = type;
+         info.directory_ptr = idx;
+         info_path          = path;
+         info_label         = msg_hash_to_str(
+               MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_DISK_INDEX);
+         info.enum_idx      = MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_DISK_INDEX;
          dl_type            = DISPLAYLIST_GENERIC;
          break;
       case ACTION_OK_DL_USER_BINDS_LIST:
@@ -1242,13 +1253,9 @@ static bool menu_content_playlist_load(playlist_t *playlist, size_t idx)
       free(path_check);
 
       if (valid_path)
-      {
-         RARCH_LOG("menu_content_playlist_load 3. path: %s\n", path);
          return true;
-      }
    }
 
-   RARCH_LOG("menu_content_playlist_load 4. path: %s\n", path);
    return false;
 }
 
@@ -1355,7 +1362,6 @@ static int file_load_with_detect_core_wrapper(
       const char *path, const char *label,
       unsigned type, bool is_carchive)
 {
-   RARCH_LOG("file_load_with_detect_core_wrapper.\n");
 
    menu_content_ctx_defer_info_t def_info;
    int ret                             = 0;
@@ -1410,7 +1416,6 @@ static int file_load_with_detect_core_wrapper(
 
       if (enum_label_idx == MENU_ENUM_LABEL_COLLECTION)
       {
-         RARCH_LOG("file_load_with_detect_core_wrapper. MENU_ENUM_LABEL_COLLECTION\n");
          free(new_core_path);
          return generic_action_ok_displaylist_push(path, NULL,
                NULL, 0, idx, entry_idx, ACTION_OK_DL_DEFERRED_CORE_LIST_SET);
@@ -1427,6 +1432,7 @@ static int file_load_with_detect_core_wrapper(
                content_info.args        = NULL;
                content_info.environ_get = NULL;
 
+               // 添加游戏标签，实现中文列表
                if (!task_push_load_content_with_new_core_from_menu(
                         new_core_path, def_info.s, label,
                         &content_info,
@@ -1781,9 +1787,16 @@ static int generic_action_ok(const char *path,
          }
          break;
       case ACTION_OK_APPEND_DISK_IMAGE:
-         flush_type = MENU_SETTINGS;
-         command_event(CMD_EVENT_DISK_APPEND_IMAGE, action_path);
+         {
+            settings_t *settings = config_get_ptr();
+
+            flush_char = msg_hash_to_str(MENU_ENUM_LABEL_DISK_OPTIONS);
+            command_event(CMD_EVENT_DISK_APPEND_IMAGE, action_path);
+
+            if (settings)
+               if (settings->bools.menu_insert_disk_resume)
          generic_action_ok_command(CMD_EVENT_RESUME);
+         }
          break;
       case ACTION_OK_SUBSYSTEM_ADD:
          flush_type = MENU_SETTINGS;
@@ -1859,6 +1872,7 @@ static int default_action_ok_load_content_with_core_from_menu(const char *_path,
 static int default_action_ok_load_content_from_playlist_from_menu(const char *_path,
       const char *path, const char *entry_label)
 {
+   // 检查核心路径，避免核心不存在时，去加载核心，导致软件崩溃
    RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu begin. core: %s, rom: %s, label: %s\n",
       _path, path, entry_label);
 
@@ -2129,8 +2143,8 @@ static int action_ok_playlist_entry_collection(const char *path,
       return menu_cbs_exit();
    }
 
+   // 从列表获取路径，保证路径存在
    playlist_get_index(playlist, selection_ptr, &entry);
-   // strlcpy(new_path, entry->path, sizeof(new_path));
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
    playlist_resolve_path(PLAYLIST_LOAD, new_path, sizeof(new_path));
    return default_action_ok_load_content_from_playlist_from_menu(
@@ -2214,6 +2228,7 @@ static int action_ok_playlist_entry(const char *path,
       return menu_cbs_exit();
    }
 
+   // 从列表获取路径，保证路径存在
    playlist_get_index(playlist, selection_ptr, &entry);
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
    return default_action_ok_load_content_from_playlist_from_menu(
@@ -2289,6 +2304,7 @@ static int action_ok_playlist_entry_start_content(const char *path,
       goto error;
    }
 
+   // 从列表获取路径，保证路径存在
    playlist_get_index(playlist, selection_ptr, &entry);
    playlist_get_exist_rom_path(entry, new_path, sizeof(new_path));
    return default_action_ok_load_content_from_playlist_from_menu(entry->core_path, new_path, entry->label);
@@ -3252,7 +3268,7 @@ static int action_ok_core_deferred_set(const char *new_core_path,
    menu_entries_pop_stack(&selection, 0, 1);
    menu_navigation_set_selection(selection);
 
-   return menu_cbs_exit();
+   return 0;
 }
 
 static int action_ok_deferred_list_stub(const char *path,
@@ -3349,6 +3365,7 @@ static int action_ok_load_core_deferred(const char *path,
    if (!menu)
       return menu_cbs_exit();
 
+   // 添加游戏标签，实现中文列表
    if (!task_push_load_content_with_new_core_from_menu(
             path, menu->deferred_path, label,
             &content_info,
@@ -3789,6 +3806,7 @@ static int action_ok_file_load_detect_core(const char *path,
    content_info.args                   = NULL;
    content_info.environ_get            = NULL;
 
+   // 添加游戏标签，实现中文列表
    if (!task_push_load_content_with_new_core_from_menu(
             path, menu->detect_content_path, label,
             &content_info,
@@ -3818,6 +3836,7 @@ static int action_ok_load_state(const char *path,
    return 0;
 }
 
+// 添加云存档调用入口
 static int action_ok_yun_load_state(const char *path,
                                     const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -3892,6 +3911,7 @@ static void cb_decompressed(retro_task_t *task,
 
    if (dec && !err)
    {
+      // 核心下载后，提示解压并重新初始化
       succ_msg_queue_push("解压成功");
 
       unsigned type_hash = (unsigned)(uintptr_t)user_data;
@@ -3995,6 +4015,7 @@ static int generic_action_ok_network(const char *path,
          callback  = cb_net_generic;
          suppress_msg = true;
          break;
+	  // 添加核心更新和游戏列表下载
       case MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST:
          if (string_is_empty(settings->paths.network_buildbot_url))
             return menu_cbs_exit();
@@ -4061,6 +4082,7 @@ static int (funcname)(const char *path, const char *label, unsigned type, size_t
 
 default_action_ok_list(action_ok_core_content_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_LIST)
 default_action_ok_list(action_ok_core_content_dirs_list, MENU_ENUM_LABEL_CB_CORE_CONTENT_DIRS_LIST)
+// 添加核心更新和游戏列表下载
 default_action_ok_list(action_ok_core_updater_list, MENU_ENUM_LABEL_CB_CORE_UPDATER_LIST)
 default_action_ok_list(action_ok_core_updater_playlists, MENU_ENUM_LABEL_CB_CORE_UPDATER_PLAYLISTS)
 default_action_ok_list(action_ok_thumbnails_updater_list, MENU_ENUM_LABEL_CB_THUMBNAILS_UPDATER_LIST)
@@ -4110,6 +4132,7 @@ void cb_generic_download(retro_task_t *task,
       case MENU_ENUM_LABEL_CB_CORE_THUMBNAILS_DOWNLOAD:
          dir_path = settings->paths.directory_thumbnails;
          break;
+	  // 核心更新
       case MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD:
          dir_path = settings->paths.directory_libretro;
          break;
@@ -4125,6 +4148,7 @@ void cb_generic_download(retro_task_t *task,
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
          dir_path = settings->paths.directory_assets;
          break;
+	  // 游戏列表下载
       case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
          dir_path = settings->paths.directory_playlist;
          break;
@@ -4137,6 +4161,7 @@ void cb_generic_download(retro_task_t *task,
       case MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS:
          dir_path = settings->paths.directory_overlay;
          break;
+	  // BIOS下载
       case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
          dir_path = settings->paths.directory_system;
          break;
@@ -4181,6 +4206,7 @@ void cb_generic_download(retro_task_t *task,
          dir_path = buf;
          break;
       }
+	  // 不同类型是否要解压
       case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
          extract = false;
          break;
@@ -4403,7 +4429,7 @@ static int action_ok_download_generic(const char *path,
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
 #ifdef VITA
-         path = "assets_vita.zip";
+         path = "playlists_vita.zip";
 #else
          path = "playlists.zip";
 #endif
@@ -4487,19 +4513,19 @@ static int action_ok_core_content_download(const char *path,
 //    return 0;
 // }
 
+#ifdef HAVE_NETWORKING
 static int action_ok_update_installed_cores(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-#ifdef HAVE_NETWORKING
    /* Ensure networking is initialised */
    generic_action_ok_command(CMD_EVENT_NETWORK_INIT);
 
    /* Push update task */
    task_push_update_installed_cores();
 
-#endif
    return 0;
 }
+#endif
 
 static int action_ok_sideload_core(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
@@ -4669,7 +4695,6 @@ default_action_ok_cmd_func(action_ok_save_new_config,          CMD_EVENT_MENU_SA
 default_action_ok_cmd_func(action_ok_resume_content,           CMD_EVENT_RESUME)
 default_action_ok_cmd_func(action_ok_restart_content,          CMD_EVENT_RESET)
 default_action_ok_cmd_func(action_ok_screenshot,               CMD_EVENT_TAKE_SCREENSHOT)
-default_action_ok_cmd_func(action_ok_disk_cycle_tray_status,   CMD_EVENT_DISK_EJECT_TOGGLE)
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
 default_action_ok_cmd_func(action_ok_shader_apply_changes,     CMD_EVENT_SHADERS_APPLY_CHANGES)
 #endif
@@ -5979,6 +6004,15 @@ static int action_ok_push_dropdown_item_manual_content_scan_core_name(const char
    return action_cancel_pop_default(NULL, NULL, 0, 0);
 }
 
+static int action_ok_push_dropdown_item_disk_index(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   unsigned disk_index = (unsigned)idx;
+   command_event(CMD_EVENT_DISK_INDEX, &disk_index);
+   menu_entries_pop_stack(NULL, 0, 1);
+   menu_navigation_set_selection(0);
+   return 0;
+}
 static int action_ok_push_default(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6078,6 +6112,7 @@ static int action_ok_load_archive_detect_core(const char *path,
 
             ret                                 = 0;
 
+            // 添加游戏标签，实现中文列表
             if (!task_push_load_content_with_new_core_from_menu(
                      new_core_path, def_info.s, label,
                      &content_info,
@@ -6235,6 +6270,68 @@ static int action_ok_video_shader_num_passes_dropdown_box_list(const char *path,
 {
    return generic_dropdown_box_list(idx, 
          ACTION_OK_DL_DROPDOWN_BOX_LIST_VIDEO_SHADER_NUM_PASSES);
+}
+
+static int action_ok_disk_index_dropdown_box_list(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   return generic_dropdown_box_list(idx,
+         ACTION_OK_DL_DROPDOWN_BOX_LIST_DISK_INDEX);
+}
+static int action_ok_disk_cycle_tray_status(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   bool disk_ejected              = false;
+   bool print_log                 = false;
+   rarch_system_info_t *sys_info  = runloop_get_system_info();
+   settings_t *settings           = config_get_ptr();
+
+   if (!settings)
+      return menu_cbs_exit();
+
+#ifdef HAVE_AUDIOMIXER
+   if (settings->bools.audio_enable_menu && settings->bools.audio_enable_menu_ok)
+      audio_driver_mixer_play_menu_sound(AUDIO_MIXER_SYSTEM_SLOT_OK);
+#endif
+
+   /* Get disk eject state *before* toggling drive status */
+   if (sys_info)
+   {
+      const struct retro_disk_control_callback *control =
+            (const struct retro_disk_control_callback*)
+                  &sys_info->disk_control_cb;
+
+      if (control)
+         if (control->get_eject_state)
+            disk_ejected = control->get_eject_state();
+   }
+
+   /* Only want to display a notification if we are
+    * going to resume content immediately after
+    * inserting a disk (i.e. if quick menu remains
+    * open, there is sufficient visual feedback
+    * without a notification) */
+   print_log = settings->bools.menu_insert_disk_resume && disk_ejected;
+
+   if (!command_event(CMD_EVENT_DISK_EJECT_TOGGLE, &print_log))
+      return menu_cbs_exit();
+
+   /* If we reach this point, then tray toggle
+    * was successful */
+   disk_ejected = !disk_ejected;
+
+   /* If disk is now ejected, menu selection should
+    * automatically increment to the 'current disk
+    * index' option */
+   if (disk_ejected)
+      menu_navigation_set_selection(1);
+
+   /* If disk is now inserted and user has enabled
+    * 'menu_insert_disk_resume', resume running content */
+   if (!disk_ejected && settings->bools.menu_insert_disk_resume)
+      generic_action_ok_command(CMD_EVENT_RESUME);
+
+   return 0;
 }
 
 static int action_ok_manual_content_scan_start(const char *path,
@@ -6409,6 +6506,8 @@ static int action_ok_pl_content_thumbnails(const char *path,
    return -1;
 #endif
 }
+
+// 菜单批量下载入口
 static int action_ok_pl_content_rom(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6462,6 +6561,7 @@ static int action_ok_pl_entry_content_thumbnails(const char *path,
 }
 #endif
 
+// 单个菜单下载入口
 #ifdef HAVE_NETWORKING
 static int action_ok_pl_entry_content_rom(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
@@ -6503,6 +6603,25 @@ static int action_ok_playlist_reset_cores(const char *path,
       return -1;
 
    task_push_pl_manager_reset_cores(playlist_path);
+
+   return 0;
+}
+
+static int action_ok_playlist_clean(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   playlist_t *playlist      = playlist_get_cached();
+   const char *playlist_path = NULL;
+
+   if (!playlist)
+      return -1;
+
+   playlist_path = playlist_get_conf_path(playlist);
+
+   if (string_is_empty(playlist_path))
+      return -1;
+
+   task_push_pl_manager_clean_playlist(playlist_path);
 
    return 0;
 }
@@ -6704,6 +6823,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_LOAD_STATE:
             BIND_ACTION_OK(cbs, action_ok_load_state);
             break;
+		 // 云存档
          case MENU_ENUM_LABEL_YUN_LOAD_STATE:
             BIND_ACTION_OK(cbs, action_ok_yun_load_state);
             break;
@@ -6826,6 +6946,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_UPDATE_INSTALLED_CORES:
             BIND_ACTION_OK(cbs, action_ok_update_installed_cores);
             break;
+		 // 更新核心列表
          case MENU_ENUM_LABEL_CORE_UPDATER_PLAYLISTS:
             BIND_ACTION_OK(cbs, action_ok_core_updater_playlists);
             break;
@@ -6838,6 +6959,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS:
             BIND_ACTION_OK(cbs, action_ok_pl_entry_content_thumbnails);
             break;
+		 // 下载
          case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM:
             BIND_ACTION_OK(cbs, action_ok_pl_entry_content_rom);
             break;
@@ -6930,6 +7052,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_PLAYLIST_MANAGER_RESET_CORES:
             BIND_ACTION_OK(cbs, action_ok_playlist_reset_cores);
+            break;
+         case MENU_ENUM_LABEL_PLAYLIST_MANAGER_CLEAN_PLAYLIST:
+            BIND_ACTION_OK(cbs, action_ok_playlist_clean);
             break;
          case MENU_ENUM_LABEL_RECORDING_SETTINGS:
             BIND_ACTION_OK(cbs, action_ok_push_recording_settings_list);
@@ -7246,9 +7371,11 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_UPDATE_ASSETS:
             BIND_ACTION_OK(cbs, action_ok_update_assets);
             break;
+		 // 更新BIOS
          case MENU_ENUM_LABEL_UPDATE_SYSTEMS:
             BIND_ACTION_OK(cbs, action_ok_update_systems);
             break;
+		 // 更新游戏列表
          case MENU_ENUM_LABEL_UPDATE_PLAYLISTS:
             BIND_ACTION_OK(cbs, action_ok_update_playlists);
             break;
@@ -7605,6 +7732,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_SETTING_DROPDOWN_ITEM_MANUAL_CONTENT_SCAN_CORE_NAME:
             BIND_ACTION_OK(cbs, action_ok_push_dropdown_item_manual_content_scan_core_name);
             break;
+         case MENU_SETTING_DROPDOWN_ITEM_DISK_INDEX:
+            BIND_ACTION_OK(cbs, action_ok_push_dropdown_item_disk_index);
+            break;
          case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
             BIND_ACTION_OK(cbs, action_ok_push_default);
             break;
@@ -7772,6 +7902,7 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
          case FILE_TYPE_DOWNLOAD_PL_THUMBNAIL_CONTENT:
             BIND_ACTION_OK(cbs, action_ok_pl_content_thumbnails);
             break;
+		 // 批量下载
          case FILE_TYPE_DOWNLOAD_PL_ROM_CONTENT:
             BIND_ACTION_OK(cbs, action_ok_pl_content_rom);
             break;
@@ -7931,6 +8062,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS:
             BIND_ACTION_OK(cbs, action_ok_disk_cycle_tray_status);
+            break;
+         case MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX:
+            BIND_ACTION_OK(cbs, action_ok_disk_index_dropdown_box_list);
             break;
          case MENU_SETTINGS_CORE_OPTION_CREATE:
             BIND_ACTION_OK(cbs, action_ok_option_create);

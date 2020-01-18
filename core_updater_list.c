@@ -405,8 +405,8 @@ static bool core_updater_list_set_paths(
       const char *network_buildbot_url,
       const char *filename_str)
 {
-   char *last_underscore = NULL;
-   char *tmp_url         = NULL;
+   char *last_underscore                  = NULL;
+   char *tmp_url                          = NULL;
    char remote_core_path[PATH_MAX_LENGTH];
    char local_core_path[PATH_MAX_LENGTH];
    char local_info_path[PATH_MAX_LENGTH];
@@ -709,7 +709,6 @@ bool core_updater_list_parse_network_data(
       const char *network_buildbot_url,
       const char *data, size_t len)
 {
-
    struct string_list *network_core_list       = NULL;
    struct string_list *network_core_entry_list = NULL;
    char *data_buf                              = NULL;

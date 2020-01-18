@@ -19,6 +19,7 @@
 
 #define CINTERFACE
 
+// 安卓默认打开资源更新
 #if defined(ANDROID)
 #define HAVE_ONLINE_UPDATER 1
 #define HAVE_UPDATE_ASSETS 1
@@ -985,6 +986,8 @@ FILE
 #ifndef __WINRT__
 #include "../libretro-common/vfs/vfs_implementation.c"
 #endif
+
+// 添加九宫格功能
 #include "../quickkid/pinyin.c"
 #include "../quickkid/utf8vector.c"
 #include "../quickkid/quickkid.c"
@@ -1226,7 +1229,7 @@ DATA RUNLOOP
 #endif
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
 #include "../tasks/task_pl_thumbnail_download.c"
-#include "../tasks/task_pl_rom_download.c"
+#include "../tasks/task_pl_rom_download.c" // 添加下载功能
 #include "../tasks/task_core_updater.c"
 #endif
 

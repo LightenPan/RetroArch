@@ -64,6 +64,7 @@ enum playlist_thumbnail_mode
    PLAYLIST_THUMBNAIL_MODE_BOXARTS
 };
 
+// 定义提取到头文件，方便其他地方调用
 struct content_playlist
 {
    bool modified;
@@ -276,6 +277,13 @@ void command_playlist_update_write(
  * specified content/core paths */
 bool playlist_index_is_valid(playlist_t *playlist, size_t idx,
       const char *path, const char *core_path);
+
+/* Returns true if specified playlist entries have
+ * identical content and core paths */
+bool playlist_entries_are_equal(
+      const struct playlist_entry *entry_a,
+      const struct playlist_entry *entry_b,
+      bool fuzzy_archive_match);
 
 void playlist_get_crc32(playlist_t *playlist, size_t idx,
       const char **crc32);

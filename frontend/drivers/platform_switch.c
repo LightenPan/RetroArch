@@ -186,6 +186,7 @@ static void frontend_switch_get_environment_settings(int *argc, char *argv[], vo
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_ASSETS], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "assets", sizeof(g_defaults.dirs[DEFAULT_DIR_ASSETS]));
 
+   // 修复目录和其他平台不对应的问题
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SAVESTATE], g_defaults.dirs[DEFAULT_DIR_PORT],
                       "states", sizeof(g_defaults.dirs[DEFAULT_DIR_SAVESTATE]));
 
@@ -298,6 +299,7 @@ static void frontend_switch_deinit(void *data)
 #ifdef HAVE_LIBNX
 static void frontend_switch_exec(const char *path, bool should_load_game)
 {
+   // 添加游戏标签，用于静态拉起核心时，传递游戏名显示中文
    if (!path_is_valid(path)) {
       RARCH_LOG("frontend_switch_exec content path: %s, rom: %s label: %s.\n",
       path, path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
@@ -706,7 +708,7 @@ static void frontend_switch_init(void *data)
    uint32_t width                = 0;
    uint32_t height               = 0;
 
-   nifmInitialize();
+   nifmInitialize(NifmServiceType_User);
    
    if(hosversionBefore(8, 0, 0))
       pcvInitialize();
@@ -816,7 +818,7 @@ static int frontend_switch_parse_drive_list(void *data, bool load_content)
    file_list_t *list = (file_list_t *)data;
    enum msg_hash_enums enum_idx = load_content 
       ? MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR 
-      : MSG_UNKNOWN;
+      : MENU_ENUM_LABEL_FILE_BROWSER_DIRECTORY;
 
    if (!list)
       return -1;
@@ -938,11 +940,6 @@ void frontend_switch_process_args(int *argc, char *argv[])
    {
       /* Ensure current Path is set, only works for the static dummy, likely a hbloader args Issue (?) */
       path_set(RARCH_PATH_CORE, argv[0]);
-   }
-
-   for (int i = 0; i < *argc; ++i)
-   {
-      RARCH_LOG("frontend_switch_process_args log args. argv[%d]: %s", i, argv[i]);
    }
 #endif
 }

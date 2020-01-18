@@ -91,11 +91,12 @@ bool task_push_pl_entry_thumbnail_download(
       unsigned idx,
       bool overwrite,
       bool mute);
-	  
+
+// 云存档
 bool yun_save_rom_state(char *path);
 bool yun_load_rom_state(char *path);
 
-
+// 定义提取到头文件，方便其他地方调用
 typedef struct
 {
 	intfstream_t *file;
@@ -121,6 +122,7 @@ typedef struct
 #endif
 
 bool task_push_pl_manager_reset_cores(const char *playlist_path);
+bool task_push_pl_manager_clean_playlist(const char *playlist_path);
 
 bool task_push_image_load(const char *fullpath,
       bool supports_rgba, unsigned upscale_threshold,

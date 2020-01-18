@@ -2139,7 +2139,7 @@ static uintptr_t stripes_icon_get_id(stripes_handle_t *stripes,
       case MENU_ENUM_LABEL_SAVE_STATE:
          return stripes->textures.list[STRIPES_TEXTURE_SAVESTATE];
       case MENU_ENUM_LABEL_LOAD_STATE:
-      case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+      case MENU_ENUM_LABEL_YUN_LOAD_STATE: // 云存档
          return stripes->textures.list[STRIPES_TEXTURE_LOADSTATE];
       case MENU_ENUM_LABEL_PARENT_DIRECTORY:
       case MENU_ENUM_LABEL_UNDO_LOAD_STATE:
@@ -2221,7 +2221,7 @@ static uintptr_t stripes_icon_get_id(stripes_handle_t *stripes,
       case MENU_SETTING_ACTION_SAVESTATE:
          return stripes->textures.list[STRIPES_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE:
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // 云存档
          return stripes->textures.list[STRIPES_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
       case MENU_SETTING_ACTION_CORE_INFORMATION:
@@ -3847,7 +3847,7 @@ static void stripes_list_deep_copy(const file_list_t *src, file_list_t *dst,
       d->alt   = string_is_empty(d->alt)   ? NULL : strdup(d->alt);
       d->path  = string_is_empty(d->path)  ? NULL : strdup(d->path);
       d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
-      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum);
+      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum); // 九宫格
 
       if (src_udata)
          file_list_set_userdata(dst, j, (void*)stripes_copy_node((const stripes_node_t*)src_udata));

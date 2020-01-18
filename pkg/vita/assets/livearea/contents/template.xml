@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <livearea style="a4" format-ver="01.00" content-rev="1">
 	<livearea-background>
@@ -11,8 +11,10 @@
 	
 	<frame id="frame1">
 		<liveitem>
-         <target>http://buildbot.libretro.com/nightly/playstation/vita/</target>
-			<background x="20" y="-10" >website.png</background>
+			<text valign="bottom" align="left" text-align="left" text-valign="bottom" line-space="3" ellipsis="on">
+				<str color="#02fce2" size="25" bold="on" shadow="on">全能模拟器1.8.4魔改(122)</str>
+			</text>
 		</liveitem>
 	</frame>
 </livearea>
+

@@ -601,12 +601,10 @@ static unsigned menu_displaylist_parse_system_info(file_list_t *list)
 
       {
          char tmp[PATH_MAX_LENGTH];
-         char tmp2[PATH_MAX_LENGTH];
-         char tmp3[PATH_MAX_LENGTH];
          uint64_t memory_free       = frontend_driver_get_free_memory();
          uint64_t memory_total      = frontend_driver_get_total_memory();
 
-         tmp[0] = tmp2[0] = tmp3[0] = '\0';
+         tmp[0] = '\0';
 
          if (memory_free != 0 && memory_total != 0)
          {
@@ -628,6 +626,7 @@ static unsigned menu_displaylist_parse_system_info(file_list_t *list)
       if (frontend->get_powerstate)
       {
          int seconds    = 0, percent = 0;
+         char tmp2[PATH_MAX_LENGTH];
          enum frontend_powerstate state =
             frontend->get_powerstate(&seconds, &percent);
 
@@ -847,7 +846,6 @@ static unsigned menu_displaylist_parse_system_info(file_list_t *list)
 static int menu_displaylist_parse_playlist(menu_displaylist_info_t *info,
       playlist_t *playlist, const char *path_playlist, bool is_collection)
 {
-   RARCH_LOG("menu_displaylist_parse_playlist begin\n");
    unsigned i;
    char label_spacer[PL_LABEL_SPACER_MAXLEN];
    size_t           list_size        = playlist_size(playlist);
@@ -1911,6 +1909,8 @@ static int menu_displaylist_parse_load_content_settings(
                   MENU_ENUM_LABEL_LOAD_STATE,
                   MENU_SETTING_ACTION_LOADSTATE, 0, 0))
                count++;
+			
+			// 云存档入口
             if (menu_entries_append_enum(list,
                   msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE),
                   msg_hash_to_str(MENU_ENUM_LABEL_YUN_LOAD_STATE),
@@ -2157,6 +2157,7 @@ static int menu_displaylist_parse_horizontal_content_actions(
    if (playlist)
       playlist_get_index(playlist, idx, &entry);
 
+   // 加载rom时，检查完整路径
    content_loaded = !rarch_ctl(RARCH_CTL_IS_DUMMY_CORE, NULL)
       && string_is_equal(path_basename(menu->deferred_path), path_basename(fullpath));
 
@@ -2334,6 +2335,8 @@ static int menu_displaylist_parse_horizontal_content_actions(
                msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS),
                MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
       }
+	  
+	  // 下载入口
       menu_entries_append_enum(info->list,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM),
          msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM),
@@ -2933,7 +2936,7 @@ static bool menu_displaylist_parse_playlist_manager_settings(
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_RESET_CORES),
          msg_hash_to_str(MENU_ENUM_LABEL_PLAYLIST_MANAGER_RESET_CORES),
          MENU_ENUM_LABEL_PLAYLIST_MANAGER_RESET_CORES,
-         FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
+         MENU_SETTING_ACTION_PLAYLIST_MANAGER_RESET_CORES, 0, 0);
 
    /* Label display mode */
    menu_entries_append_enum(info->list,
@@ -2980,9 +2983,14 @@ static bool menu_displaylist_parse_playlist_manager_settings(
          MENU_ENUM_LABEL_PLAYLIST_MANAGER_LEFT_THUMBNAIL_MODE,
          MENU_SETTING_PLAYLIST_MANAGER_LEFT_THUMBNAIL_MODE, 0, 0);
 
-   /* TODO - Add:
-    * - Remove invalid entries */
+   /* Clean playlist */
+   menu_entries_append_enum(info->list,
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_CLEAN_PLAYLIST),
+         msg_hash_to_str(MENU_ENUM_LABEL_PLAYLIST_MANAGER_CLEAN_PLAYLIST),
+         MENU_ENUM_LABEL_PLAYLIST_MANAGER_CLEAN_PLAYLIST,
+         MENU_SETTING_ACTION_PLAYLIST_MANAGER_CLEAN_PLAYLIST, 0, 0);
 
+   /* Delete playlist */
    menu_entries_append_enum(info->list,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DELETE_PLAYLIST),
          msg_hash_to_str(MENU_ENUM_LABEL_DELETE_PLAYLIST),
@@ -3037,9 +3045,11 @@ static unsigned menu_displaylist_parse_pl_thumbnail_download_list(
          menu_entries_append_enum(info->list,
                path_base,
                path,
-               MENU_ENUM_LABEL_PLAYLIST_ENTRY,
+               MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_ENTRY,
                FILE_TYPE_DOWNLOAD_PL_THUMBNAIL_CONTENT,
                0, 0);
+			   
+		 // 下载
          menu_entries_append_enum(info->list,
                path_base,
                path,
@@ -3083,7 +3093,7 @@ static unsigned menu_displaylist_parse_content_information(
    if (!settings)
       return count;
 
-   RARCH_LOG("menu_displaylist_parse_content_information\n");
+   // 加载rom时，检查完整路径
    content_loaded = !rarch_ctl(RARCH_CTL_IS_DUMMY_CORE, NULL)
          && string_is_equal(path_basename(menu->deferred_path), path_basename(loaded_content_path));
 
@@ -3305,6 +3315,81 @@ static unsigned menu_displaylist_parse_content_information(
    return count;
 }
 
+static unsigned menu_displaylist_parse_disk_options(
+      file_list_t *list)
+{
+   unsigned count                                    = 0;
+   rarch_system_info_t *sys_info                     =
+         runloop_get_system_info();
+   const struct retro_disk_control_callback *control = NULL;
+   bool disk_ejected;
+
+   /* Sanity Check */
+   if (!sys_info)
+      return count;
+
+   control = (const struct retro_disk_control_callback*)
+         &sys_info->disk_control_cb;
+
+   if (!control ||
+       !control->get_num_images ||
+       !control->get_image_index ||
+       !control->get_eject_state ||
+       !control->set_eject_state)
+      return count;
+
+   /* Check whether disk is currently ejected */
+   disk_ejected = control->get_eject_state();
+
+   /* Always show a 'DISK_CYCLE_TRAY_STATUS' entry
+    * > These perform the same function, but just have
+    *   different labels/sublabels */
+   if (disk_ejected)
+   {
+      if (menu_entries_append_enum(list,
+               msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_TRAY_INSERT),
+               msg_hash_to_str(MENU_ENUM_LABEL_DISK_TRAY_INSERT),
+               MENU_ENUM_LABEL_DISK_TRAY_INSERT,
+               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS, 0, 0))
+         count++;
+   }
+   else
+      if (menu_entries_append_enum(list,
+               msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_TRAY_EJECT),
+               msg_hash_to_str(MENU_ENUM_LABEL_DISK_TRAY_EJECT),
+               MENU_ENUM_LABEL_DISK_TRAY_EJECT,
+               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS, 0, 0))
+         count++;
+
+   /* Only show disk index if disk is currently ejected */
+   if (disk_ejected)
+      if (menu_entries_append_enum(list,
+               msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_INDEX),
+               msg_hash_to_str(MENU_ENUM_LABEL_DISK_INDEX),
+               MENU_ENUM_LABEL_DISK_INDEX,
+               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX, 0, 0))
+         count++;
+
+   /* If replace_image_index() is undefined, can stop here */
+   if (!control->replace_image_index)
+      return count;
+
+   /* Append image does the following:
+    * > Open tray
+    * > Append disk image
+    * > Close tray
+    * It therefore only makes sense to show this option
+    * if a disk is currently inserted */
+   if (!disk_ejected)
+      if (menu_entries_append_enum(list,
+               msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND),
+               msg_hash_to_str(MENU_ENUM_LABEL_DISK_IMAGE_APPEND),
+               MENU_ENUM_LABEL_DISK_IMAGE_APPEND,
+               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_IMAGE_APPEND, 0, 0))
+         count++;
+
+   return count;
+}
 static bool menu_displaylist_push_internal(
       const char *label,
       menu_displaylist_ctx_entry_t *entry,
@@ -5341,6 +5426,57 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
             }
          }
          break;
+      case DISPLAYLIST_DROPDOWN_LIST_DISK_INDEX:
+         {
+            rarch_system_info_t *sys_info = runloop_get_system_info();
+
+            if (sys_info)
+            {
+               const struct retro_disk_control_callback *control =
+                     (const struct retro_disk_control_callback*)
+                           &sys_info->disk_control_cb;
+
+               /* Check that the required disk control interface
+                * functions are defined */
+               if (control &&
+                   control->get_num_images &&
+                   control->get_image_index)
+               {
+                  unsigned num_images    = control->get_num_images();
+                  unsigned current_image = control->get_image_index();
+                  unsigned i;
+
+                  /* Loop through disk images */
+                  for (i = 0; i < num_images; i++)
+                  {
+                     char current_image_str[256];
+
+                     current_image_str[0] = '\0';
+
+                     /* Get string representation of disk index
+                      * > Note that displayed index starts at '1',
+                      *   not '0' */
+                     snprintf(
+                           current_image_str, sizeof(current_image_str),
+                           "%u", i + 1);
+
+                     /* Add menu entry */
+                     if (menu_entries_append_enum(list,
+                              current_image_str,
+                              "",
+                              MENU_ENUM_LABEL_NO_ITEMS,
+                              MENU_SETTING_DROPDOWN_ITEM_DISK_INDEX,
+                              i, 0))
+                        count++;
+
+                     /* Check whether current disk is selected */
+                     if (i == current_image)
+                        menu_entries_set_checked(list, i, true);
+                  }
+               }
+            }
+         }
+         break;
       case DISPLAYLIST_PERFCOUNTERS_CORE:
       case DISPLAYLIST_PERFCOUNTERS_FRONTEND:
          {
@@ -5476,6 +5612,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                      PARSE_ONLY_BOOL, false) != -1)
                count++;
 
+            // 云存档
             if (menu_displaylist_parse_settings_enum(list,
 							MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
 							PARSE_ONLY_BOOL, false) != -1)
@@ -5790,6 +5927,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
                {MENU_ENUM_LABEL_NAVIGATION_WRAPAROUND,                                 PARSE_ONLY_BOOL,   true},
                {MENU_ENUM_LABEL_PAUSE_LIBRETRO,                                        PARSE_ONLY_BOOL,   true},
                {MENU_ENUM_LABEL_MENU_SAVESTATE_RESUME,                                 PARSE_ONLY_BOOL,   true},
+               {MENU_ENUM_LABEL_MENU_INSERT_DISK_RESUME,                               PARSE_ONLY_BOOL,   true},
                {MENU_ENUM_LABEL_MOUSE_ENABLE,                                          PARSE_ONLY_BOOL,   true},
                {MENU_ENUM_LABEL_POINTER_ENABLE,                                        PARSE_ONLY_BOOL,   true},
                {MENU_ENUM_LABEL_THREADED_DATA_RUNLOOP_ENABLE,                          PARSE_ONLY_BOOL,   true},
@@ -5834,24 +5972,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
          }
          break;
       case DISPLAYLIST_OPTIONS_DISK:
-         if (menu_entries_append_enum(list,
-                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_INDEX),
-                  msg_hash_to_str(MENU_ENUM_LABEL_DISK_INDEX),
-                  MENU_ENUM_LABEL_DISK_INDEX,
-                  MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX, 0, 0))
-            count++;
-         if (menu_entries_append_enum(list,
-                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS),
-                  msg_hash_to_str(MENU_ENUM_LABEL_DISK_CYCLE_TRAY_STATUS),
-                  MENU_ENUM_LABEL_DISK_CYCLE_TRAY_STATUS,
-                  MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS, 0, 0))
-            count++;
-         if (menu_entries_append_enum(list,
-                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND),
-                  msg_hash_to_str(MENU_ENUM_LABEL_DISK_IMAGE_APPEND),
-                  MENU_ENUM_LABEL_DISK_IMAGE_APPEND,
-                  MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_IMAGE_APPEND, 0, 0))
-            count++;
+         count = menu_displaylist_parse_disk_options(list);
          break;
       case DISPLAYLIST_MIDI_SETTINGS_LIST:
          {
@@ -6681,6 +6802,7 @@ unsigned menu_displaylist_build_list(file_list_t *list, enum menu_displaylist_ct
          break;
       case DISPLAYLIST_USER_SETTINGS_LIST:
          {
+		    // 添加魔改账号
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_PRIVACY_SETTINGS,  PARSE_ACTION},
                {MENU_ENUM_LABEL_ACCOUNTS_LIST,     PARSE_ACTION},
@@ -9192,6 +9314,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
       case DISPLAYLIST_DROPDOWN_LIST_PLAYLIST_LEFT_THUMBNAIL_MODE:
       case DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME:
       case DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_CORE_NAME:
+      case DISPLAYLIST_DROPDOWN_LIST_DISK_INDEX:
       case DISPLAYLIST_PERFCOUNTERS_CORE:
       case DISPLAYLIST_PERFCOUNTERS_FRONTEND:
       case DISPLAYLIST_MENU_SETTINGS_LIST:
@@ -9250,6 +9373,7 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                case DISPLAYLIST_DROPDOWN_LIST_PLAYLIST_LEFT_THUMBNAIL_MODE:
                case DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME:
                case DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_CORE_NAME:
+               case DISPLAYLIST_DROPDOWN_LIST_DISK_INDEX:
                case DISPLAYLIST_INFORMATION_LIST:
                case DISPLAYLIST_SCAN_DIRECTORY_LIST:
                   menu_entries_append_enum(info->list,
@@ -9426,12 +9550,16 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      MENU_ENUM_LABEL_UPDATE_ASSETS,
                      MENU_SETTING_ACTION, 0, 0))
                count++;
+			
+			// 更新BIOS
 			if (menu_entries_append_enum(info->list,
 					msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS),
 					msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS),
 					MENU_ENUM_LABEL_UPDATE_SYSTEMS,
 					MENU_SETTING_ACTION, 0, 0))
 				count++;
+			
+			// 更新游戏列表
 			if (menu_entries_append_enum(info->list,
 					msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS),
 					msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS),
@@ -9511,6 +9639,8 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                   MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
                   PARSE_ONLY_BOOL, false) != -1)
                  count++;
+			
+			// 云存档
             if (menu_displaylist_parse_settings_enum(info->list,
 						MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
 						PARSE_ONLY_BOOL, false) != -1)

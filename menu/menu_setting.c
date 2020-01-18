@@ -1,7 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2017 - Daniel De Matteis
- *  Copyright (C) 2014-2017 - Jean-Andr� Santoni
+ *  Copyright (C) 2014-2017 - Jean-Andr?Santoni
  *  Copyright (C) 2016-2019 - Brad Parker
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
@@ -6344,10 +6344,10 @@ void general_read_handler(rarch_setting_t *setting)
          break;
       case MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE:
          {
-            // 如果机器码没有设置，这里用随机数初始�?
+            // 濡傛灉鏈哄櫒鐮佹病鏈夎缃紝杩欓噷鐢ㄩ殢鏈烘暟鍒濆鍖?
             if (string_is_empty(settings->arrays.retrogame_allinone_mcode))
             {
-               // �?5个随机数生成机器�?
+               // 5涓殢鏈烘暟鐢熸垚鏈哄櫒
                char mcode[256] = {0};
                unsigned number_value = (unsigned)time(NULL);
                unsigned random_array[5] = {0};
@@ -8025,6 +8025,7 @@ static bool setting_append_list(
                &subgroup_info,
                parent_group);
 
+#ifdef HAVE_ACCESSIBILITY
          CONFIG_ACTION(
                list, list_info,
                MENU_ENUM_LABEL_ACCESSIBILITY_SETTINGS,
@@ -8032,6 +8033,7 @@ static bool setting_append_list(
                &group_info,
                &subgroup_info,
                parent_group);
+#endif
 
          CONFIG_ACTION(
                list, list_info,
@@ -12360,6 +12362,22 @@ static bool setting_append_list(
 
          CONFIG_BOOL(
                list, list_info,
+               &settings->bools.menu_insert_disk_resume,
+               MENU_ENUM_LABEL_MENU_INSERT_DISK_RESUME,
+               MENU_ENUM_LABEL_VALUE_MENU_INSERT_DISK_RESUME,
+               DEFAULT_MENU_INSERT_DISK_RESUME,
+               MENU_ENUM_LABEL_VALUE_OFF,
+               MENU_ENUM_LABEL_VALUE_ON,
+               &group_info,
+               &subgroup_info,
+               parent_group,
+               general_write_handler,
+               general_read_handler,
+               SD_FLAG_ADVANCED
+               );
+
+         CONFIG_BOOL(
+               list, list_info,
                &settings->bools.menu_mouse_enable,
                MENU_ENUM_LABEL_MOUSE_ENABLE,
                MENU_ENUM_LABEL_VALUE_MOUSE_ENABLE,
@@ -15978,6 +15996,8 @@ static bool setting_append_list(
                   general_write_handler,
                   general_read_handler,
                   SD_FLAG_NONE);
+			
+			// 云存档
             CONFIG_BOOL(
                list, list_info,
                &settings->bools.network_on_demand_yunsavestate,
@@ -16112,6 +16132,7 @@ static bool setting_append_list(
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
          (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
+         // 魔改账号
          CONFIG_STRING(
                list, list_info,
                settings->arrays.retrogame_allinone_username,

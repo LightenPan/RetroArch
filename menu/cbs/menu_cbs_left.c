@@ -228,8 +228,6 @@ static int action_left_scroll(unsigned type, const char *label,
 static int action_left_mainmenu(unsigned type, const char *label,
       bool wraparound)
 {
-   RARCH_LOG("action_left_mainmenu begin. type: %d, label: %s, wraparound: %d\n",
-      type, label, wraparound);
 
    menu_ctx_list_t list_info;
    unsigned        push_list = 0;
@@ -653,7 +651,12 @@ static int core_setting_left(unsigned type, const char *label,
 static int disk_options_disk_idx_left(unsigned type, const char *label,
       bool wraparound)
 {
-   command_event(CMD_EVENT_DISK_PREV, NULL);
+   /* Note: Menu itself provides visual feedback - no
+    * need to print info message to screen */
+   bool print_log = false;
+
+   command_event(CMD_EVENT_DISK_PREV, &print_log);
+
    return 0;
 }
 

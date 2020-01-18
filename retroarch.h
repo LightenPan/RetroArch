@@ -113,6 +113,7 @@ enum rarch_ctl_state
 
    /* Username */
    RARCH_CTL_HAS_SET_USERNAME,
+
    RARCH_CTL_HAS_SET_SUBSYSTEMS,
 
    RARCH_CTL_TASK_INIT,
@@ -303,6 +304,7 @@ typedef struct global
 #endif
 } global_t;
 
+// 提取到头文件，方便其他地方调用
 struct input_keyboard_line
 {
    char *buffer;
@@ -2040,15 +2042,6 @@ unsigned int retroarch_get_rotation(void);
 input_keyboard_line_t *get_input_keyboard_line(void);
 
 bool is_input_keyboard_display_on(void);
-bool is_accessibility_enabled(void);
-bool accessibility_speak(const char* speak_text);
-bool accessibility_speak_priority(const char* speak_text, int priority);
-bool accessibility_startup_message(void);
-
-bool is_narrator_running(void);
-
-bool accessibility_speak_ai_service(
-      const char* speak_text, const char* voice, int priority);
 
 RETRO_END_DECLS
 

@@ -106,10 +106,20 @@ ifneq ($(findstring Win32,$(OS)),)
    LDFLAGS += -mwindows
 endif
 
+ifneq ($(CXX_BUILD), 1)
+   ifneq ($(C89_BUILD),)
+      CFLAGS += -std=c89 -ansi -pedantic -Werror=pedantic -Wno-long-long
+   else ifeq ($(HAVE_C99), 1)
+      CFLAGS += $(C99_CFLAGS)
+   endif
+
+   CFLAGS += -D_GNU_SOURCE
+endif
+
 DEF_FLAGS += -Wall $(INCLUDE_DIRS) -I. -Ideps -Ideps/stb
 
 CFLAGS += $(DEF_FLAGS)
-CXXFLAGS += $(DEF_FLAGS) -std=c++11 -D__STDC_CONSTANT_MACROS
+CXXFLAGS += $(DEF_FLAGS) -D__STDC_CONSTANT_MACROS
 OBJCFLAGS :=  $(CFLAGS) -D__STDC_CONSTANT_MACROS
 
 ifeq ($(HAVE_CXX), 1)
@@ -125,20 +135,6 @@ ifeq ($(HAVE_CXX), 1)
    endif
 else
    LINK = $(CC)
-endif
-
-ifneq ($(CXX_BUILD), 1)
-   ifneq ($(GNU90_BUILD), 1)
-      ifneq ($(findstring icc,$(CC)),)
-         CFLAGS += -std=c99 -D_GNU_SOURCE
-      else
-         CFLAGS += -std=gnu99 -D_GNU_SOURCE
-      endif
-   endif
-
-   ifneq ($(C89_BUILD),)
-      CFLAGS += -std=c89 -ansi -pedantic -Werror=pedantic -Wno-long-long
-   endif
 endif
 
 ifeq ($(NOUNUSED), yes)

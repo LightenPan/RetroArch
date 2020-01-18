@@ -68,6 +68,7 @@ char *strldup(const char *s, size_t n)
    return dst;
 }
 
+// Ôö¼Ó×Ö·û´®Ìæ»»º¯Êý
 char * strreplace(char const * const original, 
 						char const * const pattern, char const * const replacement) 
 {

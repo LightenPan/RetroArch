@@ -29,7 +29,7 @@
 #include <string/stdstring.h>
 #include <compat/strcasestr.h>
 
-#include "../../quickkid/quickkid.h"
+#include "../../quickkid/quickkid.h" // 九宫格搜索
 
 bool file_list_reserve(file_list_t *list, size_t nitems)
 {
@@ -107,6 +107,7 @@ bool file_list_insert(file_list_t *list,
    if (label)
       list->list[idx].label      = strdup(label);
 
+   // 初始化九宫格
    if (path)
    {
       list->list[idx].path       = strdup(path);
@@ -148,6 +149,7 @@ bool file_list_append(file_list_t *list,
    if (label)
       list->list[idx].label      = strdup(label);
 
+   // 初始化九宫格
    if (path)
    {
       list->list[idx].path       = strdup(path);
@@ -193,6 +195,8 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
       if (list->list[list->size].label)
          free(list->list[list->size].label);
       list->list[list->size].label = NULL;
+	  
+      // 释放九宫格
       if (list->list[list->size].ninenum)
          free(list->list[list->size].ninenum);
       list->list[list->size].ninenum = NULL;
@@ -223,6 +227,7 @@ void file_list_free(file_list_t *list)
          free(list->list[i].label);
       list->list[i].label = NULL;
 
+      // 释放九宫格
       if (list->list[i].ninenum)
          free(list->list[i].ninenum);
       list->list[i].ninenum = NULL;
@@ -254,6 +259,7 @@ void file_list_clear(file_list_t *list)
          free(list->list[i].label);
       list->list[i].label = NULL;
 
+      // 释放九宫格
       if (list->list[i].ninenum)
          free(list->list[i].ninenum);
       list->list[i].ninenum = NULL;

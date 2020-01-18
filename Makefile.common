@@ -7,6 +7,10 @@ ifeq ($(HAVE_STACK_USAGE), 1)
    DEF_FLAGS += -fstack-usage
 endif
 
+ifeq ($(HAVE_CXX11), 1)
+   CXXFLAGS += $(CXX11_CFLAGS)
+endif
+
 ifeq ($(HAVE_GL_CONTEXT),)
    HAVE_GL_CONTEXT = 0
    HAVE_GL_MODERN  = 0
@@ -817,7 +821,7 @@ ifeq ($(HAVE_MENU_COMMON), 1)
           menu/menu_animation.o \
           menu/drivers/menu_generic.o \
           menu/menu_thumbnail_path.o \
-          menu/menu_thumbnail.o \
+          menu/menu_thumbnail.o
 
    ifeq ($(HAVE_MENU_WIDGETS), 1)
       OBJ += menu/widgets/menu_widgets.o
@@ -1750,6 +1754,11 @@ ifeq ($(HAVE_V4L2),1)
    LIBS += $(V4L2_LIBS)
 endif
 
+# Accessibility
+ifeq ($(HAVE_ACCESSIBILITY), 1)
+   DEFINES += -DHAVE_ACCESSIBILITY
+endif
+
 # Things that depend on network availability
 
 ifeq ($(HAVE_NETWORKING), 1)
@@ -1968,7 +1977,7 @@ ifeq ($(HAVE_FFMPEG), 1)
           cores/libretro-ffmpeg/ffmpeg_core.o \
           cores/libretro-ffmpeg/packet_buffer.o \
           cores/libretro-ffmpeg/video_buffer.o \
-			 $(LIBRETRO_COMM_DIR)/rthreads/tpool.o
+          $(LIBRETRO_COMM_DIR)/rthreads/tpool.o
 
    LIBS += $(AVCODEC_LIBS) $(AVFORMAT_LIBS) $(AVUTIL_LIBS) $(SWSCALE_LIBS) $(SWRESAMPLE_LIBS) $(FFMPEG_LIBS)
    DEFINES += -DHAVE_FFMPEG

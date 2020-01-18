@@ -87,9 +87,9 @@ typedef struct
    float x;
    float y;
    uintptr_t icon;
-   char iconname[64];
+   char iconname[64]; // 动态图标
    uintptr_t content_icon;
-   char content_iconname[64];
+   char content_iconname[64]; // 动态图标
    char *fullpath;
 } xmb_node_t;
 
@@ -523,6 +523,7 @@ static xmb_node_t *xmb_alloc_node(void)
    node->zoom     = node->x = node->y  = 0;
    node->icon     = node->content_icon = 0;
    node->fullpath = NULL;
+   // 动态图标
    node->iconname[0] = '\0';
    node->content_iconname[0] = '\0';
 
@@ -1115,6 +1116,7 @@ static void xmb_set_thumbnail_system(void *data, char*s, size_t len)
          xmb->thumbnail_path_data, s, playlist_get_cached());
 }
 
+// 动态标题和说明
 static void xmb_set_horizontal_list_title(void *data, const char *path, const char *title)
 {
    RARCH_LOG("xmb_set_horizontal_list_title begin. path: %s, title: %s\n", path, title);
@@ -2173,8 +2175,6 @@ static void xmb_toggle_horizontal_list(xmb_handle_t *xmb)
 static void xmb_context_reset_horizontal_list(
       xmb_handle_t *xmb)
 {
-   RARCH_LOG("xmb_context_reset_horizontal_list begin\n");
-
    unsigned i;
    int depth; /* keep this integer */
    size_t list_size                =
@@ -2455,7 +2455,8 @@ static void xmb_populate_entries(void *data,
    xmb->is_file_list = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_FAVORITES));
 
    /* Determine whether this is the quick menu */
-   xmb->is_quick_menu = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RPL_ENTRY_ACTIONS));
+   xmb->is_quick_menu = string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RPL_ENTRY_ACTIONS)) ||
+                        string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_CONTENT_SETTINGS));
 
    if (menu_driver_ctl(RARCH_MENU_CTL_IS_PREVENT_POPULATE, NULL))
    {
@@ -2519,7 +2520,8 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_CORE_CHEAT_OPTIONS:
          return xmb->textures.list[XMB_TEXTURE_CHEAT_OPTIONS];
       case MENU_ENUM_LABEL_DISK_OPTIONS:
-      case MENU_ENUM_LABEL_DISK_CYCLE_TRAY_STATUS:
+      case MENU_ENUM_LABEL_DISK_TRAY_EJECT:
+      case MENU_ENUM_LABEL_DISK_TRAY_INSERT:
       case MENU_ENUM_LABEL_DISK_IMAGE_APPEND:
       case MENU_ENUM_LABEL_DISK_INDEX:
          return xmb->textures.list[XMB_TEXTURE_DISK_OPTIONS];
@@ -2532,7 +2534,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_SAVESTATE_AUTO_SAVE:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
       case MENU_ENUM_LABEL_LOAD_STATE:
-      case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+      case MENU_ENUM_LABEL_YUN_LOAD_STATE: // 云存档
       case MENU_ENUM_LABEL_CONFIGURATIONS:
       case MENU_ENUM_LABEL_GAME_SPECIFIC_OPTIONS:
       case MENU_ENUM_LABEL_REMAP_FILE_LOAD:
@@ -2555,6 +2557,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_VRR_RUNLOOP_ENABLE:
       case MENU_ENUM_LABEL_AUTOSAVE_INTERVAL:
       case MENU_ENUM_LABEL_FRAME_TIME_COUNTER_SETTINGS:
+      case MENU_ENUM_LABEL_PLAYLIST_MANAGER_CLEAN_PLAYLIST:
          return xmb->textures.list[XMB_TEXTURE_RELOAD];
       case MENU_ENUM_LABEL_RENAME_ENTRY:
          return xmb->textures.list[XMB_TEXTURE_RENAME];
@@ -2591,8 +2594,8 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
 
       case MENU_ENUM_LABEL_CONTENT_SETTINGS:
       case MENU_ENUM_LABEL_UPDATE_ASSETS:
-      case MENU_ENUM_LABEL_UPDATE_SYSTEMS:
-      case MENU_ENUM_LABEL_UPDATE_PLAYLISTS:
+      case MENU_ENUM_LABEL_UPDATE_SYSTEMS: // 更新BIOS
+      case MENU_ENUM_LABEL_UPDATE_PLAYLISTS: // 更新游戏列表
       case MENU_ENUM_LABEL_SAVE_CURRENT_CONFIG_OVERRIDE_GAME:
       case MENU_ENUM_LABEL_REMAP_FILE_SAVE_GAME:
       case MENU_ENUM_LABEL_VIDEO_SHADER_PRESET_SAVE_GLOBAL:
@@ -2626,7 +2629,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST:
       case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS:
          return xmb->textures.list[XMB_TEXTURE_IMAGE];
-      case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM:
+      case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM: // 下载
          return xmb->textures.list[XMB_TEXTURE_CORE];
       case MENU_ENUM_LABEL_UPDATE_OVERLAYS:
       case MENU_ENUM_LABEL_ONSCREEN_OVERLAY_SETTINGS:
@@ -2850,7 +2853,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_SETTING_ACTION_SAVESTATE:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE:
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // 云存档
          return xmb->textures.list[XMB_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
       case MENU_SETTING_ACTION_CORE_INFORMATION:
@@ -3817,6 +3820,7 @@ static void xmb_draw_dark_layer(
    menu_display_blend_end(video_info);
 }
 
+// 九宫格肩膀背景绘制
 static void xmb_draw_ninenum_dark_layer(
                                 xmb_handle_t *xmb,
                                 video_frame_info_t *video_info,
@@ -6074,7 +6078,7 @@ static void xmb_list_deep_copy(const file_list_t *src, file_list_t *dst,
       d->alt   = string_is_empty(d->alt)   ? NULL : strdup(d->alt);
       d->path  = string_is_empty(d->path)  ? NULL : strdup(d->path);
       d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
-      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum);
+      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum); // 九宫格
 
       if (src_udata)
          file_list_set_userdata(dst, j, (void*)xmb_copy_node((const xmb_node_t*)src_udata));
@@ -6914,5 +6918,5 @@ menu_ctx_driver_t menu_ctx_xmb = {
    NULL,
 #endif
    xmb_menu_entry_action,
-   xmb_set_horizontal_list_uiinfo
+   xmb_set_horizontal_list_uiinfo // 设置列表信息
 };

@@ -22,8 +22,6 @@
 extern "C" {
 #endif
 
-
-
 extern char uwp_dir_install[PATH_MAX_LENGTH];
 extern char uwp_dir_data[PATH_MAX_LENGTH];
 extern char uwp_device_family[128];

@@ -147,7 +147,7 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
    fill_pathname_join(g_defaults.path.config, user_path,
-         "retroarch.cfg", sizeof(g_defaults.path.config));
+         "retroarch.cfg", sizeof(g_defaults.path.config)); // –ﬁ∏¥salamander±‡“Î“¿¿µ
 #else
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_CORE], g_defaults.dirs[DEFAULT_DIR_PORT],
@@ -185,7 +185,7 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
    fill_pathname_join(g_defaults.path.config, user_path,
-         "retroarch.cfg", sizeof(g_defaults.path.config));
+         "retroarch.cfg", sizeof(g_defaults.path.config)); // –ﬁ∏¥salamander±‡“Î“¿¿µ
 #endif
 
 #ifndef IS_SALAMANDER

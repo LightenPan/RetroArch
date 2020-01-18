@@ -705,7 +705,6 @@ bool manual_content_scan_get_task_config(
       const char *path_dir_playlist
       )
 {
-
    if (!task_config)
       return false;
 

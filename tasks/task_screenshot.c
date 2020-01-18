@@ -246,22 +246,22 @@ static bool screenshot_dump(
 
    state->pl_fuzzy_archive_match = settings->bools.playlist_fuzzy_archive_match;
    state->pl_use_old_format      = settings->bools.playlist_use_old_format;
-   state->is_idle             = is_idle;
-   state->is_paused           = is_paused;
-   state->bgr24               = bgr24;
-   state->height              = height;
-   state->width               = width;
-   state->pitch               = pitch;
-   state->frame               = frame;
-   state->userbuf             = userbuf;
+   state->is_idle                = is_idle;
+   state->is_paused              = is_paused;
+   state->bgr24                  = bgr24;
+   state->height                 = height;
+   state->width                  = width;
+   state->pitch                  = pitch;
+   state->frame                  = frame;
+   state->userbuf                = userbuf;
 #ifdef HAVE_MENU_WIDGETS
-   state->widgets_ready       = menu_widgets_ready();
+   state->widgets_ready          = menu_widgets_ready();
 #else
-   state->widgets_ready       = false;
+   state->widgets_ready          = false;
 #endif
-   state->silence             = savestate;
-   state->history_list_enable = settings->bools.history_list_enable;
-   state->pixel_format_type   = pixel_format_type;
+   state->silence                = savestate;
+   state->history_list_enable    = settings->bools.history_list_enable;
+   state->pixel_format_type      = pixel_format_type;
 
    if (!fullpath)
    {
