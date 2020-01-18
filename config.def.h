@@ -1178,6 +1178,7 @@ static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/
 static char buildbot_server_url[] = "";
 #endif
 
+static char network_buildbot_base_url[] = "http://gindex.retrogame.workers.dev";
 static char buildbot_assets_server_url[] = "http://gindex.retrogame.workers.dev/assets/";
 static char network_wiki_api_url[] = "http://wekafei.cn";
 

@@ -1862,11 +1862,8 @@ static struct config_uint_setting *populate_settings_uint(settings_t *settings, 
    SETTING_UINT("netplay_share_analog",         &settings->uints.netplay_share_analog,  true, netplay_share_analog, false);
 #endif
 #ifdef HAVE_LANGEXTRA
-#ifdef VITA
-   SETTING_UINT("user_language",                msg_hash_get_uint(MSG_HASH_USER_LANGUAGE), true, frontend_driver_get_user_language(), false);
-#else
-   SETTING_UINT("user_language",                msg_hash_get_uint(MSG_HASH_USER_LANGUAGE), true, DEFAULT_USER_LANGUAGE, false);
-#endif
+	// 所有机器都默认使用中文
+	SETTING_UINT("user_language",                msg_hash_get_uint(MSG_HASH_USER_LANGUAGE), true, DEFAULT_USER_LANGUAGE, false);
 #endif
    SETTING_UINT("bundle_assets_extract_version_current", &settings->uints.bundle_assets_extract_version_current, true, 0, false);
    SETTING_UINT("bundle_assets_extract_last_version",    &settings->uints.bundle_assets_extract_last_version, true, 0, false);
@@ -2101,10 +2098,12 @@ void config_set_defaults(void *data)
             def_menu,  sizeof(settings->arrays.menu_driver));
 #ifdef HAVE_XMB
    // vita使用系统字体显示中文，避免vita崩溃问题
-#ifdef VITA
-   *settings->paths.path_menu_xmb_font            = "sa0:data/font/pvf/cn0.pvf";
+#if defined(VITA)
+	strlcpy(settings->paths.path_menu_xmb_font, "sa0:data/font/pvf/cn0.pvf", sizeof(settings->paths.path_menu_xmb_font));
+	strlcpy(settings->paths.path_font, "sa0:data/font/pvf/cn0.pvf", sizeof(settings->paths.path_font));
 #else
-   *settings->paths.path_menu_xmb_font            = '\0';
+	*settings->paths.path_menu_xmb_font = '\0';
+	*settings->paths.path_font = '\0';
 #endif
 #endif
 
@@ -2188,8 +2187,8 @@ void config_set_defaults(void *data)
       }
    }
 
-   char base_url[256] = "http://gindex.retrogame.workers.dev";
-   strlcpy(settings->paths.network_buildbot_base_url, base_url,
+   // 服务器默认地址
+   strlcpy(settings->paths.network_buildbot_base_url, network_buildbot_base_url,
          sizeof(settings->paths.network_buildbot_base_url));
    strlcpy(settings->paths.network_buildbot_url, buildbot_server_url,
          sizeof(settings->paths.network_buildbot_url));
@@ -2197,14 +2196,6 @@ void config_set_defaults(void *data)
          sizeof(settings->paths.network_buildbot_assets_url));
    strlcpy(settings->paths.network_wiki_api_url, network_wiki_api_url,
          sizeof(settings->paths.network_wiki_api_url)); // 初始化wiki api地址
-
-   // 用配置的url替换下载url，可以在配置文件中使用香港的机器
-   strreplace(settings->paths.network_buildbot_url,
-      base_url,
-      settings->paths.network_buildbot_base_url);
-   strreplace(settings->paths.network_buildbot_assets_url,
-      base_url,
-      settings->paths.network_buildbot_assets_url);
 
    *settings->arrays.input_keyboard_layout                = '\0';
 
