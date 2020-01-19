@@ -233,7 +233,7 @@ static void frontend_psp_deinit(void *data)
 {
    (void)data;
 #ifndef IS_SALAMANDER
-   verbosity_disable();
+   // verbosity_disable();
    pthread_terminate();
 #endif
 }
@@ -332,14 +332,29 @@ static void frontend_psp_exec(const char *path, bool should_load_game)
    {
       argp[args] = '\0';
       strlcat(argp + args, path_get(RARCH_PATH_CONTENT), sizeof(argp) - args);
-      args += strlen(argp + args) + 1;
+		args += strlen(argp + args) + 1;
    }
 #endif
 
    RARCH_LOG("Attempt to load executable: [%s].\n", path);
 #if defined(VITA)
-   RARCH_LOG("Attempt to load executable: %d [%s].\n", args, argp);
-   int ret = sceAppMgrLoadExec(path, args==0? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
+	// 添加游戏标签，用于静态拉起核心时，传递游戏名显示中文
+	// 但是没有卵用，PSV的SDK不支持传递多个参数
+	int ret = 0;
+	char *label = path_get(RARCH_PATH_LABEL);
+	if (label && !string_is_empty(label))
+	{
+		char game_label[512] = {0};
+		strncpy(game_label, label, sizeof(game_label));
+		RARCH_LOG("Attempt to load executable: %d [%s] [%s].\n", args, argp, game_label);
+		char *const argv[] = {argp, game_label, NULL};
+		ret = sceAppMgrLoadExec(path, args==0? NULL : argv, NULL);
+	}
+	else
+	{
+		RARCH_LOG("Attempt to load executable: %d [%s].\n", args, argp);
+		ret = sceAppMgrLoadExec(path, args==0? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
+	}
    RARCH_LOG("Attempt to load executable: [%d].\n", ret);
 #else
    exitspawn_kernel(path, args, argp);
@@ -377,6 +392,9 @@ static bool frontend_psp_set_fork(enum frontend_fork fork_mode)
 
 static void frontend_psp_exitspawn(char *s, size_t len)
 {
+	RARCH_LOG("frontend_psp_exitspawn. game: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+
    bool should_load_game = false;
 #ifndef IS_SALAMANDER
    if (psp_fork_mode == FRONTEND_FORK_NONE)

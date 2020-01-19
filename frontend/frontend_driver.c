@@ -29,6 +29,7 @@
 #endif
 
 #include "frontend_driver.h"
+#include "../../paths.h" // »ñÈ¡Â·¾¶ÅäÖÃ
 
 #ifndef __WINRT__
 #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
@@ -368,10 +369,15 @@ const struct video_driver *frontend_driver_get_video_driver(void)
 
 void frontend_driver_exitspawn(char *s, size_t len)
 {
+	RARCH_LOG("frontend_driver_exitspawn. game: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
    if (!frontend || !frontend->exitspawn)
       return;
-   frontend->exitspawn(s, len);
+	frontend->exitspawn(s, len);
+	RARCH_LOG("frontend_driver_exitspawn end. game: %s, label: %s\n",
+		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
 }
 
 void frontend_driver_deinit(void *args)
