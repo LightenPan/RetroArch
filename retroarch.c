@@ -8107,6 +8107,7 @@ void main_exit(void *args)
    logger_shutdown();
 #endif
 
+	RARCH_LOG("main_exit log label: %s\n", path_get_ptr(RARCH_PATH_LABEL));
    frontend_driver_deinit(args);
    frontend_driver_exitspawn(
          path_get_ptr(RARCH_PATH_CORE),
