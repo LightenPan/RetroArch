@@ -6342,31 +6342,31 @@ void general_read_handler(rarch_setting_t *setting)
       case MENU_ENUM_LABEL_INPUT_PLAYER5_JOYPAD_INDEX:
          *setting->value.target.integer = settings->uints.input_joypad_map[4];
          break;
-      case MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE:
-         {
-            // 濡傛灉鏈哄櫒鐮佹病鏈夎缃紝杩欓噷鐢ㄩ殢鏈烘暟鍒濆鍖?
-            if (string_is_empty(settings->arrays.retrogame_allinone_mcode))
-            {
-               // 5涓殢鏈烘暟鐢熸垚鏈哄櫒
-               char mcode[256] = {0};
-               unsigned number_value = (unsigned)time(NULL);
-               unsigned random_array[5] = {0};
-               for (int i = 0; i < sizeof(random_array); i++)
-               {
-                  number_value = number_value * 214013 + 2531011;
-                  random_array[i] = (number_value >> 14) % 100000;
-               }
-               snprintf(mcode, sizeof(mcode),
-                  "%u_%u_%u_%u_%u",
-                  random_array[0],
-                  random_array[1],
-                  random_array[2],
-                  random_array[3],
-                  random_array[4]);
-               strncpy(settings->arrays.retrogame_allinone_mcode, mcode, sizeof(settings->arrays.retrogame_allinone_mcode));
-            }
-         }
-         break;
+		case MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE:
+			{
+				// 如果机器码没有设置，这里用随机数初始化
+				if (string_is_empty(settings->arrays.retrogame_allinone_mcode))
+				{
+					// 用5个随机数生成机器码
+					char mcode[256] = {0};
+					unsigned number_value = (unsigned)time(NULL);
+					unsigned random_array[5] = {0};
+					for (int i = 0; i < sizeof(random_array); i++)
+					{
+						number_value = number_value * 214013 + 2531011;
+						random_array[i] = (number_value >> 14) % 100000;
+					}
+					snprintf(mcode, sizeof(mcode),
+						"%u_%u_%u_%u_%u",
+						random_array[0],
+						random_array[1],
+						random_array[2],
+						random_array[3],
+						random_array[4]);
+					strncpy(settings->arrays.retrogame_allinone_mcode, mcode, sizeof(settings->arrays.retrogame_allinone_mcode));
+				}
+			}
+			break;
       default:
          break;
    }
