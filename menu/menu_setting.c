@@ -11648,7 +11648,8 @@ static bool setting_append_list(
                general_read_handler);
          (*list)[list_info->index - 1].action_ok = &setting_action_ok_uint;
          menu_settings_list_current_add_cmd(list, list_info, CMD_EVENT_SET_FRAME_LIMIT);
-         menu_settings_list_current_add_range(list, list_info, 0, 10, 1.0, true, true);
+			// 修改帧率为最大5倍，0.2倍递进
+         menu_settings_list_current_add_range(list, list_info, 0, 5, 0.2, true, true);
 
          CONFIG_BOOL(
                list, list_info,

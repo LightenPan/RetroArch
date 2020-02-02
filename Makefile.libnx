@@ -1,4 +1,4 @@
-include version.all
+include version_libnx.all
 
 #---------------------------------------------------------------------------------
 .SUFFIXES:
