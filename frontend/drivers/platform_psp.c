@@ -341,7 +341,11 @@ static void frontend_psp_exec(const char *path, bool should_load_game)
 	// 添加游戏标签，用于静态拉起核心时，传递游戏名显示中文
 	// 但是没有卵用，PSV的SDK不支持传递多个参数
 	int ret = 0;
+#ifndef IS_SALAMANDER
 	char *label = path_get(RARCH_PATH_LABEL);
+#else
+	char *label = NULL;
+#endif
 	if (label && !string_is_empty(label))
 	{
 		char game_label[512] = {0};
@@ -392,9 +396,6 @@ static bool frontend_psp_set_fork(enum frontend_fork fork_mode)
 
 static void frontend_psp_exitspawn(char *s, size_t len)
 {
-	RARCH_LOG("frontend_psp_exitspawn. game: %s, label: %s\n",
-		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
-
    bool should_load_game = false;
 #ifndef IS_SALAMANDER
    if (psp_fork_mode == FRONTEND_FORK_NONE)
