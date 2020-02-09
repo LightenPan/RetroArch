@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
     package="com.retroarch"
-    android:versionCode="1579324492"
-    android:versionName="1.8.4魔改(122)"
+    android:versionCode="1580622200"
+    android:versionName="1.8.4魔改(123)"
     android:installLocation="internalOnly">
     <uses-feature android:glEsVersion="0x00020000" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
