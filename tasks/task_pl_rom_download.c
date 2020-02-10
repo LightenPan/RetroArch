@@ -173,8 +173,16 @@ void clac_retrogame_allinone_sign(char *url_query, int len)
    strncpy(url_query, fmt, len);
 }
 
-char *genYunSaveStateUrl(const char *savename, const char *save_buf_md5)
+char *genYunSaveStateUrl(const char *newsavename, const char *save_buf_md5)
 {
+   // savename需要urlencode不然可能会下载不了
+   char savename[1024] = {0};
+   {
+      char *tmp = NULL;
+      net_http_urlencode(&tmp, newsavename);
+      strncpy(savename, tmp, sizeof(savename));
+      free(tmp);
+   }
    char save_state_url[PATH_MAX_LENGTH];
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
@@ -184,9 +192,17 @@ char *genYunSaveStateUrl(const char *savename, const char *save_buf_md5)
    return strdup(save_state_url);
 }
 
-char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, int seq,
+char *genYunSaveStateFragmentUrl(const char *newsavename, const char *save_buf_md5, int seq,
                                  const char *fragment_save_buf_md5)
 {
+   // savename需要urlencode不然可能会下载不了
+   char savename[1024] = {0};
+   {
+      char *tmp = NULL;
+      net_http_urlencode(&tmp, newsavename);
+      strncpy(savename, tmp, sizeof(savename));
+      free(tmp);
+   }
    char save_state_url[PATH_MAX_LENGTH];
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
@@ -196,9 +212,17 @@ char *genYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5,
    return strdup(save_state_url);
 }
 
-void cpyYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, int seq,
+void cpyYunSaveStateFragmentUrl(const char *newsavename, const char *save_buf_md5, int seq,
                                  const char *fragment_save_buf_md5, char *outurl, int outlen)
 {
+   // savename需要urlencode不然可能会下载不了
+   char savename[1024] = {0};
+   {
+      char *tmp = NULL;
+      net_http_urlencode(&tmp, newsavename);
+      strncpy(savename, tmp, sizeof(savename));
+      free(tmp);
+   }
    char save_state_url[PATH_MAX_LENGTH];
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
@@ -208,8 +232,16 @@ void cpyYunSaveStateFragmentUrl(const char *savename, const char *save_buf_md5, 
    strlcpy(outurl, save_state_url, outlen);
 }
 
-char *genYunLoadStateUrl(char *loadname)
+char *genYunLoadStateUrl(char *newloadname)
 {
+   // savename需要urlencode不然可能会下载不了
+   char loadname[1024] = {0};
+   {
+      char *tmp = NULL;
+      net_http_urlencode(&tmp, newloadname);
+      strncpy(loadname, tmp, sizeof(loadname));
+      free(tmp);
+   }
    char load_state_url[PATH_MAX_LENGTH];
    char acc_query_str[1024] = {0};
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
@@ -633,7 +665,7 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
    strlcpy(transf->path, savepath, sizeof(transf->path));
    strlcpy(transf->title, title, sizeof(transf->title));
    // strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
-	RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
+   RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
    task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
 }
 
@@ -875,13 +907,13 @@ bool task_push_pl_entry_rom_download(
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
-	// new_basename需要urlencode不然可能会下载不了
-	{
-		char *tmp = NULL;
-		net_http_urlencode(&tmp, new_basename);
-		strncpy(new_basename, tmp, sizeof(new_basename));
-		free(tmp);
-	}
+   // new_basename需要urlencode不然可能会下载不了
+   {
+      char *tmp = NULL;
+      net_http_urlencode(&tmp, new_basename);
+      strncpy(new_basename, tmp, sizeof(new_basename));
+      free(tmp);
+   }
    strlcat(raw_url, new_basename, sizeof(raw_url));
    strlcat(raw_url, "?", sizeof(raw_url));
    strlcat(raw_url, url_query, sizeof(raw_url));
