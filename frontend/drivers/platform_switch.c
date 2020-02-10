@@ -708,7 +708,7 @@ static void frontend_switch_init(void *data)
    uint32_t width                = 0;
    uint32_t height               = 0;
 
-   nifmInitialize();
+   nifmInitialize(0);
    
    if(hosversionBefore(8, 0, 0))
       pcvInitialize();
