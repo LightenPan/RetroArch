@@ -86,7 +86,6 @@ static int task_http_conn_iterate_transfer_parse(
 
 static int cb_http_conn_default(void *data_, size_t len)
 {
-	RARCH_LOG("cb_http_conn_default begin.\n");
    http_handle_t *http = (http_handle_t*)data_;
 
    if (!http)
@@ -105,7 +104,6 @@ static int cb_http_conn_default(void *data_, size_t len)
 
    http->cb     = NULL;
 
-	RARCH_LOG("cb_http_conn_default end.\n");
    return 0;
 }
 
@@ -128,7 +126,14 @@ static int task_http_iterate_transfer(retro_task_t *task)
 
    if (!net_http_update(http->handle, &pos, &tot))
    {
-      task_set_progress(task, (tot == 0) ? -1 : (signed)pos / (tot / 100));
+      if (tot == 0)
+         task_set_progress(task, -1);
+      else if (pos < (((size_t)-1) / 100))
+         /* prefer multiply then divide for more accurate results */
+         task_set_progress(task, (signed)(pos * 100 / tot));
+      else
+         /* but invert the logic if it would cause an overflow */
+         task_set_progress(task, MAX((signed)pos / (tot / 100), 100));
       return -1;
    }
 
@@ -137,7 +142,6 @@ static int task_http_iterate_transfer(retro_task_t *task)
 
 static void task_http_transfer_handler(retro_task_t *task)
 {
-	// RARCH_LOG("task_http_transfer_handler begin.\n");
    http_transfer_data_t *data = NULL;
    http_handle_t        *http = (http_handle_t*)task->state;
 
@@ -167,9 +171,7 @@ static void task_http_transfer_handler(retro_task_t *task)
    if (http->error)
       goto task_finished;
 
-	// RARCH_LOG("task_http_transfer_handler end.\n");
    return;
-
 task_finished:
    task_set_finished(task, true);
 
@@ -190,8 +192,6 @@ task_finished:
 
          if (task_get_cancelled(task))
             task_set_error(task, strdup("Task cancelled."));
-         else if (http->handle && http->handle->status == 401 && !task->mute)
-            task_set_error(task, strdup(msg_hash_to_str(MSG_DOWNLOAD_NOLOGIN)));
          else if (!task->mute)
             task_set_error(task, strdup("Download failed."));
       }
@@ -245,12 +245,10 @@ static bool task_http_retriever(retro_task_t *task, void *data)
 
 static void http_transfer_progress_cb(retro_task_t *task)
 {
-	// RARCH_LOG("http_transfer_progress_cb begin.\n");
 #ifdef RARCH_INTERNAL
    if (task)
       video_display_server_set_window_progress(task->progress, task->finished);
 #endif
-	// RARCH_LOG("http_transfer_progress_cb end.\n");
 }
 
 static void* task_push_http_transfer_generic(
@@ -258,15 +256,9 @@ static void* task_push_http_transfer_generic(
       const char *url, bool mute, const char *type,
       retro_task_callback_t cb, void *user_data)
 {
-	RARCH_LOG("task_push_http_transfer_generic begin.\n");
-
    task_finder_data_t find_data;
-   char tmp[255];
-   const char *s           = NULL;
    retro_task_t  *t        = NULL;
    http_handle_t *http     = NULL;
-
-   tmp[0]                  = '\0';
 
    find_data.func          = task_http_finder;
    find_data.userdata      = (void*)url;
@@ -310,25 +302,8 @@ static void* task_push_http_transfer_generic(
    t->user_data            = user_data;
    t->progress             = -1;
 
-   if (user_data)
-      s = ((file_transfer_t*)user_data)->path;
-   else
-      s = url;
-
-   strlcpy(tmp,
-         msg_hash_to_str(MSG_DOWNLOADING), sizeof(tmp));
-   strlcat(tmp, " ", sizeof(tmp));
-
-   if (strstr(s, ".index"))
-      strlcat(tmp, msg_hash_to_str(MSG_INDEX_FILE), sizeof(tmp));
-   else
-      strlcat(tmp, s, sizeof(tmp));
-
-   t->title                = strdup(tmp);
-
    task_queue_push(t);
 
-	RARCH_LOG("task_push_http_transfer_generic end.\n");
    return t;
 
 error:
@@ -346,9 +321,45 @@ void* task_push_http_transfer(const char *url, bool mute,
 {
    if (string_is_empty(url))
       return NULL;
+
    return task_push_http_transfer_generic(
          net_http_connection_new(url, "GET", NULL),
          url, mute, type, cb, user_data);
+}
+
+void* task_push_http_transfer_file(const char* url, bool mute,
+      const char* type,
+      retro_task_callback_t cb, file_transfer_t* transfer_data)
+{
+   const char *s   = NULL;
+   char tmp[255]   = "";
+   retro_task_t *t = NULL;
+
+   if (string_is_empty(url))
+      return NULL;
+
+   t = (retro_task_t*)task_push_http_transfer_generic(
+         net_http_connection_new(url, "GET", NULL),
+         url, mute, type, cb, transfer_data);
+
+   if (!t)
+      return NULL;
+
+   if (transfer_data)
+      s = transfer_data->path;
+   else
+      s = url;
+
+   strlcpy(tmp, msg_hash_to_str(MSG_DOWNLOADING), sizeof(tmp));
+   strlcat(tmp, " ", sizeof(tmp));
+
+   if (strstr(s, ".index"))
+      strlcat(tmp, msg_hash_to_str(MSG_INDEX_FILE), sizeof(tmp));
+   else
+      strlcat(tmp, s, sizeof(tmp));
+
+   t->title = strdup(tmp);
+   return t;
 }
 
 void* task_push_http_transfer_with_user_agent(const char *url, bool mute,
@@ -380,6 +391,27 @@ void* task_push_http_post_transfer(const char *url,
    return task_push_http_transfer_generic(
          net_http_connection_new(url, "POST", post_data),
          url, mute, type, cb, user_data);
+}
+
+void* task_push_http_post_transfer_with_user_agent(const char *url,
+   const char *post_data, bool mute,
+   const char *type, const char* user_agent,
+   retro_task_callback_t cb, void *user_data)
+{
+   struct http_connection_t* conn;
+
+   if (string_is_empty(url))
+      return NULL;
+
+   conn = net_http_connection_new(url, "POST", post_data);
+   if (!conn)
+      return NULL;
+
+   if (user_agent != NULL)
+      net_http_connection_set_user_agent(conn, user_agent);
+
+   /* assert: task_push_http_transfer_generic will free conn on failure */
+   return task_push_http_transfer_generic(conn, url, mute, type, cb, user_data);
 }
 
 task_retriever_info_t *http_task_get_transfer_list(void)

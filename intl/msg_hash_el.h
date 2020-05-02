@@ -2407,8 +2407,52 @@ MSG_HASH(
    "ΧΧΧΧ-ΜΜ-ΗΗ ΩΩ:ΛΛ"
     )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD,
+   "ΧΧΧΧ-ΜΜ-ΗΗ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YM,
+   "ΧΧΧΧ-ΜΜ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS,
+   "ΜΜ-ΗΗ-ΧΧΧΧ ΩΩ:ΛΛ:ΔΔ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM,
    "ΜΜ-ΗΗ-ΧΧΧΧ ΩΩ:ΛΛ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
+   "ΜΜ-ΗΗ ΩΩ:ΛΛ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+   "ΜΜ-ΗΗ-ΧΧΧΧ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD,
+   "ΜΜ-ΗΗ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS,
+   "HH/MM/ΧΧΧΧ ΩΩ:ΛΛ:ΔΔ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM,
+   "HH/MM/ΧΧΧΧ ΩΩ:ΛΛ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM,
+   "HH/MM ΩΩ:ΛΛ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY,
+   "HH/MM/ΧΧΧΧ"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM,
+   "HH/MM"
     )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS,
@@ -2419,16 +2463,44 @@ MSG_HASH(
    "ΩΩ:ΛΛ"
     )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DM_HM,
-   "ΗΗ/ΜΜ ΩΩ:ΛΛ"
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD_HMS_AM_PM,
+   "ΧΧΧΧ-ΜΜ-ΗΗ ΩΩ:ΛΛ:ΔΔ (ΠΜ/ΜΜ)"
     )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
-   "ΜΜ/ΗΗ ΩΩ:ΛΛ"
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD_HM_AM_PM,
+   "ΧΧΧΧ-ΜΜ-ΗΗ ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS_AM_PM,
+   "ΜΜ-ΗΗ-ΧΧΧΧ ΩΩ:ΛΛ:ΔΔ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM_AM_PM,
+   "ΜΜ-ΗΗ-ΧΧΧΧ ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM_AM_PM,
+   "ΜΜ-ΗΗ ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS_AM_PM,
+   "HH/MM/XXXX ΩΩ:ΛΛ:ΔΔ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM_AM_PM,
+   "HH/MM/XXXX ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM_AM_PM,
+   "HH/MM ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
     )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS_AM_PM,
    "ΩΩ:ΛΛ:ΔΔ (ΠΜ/ΜΜ)"
+    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HM_AM_PM,
+   "ΩΩ:ΛΛ (ΠΜ/ΜΜ)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TRUE,
@@ -3877,10 +3949,6 @@ MSG_HASH(
     "Ενεργοποιεί την καρτέλα Ρυθμίσεις. Χρειάζεται επανεκκίνηση για να εμφανιστεί η καρτέλα."
     )
 MSG_HASH(
-    MENU_ENUM_SUBLABEL_CONTENT_SHOW_SETTINGS_PASSWORD,
-    "Supplying a password when hiding the settings tab makes it possible to later restore it from the menu, by going to the Main Menu tab, selecting Enable Settings Tab and entering the password."
-    )
-MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_ENTRY_RENAME,
     "Επίτρεψη μετονομασίας καταχωρήσεων"
     )
@@ -4328,10 +4396,6 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_INPUT_META_STREAMING_TOGGLE,
     "Απευθείας Μετάδοση"
-    )
-MSG_HASH(
-    MSG_CHEEVOS_HARDCORE_MODE_DISABLED,
-    "A savestate was loaded, Achievements Hardcore Mode disabled for the current session. Restart to enable hardcore mode."
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_VIDEO_RECORD_QUALITY,

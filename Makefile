@@ -45,6 +45,8 @@ else
    DEF_FLAGS += -ffast-math
 endif
 
+DEF_FLAGS += -Wall
+
 ifneq ($(findstring BSD,$(OS)),)
    DEF_FLAGS += -DBSD
    LDFLAGS += -L/usr/local/lib
@@ -68,7 +70,7 @@ endif
 include Makefile.common
 
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang"),1)
-   DEFINES +=  -Wno-invalid-source-encoding -Wno-incompatible-ms-struct
+   DEF_FLAGS += -Wno-invalid-source-encoding -Wno-incompatible-ms-struct
 endif
 
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "tcc"),1)
@@ -80,7 +82,7 @@ endif
 HEADERS = $(wildcard */*/*.h) $(wildcard */*.h) $(wildcard *.h)
 
 ifeq ($(MISSING_DECLS), 1)
-   DEFINES += -Werror=missing-declarations
+   DEF_FLAGS += -Werror=missing-declarations
 endif
 
 ifeq ($(HAVE_DYLIB), 1)
@@ -117,6 +119,11 @@ ifneq ($(CXX_BUILD), 1)
 endif
 
 DEF_FLAGS += -Wall $(INCLUDE_DIRS) -I. -Ideps -Ideps/stb
+
+   CFLAGS += -D_GNU_SOURCE
+endif
+
+DEF_FLAGS += $(INCLUDE_DIRS) -I. -Ideps -Ideps/stb
 
 CFLAGS += $(DEF_FLAGS)
 CXXFLAGS += $(DEF_FLAGS) -D__STDC_CONSTANT_MACROS

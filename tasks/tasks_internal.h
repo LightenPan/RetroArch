@@ -33,7 +33,7 @@
 #include "../core_updater_list.h"
 #endif
 
-#if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
+#if defined(HAVE_NETWORKING)
 /* Required for task_push_pl_entry_thumbnail_download() */
 #include "../playlist.h"
 #endif
@@ -46,6 +46,20 @@ typedef struct nbio_buf
    unsigned bufsize;
    char *path;
 } nbio_buf_t;
+
+typedef struct autoconfig_params     autoconfig_params_t;
+
+struct autoconfig_params
+{
+   int32_t vid;
+   int32_t pid;
+   unsigned idx;
+   uint32_t max_users;
+   char  *name;
+   char  *autoconfig_directory;
+   bool show_hidden_files;
+};
+
 
 #ifdef HAVE_NETWORKING
 typedef struct
@@ -62,6 +76,9 @@ void *task_push_http_transfer_with_user_agent(const char *url, bool mute, const 
 
 void *task_push_http_post_transfer(const char *url, const char *post_data, bool mute, const char *type,
       retro_task_callback_t cb, void *userdata);
+
+void *task_push_http_post_transfer_with_user_agent(const char* url, const char* post_data, bool mute,
+   const char* type, const char* user_agent, retro_task_callback_t cb, void* user_data);
 
 task_retriever_info_t *http_task_get_transfer_list(void);
 
@@ -80,11 +97,10 @@ bool task_push_netplay_nat_traversal(void *nat_traversal_state, uint16_t port);
 void *task_push_get_core_updater_list(
       core_updater_list_t* core_list, bool mute, bool refresh_menu);
 void *task_push_core_updater_download(
-      core_updater_list_t* core_list, const char *filename, bool mute, bool check_crc);
-void task_push_update_installed_cores(void);
+      core_updater_list_t* core_list, const char *filename,
+      bool mute, bool check_crc, const char *path_dir_libretro);
+void task_push_update_installed_cores(const char *path_dir_libretro);
 
-#ifdef HAVE_MENU
-bool task_push_pl_thumbnail_download(const char *system, const char *playlist_path);
 bool task_push_pl_entry_thumbnail_download(
       const char *system,
       playlist_t *playlist,
@@ -92,31 +108,10 @@ bool task_push_pl_entry_thumbnail_download(
       bool overwrite,
       bool mute);
 
-// 云存档
-bool yun_save_rom_state(char *path);
-bool yun_load_rom_state(char *path);
-
-// 定义提取到头文件，方便其他地方调用
-typedef struct
-{
-	intfstream_t *file;
-	char path[PATH_MAX_LENGTH];
-	void *data;
-	void *undo_data;
-	ssize_t size;
-	ssize_t undo_size;
-	ssize_t written;
-	ssize_t bytes_read;
-	bool load_to_backup_buffer;
-	bool autoload;
-	bool autosave;
-	bool undo_save;
-	bool mute;
-	int state_slot;
-	bool thumbnail_enable;
-	bool has_valid_framebuffer;
-} yun_load_state_task_state_t;
-
+#ifdef HAVE_MENU
+bool task_push_pl_thumbnail_download(
+      const char *system, const char *playlist_path,
+      const char *dir_thumbnails);
 #endif
 
 #endif
@@ -150,6 +145,16 @@ bool task_push_overlay_load_default(
       void *user_data);
 #endif
 
+bool patch_content(
+      bool is_ips_pref,
+      bool is_bps_pref,
+      bool is_ups_pref,
+      const char *name_ips,
+      const char *name_bps,
+      const char *name_ups,
+      uint8_t **buf,
+      void *data);
+
 bool task_check_decompress(const char *source_file);
 
 void *task_push_decompress(
@@ -170,9 +175,9 @@ bool take_screenshot(
       const char *path, bool silence,
       bool has_valid_framebuffer, bool fullpath, bool use_thread);
 
-bool event_load_save_files(void);
+bool event_load_save_files(bool is_sram_load_disabled);
 
-bool event_save_files(void);
+bool event_save_files(bool sram_used);
 
 void path_init_savefile_rtc(const char *savefile_path);
 
@@ -185,6 +190,8 @@ bool input_is_autoconfigured(unsigned i);
 unsigned input_autoconfigure_get_device_name_index(unsigned i);
 
 void input_autoconfigure_reset(void);
+
+void input_autoconfigure_override_handler(void *data);
 
 void input_autoconfigure_connect(
       const char *name,

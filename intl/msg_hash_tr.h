@@ -796,14 +796,6 @@ MSG_HASH(
     "Dizin"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS,
-    "Disk Döngüsü Tepsisi Durumu"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND,
-    "Disk Görüntüsü Ekleme"
-    )
-MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DISK_INDEX,
     "Disk Dizini"
     )
@@ -2059,7 +2051,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_ONSCREEN_OVERLAY_SETTINGS,
     "Çerçeveleri ve Ekran denetimlerini ayarlama"
     )
-#ifdef HAVE_VIDEO_LAYOUT
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ONSCREEN_VIDEO_LAYOUT_SETTINGS,
     "Video Düzeni"
@@ -2068,7 +2059,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_ONSCREEN_VIDEO_LAYOUT_SETTINGS,
     "Video Düzenini Ayarla"
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ONSCREEN_NOTIFICATIONS_SETTINGS,
     "Ekrandaki Bildirimler"
@@ -3304,8 +3294,52 @@ MSG_HASH(
      "YYYY-AA-GG SS:DD"
     )
 MSG_HASH(
-     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD,
+     "YYYY-AA-GG"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YM,
+     "YYYY-AA"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS,
+     "AA-GG-YYYY SS:DD:SN"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM,
      "AA-GG-YYYY SS:DD"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
+     "AA-GG SS:DD"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+     "AA-GG-YYYY"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD,
+     "AA-GG"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS,
+     "GG/AA/YYYY SS:DD:SN"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM,
+     "GG/AA/YYYY SS:DD"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM,
+     "GG/AA SS:DD"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY,
+     "GG/AA/YYYY"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM,
+     "GG/AA"
     )
 MSG_HASH(
      MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS,
@@ -3316,16 +3350,44 @@ MSG_HASH(
      "SS:DD"
     )
 MSG_HASH(
-     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DM_HM,
-     "GG/AA SS:DD"
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD_HMS_AM_PM,
+     "YYYY-AA-GG SS:DD:SN (AM/PM)"
     )
 MSG_HASH(
-     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
-     "AA/GG SS:DD"
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD_HM_AM_PM,
+     "YYYY-AA-GG SS:DD (AM/PM)"
     )
- MSG_HASH(
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS_AM_PM,
+     "AA-GG-YYYY SS:DD:SN (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM_AM_PM,
+     "AA-GG-YYYY SS:DD (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM_AM_PM,
+     "AA-GG SS:DD (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS_AM_PM,
+     "GG/AA/YYYY SS:DD:SN (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM_AM_PM,
+     "GG/AA/YYYY SS:DD (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM_AM_PM,
+     "GG/AA SS:DD (AM/PM)"
+    )
+MSG_HASH(
      MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS_AM_PM,
      "SS:DD:SN (AM/PM)"
+    )
+MSG_HASH(
+     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HM_AM_PM,
+     "SS:DD (AM/PM)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_TICKER_TYPE,
@@ -3875,7 +3937,6 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_VIDEO_FULLSCREEN_Y,
     "Tam ekran yüksekliği"
     )
-#ifdef HAVE_VIDEO_LAYOUT
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_VIDEO_LAYOUT_ENABLE,
     "Video Düzenini Etkinleştir"
@@ -3900,7 +3961,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_VIDEO_LAYOUT_SELECTED_VIEW,
     "Yüklenen düzende bir görünüm seçin."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_WIFI_DRIVER,
     "Wi-Fi"
@@ -6249,20 +6309,8 @@ MSG_HASH(
     "Ağ gecikmesini gizlemek için kullanılabilecek giriş gecikmesi çerçevelerinin aralığı. Jitteri azaltır ve tahmin edilemeyen girdi gecikmesi pahasına netçeyi daha az CPU yoğun yapar."
     )
 MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_CYCLE_TRAY_STATUS,
-    "Geçerli diski değiştirin. Disk yerleştirilmişse, diski çıkaracaktır. Eğer disk yerleştirilmemişse, yerleştirilecektir. "
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_INDEX,
-    "Disk indeksini değiştir."
-    )
-MSG_HASH(
     MENU_ENUM_SUBLABEL_DISK_OPTIONS,
     "Disk image management."
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_IMAGE_APPEND,
-    "Eklenecek bir disk görüntüsü seçin."
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_MENU_ENUM_THROTTLE_FRAMERATE,
@@ -7033,14 +7081,6 @@ MSG_HASH(
     "Failed to create second instance. RunAhead will now use only one instance."
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST,
-    "Oynatma listelerine otomatik olarak içerik ekleyin"
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST,
-    "Oynatılan tarayıcı ile yüklü içeriği otomatik olarak tarar."
-    )
-MSG_HASH(
     MSG_SCANNING_OF_FILE_FINISHED,
     "Dosyanın taranması tamamlandı"
     )
@@ -7180,7 +7220,6 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_OVERLAYS,
     "Kaplama ayarlarını göster"
     )
-#ifdef HAVE_VIDEO_LAYOUT
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_VIDEO_LAYOUT,
     "Video Düzeni Ayarlarını Göster"
@@ -7189,7 +7228,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_CONTENT_SHOW_VIDEO_LAYOUT,
     "Video Düzeni seçeneklerini göster/gizle."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_AUDIO_ENABLE_MENU,
     "Mikser"

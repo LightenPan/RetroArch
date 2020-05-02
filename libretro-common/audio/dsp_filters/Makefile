@@ -12,7 +12,7 @@ ifeq ($(platform),)
       platform = win
    else ifneq ($(findstring Darwin,$(shell uname -s)),)
       platform = osx
-      arch = intel
+      arch     = intel
       ifeq ($(shell uname -p),powerpc)
          arch = ppc
       endif

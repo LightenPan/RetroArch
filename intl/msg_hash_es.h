@@ -292,7 +292,7 @@ MSG_HASH(
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_NETPLAY_TAB,
-    "Salas de juego en red"
+    "Juego en red"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ASK_ARCHIVE,
@@ -809,20 +809,44 @@ MSG_HASH(
     "Carpeta"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS,
-    "Abrir/Cerrar la bandeja de disco"
+    MENU_ENUM_LABEL_VALUE_DISK_TRAY_EJECT,
+    "Expulsar disco"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND,
-    "Asignar imagen de disco"
+    MENU_ENUM_SUBLABEL_DISK_TRAY_EJECT,
+    "Abre la bandeja de disco virtual y retira el disco que esté cargado. NOTA: Si RetroArch está configurado para pausarse al acceder al menú, algunos núcleos pueden no registrar los cambios hasta que se haya reanudado el contenido y hayan pasado unos segundos entre cada acción de control de disco."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_DISK_TRAY_INSERT,
+    "Introducir disco"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_DISK_TRAY_INSERT,
+    "Introduce el disco correspondiente al índice de disco actual y cierra la bandeja de disco virtual. NOTA: Si RetroArch está configurado para pausarse al acceder al menú, algunos núcleos pueden no registrar los cambios hasta que se haya reanudado el contenido y hayan pasado unos segundos entre cada acción de control de disco."
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DISK_INDEX,
-    "Índice de disco"
+    "Índice de disco actual"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_DISK_INDEX,
+    "Selecciona el disco actual en la lista de imágenes disponibles. El disco se cargará una vez se haya seleccionado «Introducir disco»."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND,
+    "Cargar disco nuevo"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_DISK_IMAGE_APPEND,
+    "Expulsa el disco actual, selecciona uno nuevo en el sistema de archivos, lo introduce y cierra la bandeja de disco virtual. NOTA: Esta es una característica antigua. Se recomienda cargar títulos multidisco utilizando listas de reproducción en formato M3U, las cuales permiten cambiar de disco mediante las opciones «Expulsar/Introducir disco» e «Índice de disco actual»."
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DISK_OPTIONS,
     "Control de disco"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_NO_DISK,
+    "No se ha seleccionado un disco"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DONT_CARE,
@@ -887,6 +911,10 @@ MSG_HASH(
 MSG_HASH(
     MSG_ALL_CORES_UPDATED,
     "Todos los núcleos instalados están al día"
+    )
+MSG_HASH(
+    MSG_NUM_CORES_UPDATED,
+    "núcleos actualizados: "
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_SCALE_FACTOR,
@@ -2176,6 +2204,14 @@ MSG_HASH(
     "Descarga automáticamente las miniaturas mientras se navega por las listas de reproducción. Provoca una bajada importante en el rendimiento."
     )
 MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_NETWORK_HOSTING_SETTINGS,
+    "Anfitrión"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_SUBSYSTEM_SETTINGS,
+    "Subsistemas"
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_NETWORK_SETTINGS,
     "Red"
     )
@@ -2296,7 +2332,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_ONSCREEN_VIDEO_LAYOUT_SETTINGS,
     "Ajusta el diseño de vídeo."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_ONSCREEN_NOTIFICATIONS_SETTINGS,
     "Notificaciones"
@@ -2330,7 +2365,6 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_VIDEO_LAYOUT_DIRECTORY,
     "Diseño de vídeo"
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_OVERLAY_OPACITY,
     "Opacidad"
@@ -2382,6 +2416,14 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_SUBLABEL_MENU_SAVESTATE_RESUME,
     "Cierra el menú y reanuda el contenido actual de forma automática tras seleccionar «Guardado rápido» o  «Cargar guardado rápido» en el menú rápido. Si se desactiva esta opción, puede mejorar el rendimiento de los guardados rápidos en dispositivos lentos."
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_MENU_INSERT_DISK_RESUME,
+    "Reanudar contenido tras cambiar de disco"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_MENU_INSERT_DISK_RESUME,
+    "Cierra el menú de forma automática y reanuda el contenido actual tras seleccionar las opciones «Introducir disco» o «Cargar disco nuevo» en el menú de Control de disco."
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PAUSE_NONACTIVE,
@@ -2474,6 +2516,22 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_THUMBNAIL_MODE_DEFAULT,
     "Valores predeterminados del sistema"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_CLEAN_PLAYLIST,
+    "Limpiar lista de reproducción"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_PLAYLIST_MANAGER_CLEAN_PLAYLIST,
+    "Elimina las entradas duplicadas o no válidas y confirma las asociaciones de núcleos."
+    )
+MSG_HASH(
+    MSG_PLAYLIST_MANAGER_CLEANING_PLAYLIST,
+    "Limpiando lista de reproducción: "
+    )
+MSG_HASH(
+    MSG_PLAYLIST_MANAGER_PLAYLIST_CLEANED,
+    "Lista de reproducción limpiada: "
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_POINTER_ENABLE,
@@ -2654,6 +2712,10 @@ MSG_HASH(
     MENU_ENUM_LABEL_VALUE_CONTENT_INFO_LAST_PLAYED,
     "Última partida"
     )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CONTENT_INFO_CHEEVOS_HASH,
+   "Hash de RetroAchievements"
+   )
 #ifdef HAVE_LAKKA_SWITCH
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_REBOOT,
@@ -3594,8 +3656,52 @@ MSG_HASH(
     "AAAA-MM-DD HH:MM"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD,
+    "AAAA-MM-DD"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YM,
+    "AAAA-MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS,
+    "MM-DD-AAAA HH:MM:SS"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM,
     "MM-DD-AAAA HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
+    "MM-DD HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY,
+    "MM-DD-AAAA"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD,
+    "MM-DD"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS,
+    "DD/MM/AAAA HH:MM:SS"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM,
+    "DD/MM/AAAA HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM,
+    "DD/MM HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY,
+    "DD/MM/AAAA"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM,
+    "DD/MM"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS,
@@ -3606,14 +3712,6 @@ MSG_HASH(
     "HH:MM"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DM_HM,
-    "DD/MM HH:MM"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM,
-    "MM/DD HH:MM"
-    )
-MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_YMD_HMS_AM_PM,
     "AAAA-MM-DD HH:MM:SS (AM/PM)"
     )
@@ -3622,8 +3720,28 @@ MSG_HASH(
     "AAAA-MM-DD HH:MM (AM/PM)"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_AM_PM,
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HMS_AM_PM,
+    "MM-DD-AAAA HH:MM:SS (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MDYYYY_HM_AM_PM,
     "MM-DD-AAAA HH:MM (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM_AM_PM,
+    "MM/DD HH:MM (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HMS_AM_PM,
+    "DD/MM/AAAA HH:MM:SS (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMMYYYY_HM_AM_PM,
+    "DD/MM/AAAA HH:MM (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DDMM_HM_AM_PM,
+    "DD/MM HH:MM (AM/PM)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HMS_AM_PM,
@@ -3632,14 +3750,6 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_HM_AM_PM,
     "HH:MM (AM/PM)"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_DM_HM_AM_PM,
-    "DD/MM HH:MM (AM/PM)"
-    )
-MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_TIMEDATE_STYLE_MD_HM_AM_PM,
-    "MM/DD HH:MM (AM/PM)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_MENU_TICKER_TYPE,
@@ -4280,7 +4390,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_VIDEO_LAYOUT_SELECTED_VIEW,
     "Selecciona una vista del diseño cargado."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_WIFI_DRIVER,
     "Controlador wifi"
@@ -4741,6 +4850,10 @@ MSG_HASH(
 MSG_HASH(
     MSG_APPENDED_DISK,
     "Disco en cola"
+    )
+MSG_HASH(
+    MSG_FAILED_TO_APPEND_DISK,
+    "Error al poner disco en cola"
     )
 MSG_HASH(
     MSG_APPLICATION_DIR,
@@ -5557,6 +5670,14 @@ MSG_HASH(
 MSG_HASH(
     MSG_VIRTUAL_DISK_TRAY,
     "bandeja de discos virtual."
+    )
+MSG_HASH(
+    MSG_VIRTUAL_DISK_TRAY_EJECT,
+    "expulsar"
+    )
+MSG_HASH(
+    MSG_VIRTUAL_DISK_TRAY_CLOSE,
+    "cerrar"
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_AUDIO_LATENCY,
@@ -6668,20 +6789,8 @@ MSG_HASH(
     "Indica el rango de fotogramas de entrada a usar para ocultar la latencia durante el juego en red. Reduce los tirones y el uso de la CPU a costa de incrementar la latencia de entrada."
     )
 MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_CYCLE_TRAY_STATUS,
-    "Cambia de disco. Si hay un disco introducido, será expulsado. De lo contrario, se introducirá."
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_INDEX,
-    "Cambia el índice del disco."
-    )
-MSG_HASH(
     MENU_ENUM_SUBLABEL_DISK_OPTIONS,
     "Administra las imágenes de disco."
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_DISK_IMAGE_APPEND,
-    "Selecciona una imagen de disco a insertar."
     )
 MSG_HASH(
     MENU_ENUM_SUBLABEL_MENU_ENUM_THROTTLE_FRAMERATE,
@@ -6833,7 +6942,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_VIDEO_LAYOUT_DIRECTORY,
     "En esta carpeta se guardan los diseños de vídeo."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_SUBLABEL_CHEAT_DATABASE_PATH,
     "En esta carpeta se guardan los archivos de trucos."
@@ -7534,14 +7642,6 @@ MSG_HASH(
     "Error al crear la segunda instancia. La reducción predictiva solo usará una a partir de este momento."
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST,
-    "Autoagregar contenidos a listas de reproducción"
-    )
-MSG_HASH(
-    MENU_ENUM_SUBLABEL_AUTOMATICALLY_ADD_CONTENT_TO_PLAYLIST,
-    "Busca automáticamente los contenidos para que aparezcan en las listas de reproducción."
-    )
-MSG_HASH(
     MSG_SCANNING_OF_FILE_FINISHED,
     "Archivo escaneado"
     )
@@ -7738,7 +7838,6 @@ MSG_HASH(
     MENU_ENUM_SUBLABEL_CONTENT_SHOW_VIDEO_LAYOUT,
     "Muestra las opciones de diseño de vídeo."
     )
-#endif
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_AUDIO_ENABLE_MENU,
     "Mezclador de audio"
@@ -8949,6 +9048,10 @@ MSG_HASH(
     "Error al asignar disco"
     )
 MSG_HASH(
+    MSG_FAILED_TO_SET_INITIAL_DISK,
+    "Error al asignar el último disco utilizado..."
+    )
+MSG_HASH(
     MENU_ENUM_LABEL_VALUE_QT_CORE_OPTIONS,
     "Opciones del núcleo"
     )
@@ -9350,16 +9453,52 @@ MSG_HASH(
     "AAAA/MM/DD - HH:MM"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY,
-    "MM/DD/AAAA - HH:MM"
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_YMD,
+    "AAAA/MM/DD"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DM_HM,
-    "DD/MM - HH:MM"
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_YM,
+    "AAAA/MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY_HMS,
+    "MM/DD/AAAA - HH:MM:SS"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY_HM,
+    "MM/DD/AAAA - HH:MM"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MD_HM,
     "MM/DD - HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY,
+    "MM/DD/AAAA"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MD,
+    "MM/DD"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMMYYYY_HMS,
+    "DD/MM/AAAA - HH:MM:SS"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMMYYYY_HM,
+    "DD/MM/AAAA - HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMM_HM,
+    "DD/MM - HH:MM"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMMYYYY,
+    "DD/MM/AAAA"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMM,
+    "DD/MM"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_YMD_HMS_AM_PM,
@@ -9370,16 +9509,28 @@ MSG_HASH(
     "AAAA/MM/DD - HH:MM (AM/PM)"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY_AM_PM,
-    "MM/DD/AAAA - HH:MM (AM/PM)"
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY_HMS_AM_PM,
+    "MM/DD/AAAA - HH:MM:SS (AM/PM)"
     )
 MSG_HASH(
-    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DM_HM_AM_PM,
-    "DD/MM - HH:MM (AM/PM)"
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MDYYYY_HM_AM_PM,
+    "MM/DD/AAAA - HH:MM (AM/PM)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_MD_HM_AM_PM,
     "MM/DD - HH:MM (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMMYYYY_HMS_AM_PM,
+    "DD/MM/AAAA - HH:MM:SS (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMMYYYY_HM_AM_PM,
+    "DD/MM/AAAA - HH:MM (AM/PM)"
+    )
+MSG_HASH(
+    MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED_STYLE_DDMM_HM_AM_PM,
+    "DD/MM - HH:MM (AM/PM)"
     )
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_PLAYLIST_FUZZY_ARCHIVE_MATCH,
@@ -10072,6 +10223,10 @@ MSG_HASH(
 MSG_HASH(
     MENU_ENUM_LABEL_VALUE_DELETE_PLAYLIST,
     "Borrar lista de reproducción"
+    )
+MSG_HASH(
+    MENU_ENUM_SUBLABEL_DELETE_PLAYLIST,
+    "Elimina la lista de reproducción del sistema de archivos."
     )
 #ifdef HAVE_LAKKA
 MSG_HASH(

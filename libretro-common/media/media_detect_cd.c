@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2019 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
 *
 * ---------------------------------------------------------------------------------------
 * The following license statement only applies to this file (media_detect_cd.c).
@@ -337,7 +337,8 @@ bool media_detect_cd_info(const char *path, uint64_t pregap_bytes, media_detect_
          const char *title_pos  = NULL;
          const char *serial_pos = NULL;
 #if 0
-         bool title_found = false;
+         bool title_found       = false;
+#endif
 #endif
 
          /* All discs currently in Redump for MCD start with SEGADISCSYSTEM. There are other strings mentioned elsewhere online,
@@ -373,7 +374,8 @@ bool media_detect_cd_info(const char *path, uint64_t pregap_bytes, media_detect_
          const char *version_pos      = NULL;
          const char *release_date_pos = NULL;
 #if 0
-         bool title_found = false;
+         bool title_found             = false;
+#endif
 #endif
 
          info->system_id = MEDIA_CD_SYSTEM_SATURN;
@@ -427,7 +429,8 @@ bool media_detect_cd_info(const char *path, uint64_t pregap_bytes, media_detect_
          const char *version_pos      = NULL;
          const char *release_date_pos = NULL;
 #if 0
-         bool title_found = false;
+         bool title_found             = false;
+#endif
 #endif
 
          info->system_id = MEDIA_CD_SYSTEM_DREAMCAST;

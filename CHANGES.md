@@ -1,4 +1,81 @@
 # Future
+- AUTOCONFIG: Use correct port index in input device configured/disconnected notifications
+- MENU: Prevent font-related segfaults when using extremely small scales/window sizes
+- MENU: Fix 'gfx_display_draw_texture_slice()'
+- MENU/OZONE: Update timedate style options for Last Played sublabel metadata
+- MENU/OZONE: Hide 'Menu Color Theme' setting when 'Use preferred system color theme' is enabled
+- MENU/OZONE: Fix thumbnail switching via 'scan' button functionality
+- MENU/OZONE: Prevent glitches when rendering Ozone's selection cursor
+- MENU/XMB: Fix thumbnail switching via 'scan' button functionality
+- SCANNER: Prevent redundant playlist entries when handling M3U content
+- SCANNER/ANDROID: Fix content scanner being unable to identify certain games from CHD images (raw data sector/subcode)
+
+# 1.8.5
+- 3DS: Keep the bottom screen hidden on sleep/wakeup. When the 3DS wakes back up after being closed, the bottom screen needs to be reinitialized. Adding the condition here will cause the screen to be turned on or off based on the state of ctr_bottom_screen_enabled, as you'd expect
+- ANDROID/CHROMEBOOK/CRASH: Fix Chromebook crashes (on x86 x64) when touching the screen
+- BUGFIX: Prevent double input when using 'return' key (hardware) to close on-screen keyboard
+- BUGFIX: Fix mouse capture hotkey not working
+- BUGFIX: Avoid overflow when calculating multiplying performance counter
+- BUGFIX: Retroarch overlay displaying "Game remap file loaded." on the overlay instead of "Core remap file loaded." when only a core remap file is present
+- CHEEVOS/BUGFIX: Achievement triggers could cause Retroarch to Crash
+- CHEEVOS: Don't block Sameboy core because it only exposes some memory
+- CHEEVOS: Support for extended Sega CD memory
+- CHEEVOS: Show RetroAchievements Hash in content information list
+- CHEEVOS: If the core says it's exposing SYSTEM_RAM, give it the benefit of the doubt
+- CHEEVOS: RetroAchievements rich presence for RA.org website/Discord
+- CHEEVOS: Reset token when username or password changes
+- CHEEVOS: Display measured progress on locked achievements
+- CHEEVOS: Queue multiple popups
+- CHEEVOS: Add delay retries to leaderboard submits
+- CHEEVOS: Prevent buffer overflow when encountering an unknown macro
+- CORE UPDATER: Prevent hang when fetching core list if HTTP transfer fails
+- DISK CONTROL: Add disk labels to 'disk inserted' notifications
+- EMSCRIPTEN: Recreate input event listeners properly
+- FFMPEG CORE: Fix crash on seeking when using HW decoding in some cases
+- LIBRETRO: Add disk control interface API extension
+- LINUX: Avoid possible crash when running retroarch at startup
+- LINUX/GLX: Fix threaded video crashes/instability because of GLX OML sync callbacks
+- LOCALIZATION: Update French translation
+- LOCALIZATION: Update Korean translation
+- LOCALIZATION: Update Polish translation
+- LOCALIZATION: Update Spanish translation
+- LOCALIZATION: Update Portuguese Brazilian translation
+- MENU: Add Menu Scroll Acceleration option
+- MENU: Automatically select currently checked item when opening drop-down lists
+- MENU: Fix smooth (vertical) line ticker scroll speed
+- MENU: Don't flush on override/remap messages
+- MENU/DATETIME: Adds some new timedate styles that follow the DD/MM/YYYY format, found in several European countries
+- MENU/DATETIME: Modifies the existing translation files in order to accommodate the new options that are now available
+- MENU/DATETIME: Reorders the timedate view options based on a decreasing order of the quantity of information displayed, so that they are more convenient to switch around and easily categorized
+- MENU/BUGFIX: Fix bug - if you were in XMB and you would set menu driver to RGUI, you could no longer go to the left or right tab
+- MENU/MATERIALUI: Add option to remove navigation bar
+- MENU/OZONE: Add DPI-based scaling
+- MENU/OZONE: Add rudimentary pointer support
+- MENU/OZONE: Add 'Nord' and 'Gruvbox Dark' themes
+- MENU/OZONE/POINTER: Pointer can be used to switch between sidebar and entries list
+- MENU/OZONE/POINTER: Pointer can be used to select sidebar and entries list items
+- MENU/OZONE/POINTER: Both sidebar and entries list can be scrolled by dragging
+- MENU/OZONE/POINTER: Clicking/pressing the header or footer produces a 'cancel' action
+- MENU/OZONE/POINTER: Cursor focus follows mouse pointer from sidebar to entries list (and vice versa)
+- MENU/OZONE/POINTER: In entries list, item under cursor is automatically selected (with some fudging to ensure this doesn't break mouse wheel scrolling)
+- MENU/OZONE/POINTER: In sidebar, item under cursor is not automatically selected (this is too jarring)
+- MENU/RGUI: Add 'Flux' theme
+- MENU/XMB: New color themes 'Cube Purple', 'Family Red', etc
+- NETPLAY/MENU/BUGFIX: Fix Netplay Stateless Mode doesn't save. Affects other netplay settings which can be overridden by commandline option
+- ODROID GO ADVANCE: Rotation support
+- NETPLAY/ROOMS/BUGFIX: Prevent out-of-bounds array indexing when displaying/selecting netplay rooms in menus
+- SCANNER: Add 'Arcade DAT Filter' Option
+- SCANNER: Add scanning Korea and Asia PS1 discs
+- SCANNER: Add support for scanning PSP Korean
+- VIDEO: Set hardware 'Bilinear filtering' off by default
+- VIDEO/WIDGETS: Widgets are now menu-independent
+- VIDEO/WIDGETS: Allow notifications to use full screen width when not displaying menu
+- VIDEO/WIDGETS: DPI-based scaling
+- VIDEO/WIDGETS: Fix volume widget scaling
+- VIDEO/WIDGETS: Add independent widget scale override settings for fullscreen/windowed modes
+- VIDEO/WIDGETS/BUGFIX: Prevent improper display of (old style) OSD text when widgets are enabled
+- VIDEO/WIDGETS/THREADED/BUGFIX: Fix issue - corruption of menu widgets when running some cores (e.g. VICE) with threaded video enabled
+- WIFI/CONNMANCTL: Display more characters from SSID
 
 # 1.8.4
 - ANDROID/BUGFIX: Prevent crash when Android device is minimized and you go back to the app
@@ -15,6 +92,7 @@
 - DISK CONTROL/BUGFIX: The Disk Control menu now has the correct title
 - DISK CONTROL/BUGFIX: Selecting a disk via the Load New Disk file browser no longer flushes the user back to the top level menu (it now correctly returns to the Disk Control menu)
 - LIBNX/SWITCH: Updated libnx integration to v3.0.0. This also cherry-picks libnx commit 583d6bb92dcbb33b6bb4a0fa1a9df6e3725d6ef6, which should fix the requirement having to turn rumble off and on in the system settings once per reboot
+- PLAYLISTS: Add 'Clean Playlist' option
 
 # 1.8.3
 - ANDROID/BUGFIX: Fix 'Install or Restore Core' regression
@@ -45,7 +123,7 @@
 - MENU/WIDGETS: Prevent looping of task title text
 - RASPBERRY PI: Fix BGRA8888 color inversion issues in the menu and elsewhere with VideoCore GL drivers
 - NETPLAY/RELAY: Add Sao Paulo (Brazil) relay server
-- NETPLAY/RELAY: Fix the ìspectatorî bug when using the relay server ñ When a player switches into the spectator mode (pressing ìiî) while using the relay server, all players will disconnect.
+- NETPLAY/RELAY: Fix the ‚Äúspectator‚Äù bug when using the relay server ‚Äì When a player switches into the spectator mode (pressing ‚Äúi‚Äù) while using the relay server, all players will disconnect.
 - NETPLAY/RELAY: Overall stability has improved. Fixed a memory leak that would cause the relay server to become unresponsive after some time.
 - NETPLAY/RELAY: Fixed critical bug that would cause all players to be disconnected from the relay server if one player was leaving the game. That bug had been open for one year and we were finally able to fix it.
 - SWITCH/LIBNX/BUGFIX: Fix onscreen keyboard input regression

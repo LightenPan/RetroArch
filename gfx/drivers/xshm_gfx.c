@@ -118,10 +118,7 @@ static bool xshm_gfx_frame(void *data, const void *frame, unsigned width,
    return true;
 }
 
-static void xshm_gfx_set_nonblock_state(void *data, bool toggle)
-{
-
-}
+static void xshm_gfx_set_nonblock_state(void *a, bool b, bool c, unsigned d) { }
 
 static bool xshm_gfx_alive(void *data)
 {
@@ -143,7 +140,7 @@ static void xshm_gfx_free(void *data)
 
 }
 
-static void xshm_poke_set_filtering(void *data, unsigned index, bool smooth)
+static void xshm_poke_set_filtering(void *data, unsigned index, bool smooth, bool ctx_scaling)
 {
 
 }
@@ -172,7 +169,6 @@ static void xshm_poke_texture_enable(void *data,
 }
 
 static void xshm_poke_set_osd_msg(void *data,
-      video_frame_info_t *video_info,
       const char *msg,
       const void *params, void *font)
 {

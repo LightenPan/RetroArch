@@ -164,9 +164,10 @@ CONFIG FILE
 #include "../libretro-common/file/config_file_userdata.c"
 
 /*============================================================
-RUNTIME FILE
+CONTENT METADATA RECORDS
 ============================================================ */
 #include "../runtime_file.c"
+#include "../disk_index_file.c"
 
 /*============================================================
 ACHIEVEMENTS
@@ -278,6 +279,7 @@ VIDEO CONTEXT
 
 #ifdef HAVE_VULKAN
 #include "../gfx/common/vulkan_common.c"
+#include "../gfx/drivers_display/gfx_display_vulkan.c"
 #include "../libretro-common/vulkan/vulkan_symbol_wrapper.c"
 #ifdef HAVE_VULKAN_DISPLAY
 #include "../gfx/drivers_context/khr_display_ctx.c"
@@ -383,11 +385,13 @@ VIDEO DRIVER
 #if defined(HAVE_D3D8)
 #include "../gfx/drivers/d3d8.c"
 #include "../gfx/common/d3d8_common.c"
+#include "../gfx/drivers_display/gfx_display_d3d8.c"
 #endif
 
 #if defined(HAVE_D3D9)
 #include "../gfx/drivers/d3d9.c"
 #include "../gfx/common/d3d9_common.c"
+#include "../gfx/drivers_display/gfx_display_d3d9.c"
 
 #ifdef HAVE_HLSL
 #include "../gfx/drivers_renderchain/d3d9_hlsl_renderchain.c"
@@ -404,16 +408,19 @@ VIDEO DRIVER
 #if defined(HAVE_D3D11)
 #include "../gfx/drivers/d3d11.c"
 #include "../gfx/common/d3d11_common.c"
+#include "../gfx/drivers_display/gfx_display_d3d11.c"
 #endif
 
 #if defined(HAVE_D3D12)
 #include "../gfx/drivers/d3d12.c"
 #include "../gfx/common/d3d12_common.c"
+#include "../gfx/drivers_display/gfx_display_d3d12.c"
 #endif
 
 #if defined(HAVE_D3D10)
 #include "../gfx/drivers/d3d10.c"
 #include "../gfx/common/d3d10_common.c"
+#include "../gfx/drivers_display/gfx_display_d3d10.c"
 #endif
 
 #if defined(HAVE_D3D10) || defined(HAVE_D3D11) || defined(HAVE_D3D12)
@@ -430,6 +437,7 @@ VIDEO DRIVER
 
 #if defined(__wiiu__)
 #include "../gfx/drivers/gx2_gfx.c"
+#include "../gfx/drivers_display/gfx_display_wiiu.c"
 #endif
 
 #ifdef HAVE_SDL2
@@ -455,14 +463,17 @@ VIDEO DRIVER
 
 #ifdef HAVE_OPENGL1
 #include "../gfx/drivers/gl1.c"
+#include "../gfx/drivers_display/gfx_display_gl1.c"
 #endif
 
 #ifdef HAVE_OPENGL_CORE
 #include "../gfx/drivers/gl_core.c"
+#include "../gfx/drivers_display/gfx_display_gl_core.c"
 #endif
 
 #ifdef HAVE_OPENGL
 #include "../gfx/drivers/gl.c"
+#include "../gfx/drivers_display/gfx_display_gl.c"
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGL_CORE)
@@ -498,8 +509,10 @@ VIDEO DRIVER
 #include "../deps/libvita2d/source/utils.c"
 
 #include "../gfx/drivers/vita2d_gfx.c"
+#include "../gfx/drivers_display/gfx_display_vita2d.c"
 #elif defined(_3DS)
 #include "../gfx/drivers/ctr_gfx.c"
+#include "../gfx/drivers_display/gfx_display_ctr.c"
 #elif defined(XENON)
 #include "../gfx/drivers/xenon360_gfx.c"
 #elif defined(DJGPP)
@@ -509,6 +522,7 @@ VIDEO DRIVER
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
 #ifdef HAVE_GDI
 #include "../gfx/drivers/gdi_gfx.c"
+#include "../gfx/drivers_display/gfx_display_gdi.c"
 #endif
 #endif
 
@@ -614,11 +628,16 @@ FONTS
 INPUT
 ============================================================ */
 #include "../tasks/task_autodetect.c"
+#ifdef HAVE_BLISSBOX
+#include "../tasks/task_autodetect_blissbox.c"
+#endif
 #ifdef HAVE_AUDIOMIXER
 #include "../tasks/task_audio_mixer.c"
 #endif
 #include "../input/input_keymaps.c"
+#ifdef HAVE_CONFIGFILE
 #include "../input/input_remapping.c"
+#endif
 
 #ifdef HAVE_OVERLAY
 #include "../led/drivers/led_overlay.c"
@@ -905,7 +924,10 @@ MIDI
 DRIVERS
 ============================================================ */
 #include "../gfx/video_crt_switch.c"
-#include "../gfx/video_display_server.c"
+#include "../gfx/gfx_animation.c"
+#include "../gfx/gfx_display.c"
+#include "../gfx/gfx_thumbnail_path.c"
+#include "../gfx/gfx_thumbnail.c"
 #include "../gfx/video_coord_array.c"
 #ifdef HAVE_AUDIOMIXER
 #include "../libretro-common/audio/audio_mixer.c"
@@ -1188,7 +1210,6 @@ NETPLAY
 ============================================================ */
 #ifdef HAVE_NETWORKING
 #include "../network/netplay/netplay_delta.c"
-#include "../network/netplay/netplay_frontend.c"
 #include "../network/netplay/netplay_handshake.c"
 #include "../network/netplay/netplay_init.c"
 #include "../network/netplay/netplay_io.c"
@@ -1209,6 +1230,7 @@ NETPLAY
 #include "../tasks/task_netplay_nat_traversal.c"
 #include "../tasks/task_wifi.c"
 #include "../tasks/task_netplay_find_content.c"
+#include "../tasks/task_pl_thumbnail_download.c"
 #endif
 
 /*============================================================
@@ -1216,6 +1238,7 @@ DATA RUNLOOP
 ============================================================ */
 #include "../tasks/task_powerstate.c"
 #include "../tasks/task_content.c"
+#include "../tasks/task_patch.c"
 #include "../tasks/task_save.c"
 #include "../tasks/task_image.c"
 #include "../tasks/task_file_transfer.c"
@@ -1229,7 +1252,7 @@ DATA RUNLOOP
 #include "../tasks/task_database_cue.c"
 #endif
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
-#include "../tasks/task_pl_thumbnail_download.c"
+#include "../tasks/task_core_updater.c"
 #include "../tasks/task_pl_rom_download.c" // 添加下载功能
 #include "../tasks/task_core_updater.c"
 #endif
@@ -1251,6 +1274,16 @@ MENU
 #include "../menu/menu_shader.c"
 #endif
 
+#ifdef HAVE_GFX_WIDGETS
+#include "../gfx/gfx_widgets.c"
+#include "../gfx/widgets/gfx_widget_screenshot.c"
+#include "../gfx/widgets/gfx_widget_volume.c"
+#include "../gfx/widgets/gfx_widget_generic_message.c"
+#include "../gfx/widgets/gfx_widget_libretro_message.c"
+#endif
+
+#include "../input/input_osk.c"
+
 #ifdef HAVE_MENU
 #include "../menu/menu_driver.c"
 #include "../menu/menu_setting.c"
@@ -1263,10 +1296,6 @@ MENU
 #include "../menu/widgets/menu_filebrowser.c"
 #include "../menu/widgets/menu_dialog.c"
 #include "../menu/widgets/menu_input_bind_dialog.c"
-#ifdef HAVE_MENU_WIDGETS
-#include "../menu/widgets/menu_widgets.c"
-#endif
-#include "../menu/widgets/menu_osk.c"
 #include "../menu/cbs/menu_cbs_ok.c"
 #include "../menu/cbs/menu_cbs_cancel.c"
 #include "../menu/cbs/menu_cbs_select.c"
@@ -1285,78 +1314,10 @@ MENU
 #include "../menu/cbs/menu_cbs_down.c"
 #include "../menu/cbs/menu_cbs_contentlist_switch.c"
 #include "../menu/menu_displaylist.c"
-#include "../menu/menu_animation.c"
-#include "../menu/menu_thumbnail_path.c"
-#include "../menu/menu_thumbnail.c"
-
-#include "../menu/drivers/menu_generic.c"
-
-#if defined(HAVE_D3D8)
-#include "../menu/drivers_display/menu_display_d3d8.c"
-#endif
-
-#if defined(HAVE_D3D9)
-#include "../menu/drivers_display/menu_display_d3d9.c"
-#endif
-
-#if defined(HAVE_D3D10)
-#include "../menu/drivers_display/menu_display_d3d10.c"
-#endif
-
-#if defined(HAVE_D3D11)
-#include "../menu/drivers_display/menu_display_d3d11.c"
-#endif
-
-#if defined(HAVE_D3D12)
-#include "../menu/drivers_display/menu_display_d3d12.c"
-#endif
-
-#ifdef HAVE_OPENGL1
-#include "../menu/drivers_display/menu_display_gl1.c"
-#endif
-
-#ifdef HAVE_OPENGL
-#include "../menu/drivers_display/menu_display_gl.c"
-#endif
-
-#ifdef HAVE_OPENGL_CORE
-#include "../menu/drivers_display/menu_display_gl_core.c"
-#endif
-
-#ifdef HAVE_VULKAN
-#include "../menu/drivers_display/menu_display_vulkan.c"
-#endif
-
-#ifdef HAVE_VITA2D
-#include "../menu/drivers_display/menu_display_vita2d.c"
-#endif
-
-#ifdef _3DS
-#include "../menu/drivers_display/menu_display_ctr.c"
-#endif
-
-#ifdef WIIU
-#include "../menu/drivers_display/menu_display_wiiu.c"
 #endif
 
 #if defined(HAVE_LIBNX)
-#include "../menu/drivers_display/menu_display_switch.c"
-#endif
-
-#ifdef HAVE_CACA
-#include "../menu/drivers_display/menu_display_caca.c"
-#endif
-
-#ifdef DJGPP
-#include "../menu/drivers_display/menu_display_vga.c"
-#endif
-
-#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
-#ifdef HAVE_GDI
-#include "../menu/drivers_display/menu_display_gdi.c"
-#endif
-#endif
-
+#include "../gfx/drivers_display/gfx_display_switch.c"
 #endif
 
 #ifdef HAVE_RGUI
@@ -1392,11 +1353,6 @@ MENU
 
 #if defined(HAVE_NETWORKING)
 #include "../libretro-common/net/net_http_parse.c"
-#endif
-
-#ifdef HAVE_RUNAHEAD
-#include "../runahead/mem_util.c"
-#include "../runahead/mylist.c"
 #endif
 
 /*============================================================
@@ -1653,3 +1609,13 @@ PLAYLIST NAME SANITIZATION
 MANUAL CONTENT SCAN
 ============================================================ */
 #include "../manual_content_scan.c"
+
+/*============================================================
+DISK CONTROL INTERFACE
+============================================================ */
+#include "../disk_control_interface.c"
+
+/*============================================================
+MISC FILE FORMATS
+============================================================ */
+#include "../libretro-common/formats/m3u/m3u_file.c"

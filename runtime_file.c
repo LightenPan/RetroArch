@@ -36,9 +36,12 @@
 #include "file_path_special.h"
 #include "paths.h"
 #include "core_info.h"
-#include "configuration.h"
 #include "verbosity.h"
 #include "msg_hash.h"
+
+#if defined(HAVE_MENU)
+#include "menu/menu_driver.h"
+#endif
 
 #include "runtime_file.h"
 
@@ -713,18 +716,33 @@ void runtime_log_get_last_played_str(runtime_log_t *runtime_log,
             strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
             strlcat(str, tmp, len);
             return;
-         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_AM_PM:
-            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %m/%d/%Y - %I:%M %p");
+         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HMS_AM_PM:
+            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %m/%d/%Y - %I:%M:%S %p");
             strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
             strlcat(str, tmp, len);
             return;
-         case PLAYLIST_LAST_PLAYED_STYLE_DM_HM_AM_PM:
-            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %d/%m - %I:%M %p");
+         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HM_AM_PM:
+            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %m/%d/%Y - %I:%M %p");
             strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
             strlcat(str, tmp, len);
             return;
          case PLAYLIST_LAST_PLAYED_STYLE_MD_HM_AM_PM:
             last_played_strftime(runtime_log, tmp, sizeof(tmp), " %m/%d - %I:%M %p");
+            strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
+            strlcat(str, tmp, len);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HMS_AM_PM:
+            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %d/%m/%Y - %I:%M:%S %p");
+            strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
+            strlcat(str, tmp, len);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HM_AM_PM:
+            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %d/%m/%Y - %I:%M %p");
+            strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
+            strlcat(str, tmp, len);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMM_HM_AM_PM:
+            last_played_strftime(runtime_log, tmp, sizeof(tmp), " %d/%m - %I:%M %p");
             strlcpy(str, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED), len);
             strlcat(str, tmp, len);
             return;
@@ -741,16 +759,26 @@ void runtime_log_get_last_played_str(runtime_log_t *runtime_log,
                   runtime_log->last_played.year, runtime_log->last_played.month, runtime_log->last_played.day,
                   runtime_log->last_played.hour, runtime_log->last_played.minute);
             return;
-         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY:
+         case PLAYLIST_LAST_PLAYED_STYLE_YMD:
+            n = snprintf(str, len, "%s %04u/%02u/%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.year, runtime_log->last_played.month, runtime_log->last_played.day);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_YM:
+            n = snprintf(str, len, "%s %04u/%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.year, runtime_log->last_played.month);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HMS:
+            n = snprintf(str, len, "%s %02u/%02u/%04u - %02u:%02u:%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.month, runtime_log->last_played.day, runtime_log->last_played.year,
+                  runtime_log->last_played.hour, runtime_log->last_played.minute, runtime_log->last_played.second);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HM:
             n = snprintf(str, len, "%s %02u/%02u/%04u - %02u:%02u",
                   msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
                   runtime_log->last_played.month, runtime_log->last_played.day, runtime_log->last_played.year,
-                  runtime_log->last_played.hour, runtime_log->last_played.minute);
-            return;
-         case PLAYLIST_LAST_PLAYED_STYLE_DM_HM:
-            n = snprintf(str, len, "%s %02u/%02u - %02u:%02u",
-                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
-                  runtime_log->last_played.day, runtime_log->last_played.month,
                   runtime_log->last_played.hour, runtime_log->last_played.minute);
             return;
          case PLAYLIST_LAST_PLAYED_STYLE_MD_HM:
@@ -758,6 +786,44 @@ void runtime_log_get_last_played_str(runtime_log_t *runtime_log,
                   msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
                   runtime_log->last_played.month, runtime_log->last_played.day,
                   runtime_log->last_played.hour, runtime_log->last_played.minute);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_MDYYYY:
+            n = snprintf(str, len, "%s %02u/%02u/%04u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.month, runtime_log->last_played.day, runtime_log->last_played.year);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_MD:
+            n = snprintf(str, len, "%s %02u/%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.month, runtime_log->last_played.day);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HMS:
+            n = snprintf(str, len, "%s %02u/%02u/%04u - %02u:%02u:%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.day, runtime_log->last_played.month, runtime_log->last_played.year,
+                  runtime_log->last_played.hour, runtime_log->last_played.minute, runtime_log->last_played.second);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HM:
+            n = snprintf(str, len, "%s %02u/%02u/%04u - %02u:%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.day, runtime_log->last_played.month, runtime_log->last_played.year,
+                  runtime_log->last_played.hour, runtime_log->last_played.minute);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMM_HM:
+            n = snprintf(str, len, "%s %02u/%02u - %02u:%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.day, runtime_log->last_played.month,
+                  runtime_log->last_played.hour, runtime_log->last_played.minute);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY:
+            n = snprintf(str, len, "%s %02u/%02u/%04u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.day, runtime_log->last_played.month, runtime_log->last_played.year);
+            return;
+         case PLAYLIST_LAST_PLAYED_STYLE_DDMM:
+            n = snprintf(str, len, "%s %02u/%02u",
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PLAYLIST_SUBLABEL_LAST_PLAYED),
+                  runtime_log->last_played.day, runtime_log->last_played.month);
             return;
          case PLAYLIST_LAST_PLAYED_STYLE_YMD_HMS:
          default:
@@ -941,19 +1007,24 @@ void runtime_log_convert_usec2hms(retro_time_t usec,
 
 /* Updates specified playlist entry runtime values with
  * contents of associated log file */
-void runtime_update_playlist(playlist_t *playlist, size_t idx)
+void runtime_update_playlist(
+      playlist_t *playlist, size_t idx,
+      const char *dir_runtime_log,
+      const char *dir_playlist,
+      bool log_per_core,
+      enum playlist_sublabel_last_played_style_type timedate_style)
 {
    char runtime_str[64];
    char last_played_str[64];
-   enum playlist_sublabel_last_played_style_type 
-      timedate_style                  = PLAYLIST_LAST_PLAYED_STYLE_YMD_HMS;
-   settings_t *settings               = config_get_ptr();
-   runtime_log_t *runtime_log         = NULL;
-   const struct playlist_entry *entry = NULL;
-   struct playlist_entry update_entry = {0};
+   runtime_log_t *runtime_log             = NULL;
+   const struct playlist_entry *entry     = NULL;
+   struct playlist_entry update_entry     = {0};
+#if defined(HAVE_MENU) && defined(HAVE_OZONE)
+   const char *menu_ident                 = menu_driver_ident();
+#endif
    
    /* Sanity check */
-   if (!playlist || !settings)
+   if (!playlist)
       return;
    
    if (idx >= playlist_get_size(playlist))
@@ -963,13 +1034,6 @@ void runtime_update_playlist(playlist_t *playlist, size_t idx)
     * (saves 'if' checks later...) */
    update_entry.runtime_status = PLAYLIST_RUNTIME_MISSING;
    
-   /* Get current last played formatting type
-    * > Have to include a 'HAVE_MENU' check here... */
-#ifdef HAVE_MENU
-   timedate_style               = (enum playlist_sublabel_last_played_style_type)
-      settings->uints.playlist_sublabel_last_played_style;
-#endif
-
    /* 'Attach' runtime/last played strings */
    runtime_str[0]               = '\0';
    last_played_str[0]           = '\0';
@@ -983,9 +1047,9 @@ void runtime_update_playlist(playlist_t *playlist, size_t idx)
    runtime_log = runtime_log_init(
          entry->path,
          entry->core_path,
-         settings->paths.directory_runtime_log,
-         settings->paths.directory_playlist,
-         (settings->uints.playlist_sublabel_runtime_type == PLAYLIST_RUNTIME_PER_CORE));
+         dir_runtime_log,
+         dir_playlist,
+         log_per_core);
    
    if (runtime_log)
    {
@@ -1013,10 +1077,10 @@ void runtime_update_playlist(playlist_t *playlist, size_t idx)
       free(runtime_log);
    }
    
-#ifdef HAVE_MENU
+#if defined(HAVE_MENU) && defined(HAVE_OZONE)
    /* Ozone requires runtime/last played strings to be
     * populated even when no runtime is recorded */
-   if (string_is_equal(settings->arrays.menu_driver, "ozone"))
+   if (string_is_equal(menu_ident, "ozone"))
    {
       if (update_entry.runtime_status != PLAYLIST_RUNTIME_VALID)
       {

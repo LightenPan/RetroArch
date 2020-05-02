@@ -637,7 +637,6 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
             snprintf(s, len,
                      "Overlay opacity.");
             break;
-#ifdef HAVE_VIDEO_LAYOUT
         case MENU_ENUM_LABEL_VIDEO_LAYOUT_ENABLE:
             snprintf(s, len,
                      "Enable or disable the current video layout.");
@@ -651,7 +650,6 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
                      "Layouts can contain multiple views. \n"
                      "Select a view.");
             break;
-#endif
         case MENU_ENUM_LABEL_INPUT_BIND_TIMEOUT:
             snprintf(s, len,
                      "Input bind timer timeout (in seconds). \n"
@@ -841,83 +839,87 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
             );
             break;
         case MENU_ENUM_LABEL_VIDEO_DRIVER:
-            snprintf(s, len,
+            {
+               const char *video_driver = settings->arrays.video_driver;
+
+               snprintf(s, len,
                      "Current Video driver.");
 
-            if (string_is_equal(settings->arrays.video_driver, "gl"))
-            {
-                snprintf(s, len,
-                         "OpenGL Video driver. \n"
-                                 " \n"
-                                 "This driver allows libretro GL cores to  \n"
-                                 "be used in addition to software-rendered \n"
-                                 "core implementations.\n"
-                                 " \n"
-                                 "Performance for software-rendered and \n"
-                                 "libretro GL core implementations is \n"
-                                 "dependent on your graphics card's \n"
-                                 "underlying GL driver).");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "sdl2"))
-            {
-                snprintf(s, len,
-                         "SDL 2 Video driver.\n"
-                                 " \n"
-                                 "This is an SDL 2 software-rendered video \n"
-                                 "driver.\n"
-                                 " \n"
-                                 "Performance for software-rendered libretro \n"
-                                 "core implementations is dependent \n"
-                                 "on your platform SDL implementation.");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "sdl1"))
-            {
-                snprintf(s, len,
-                         "SDL Video driver.\n"
-                                 " \n"
-                                 "This is an SDL 1.2 software-rendered video \n"
-                                 "driver.\n"
-                                 " \n"
-                                 "Performance is considered to be suboptimal. \n"
-                                 "Consider using it only as a last resort.");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "d3d"))
-            {
-                snprintf(s, len,
-                         "Direct3D Video driver. \n"
-                                 " \n"
-                                 "Performance for software-rendered cores \n"
-                                 "is dependent on your graphic card's \n"
-                                 "underlying D3D driver).");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "exynos"))
-            {
-                snprintf(s, len,
-                         "Exynos-G2D Video Driver. \n"
-                                 " \n"
-                                 "This is a low-level Exynos video driver. \n"
-                                 "Uses the G2D block in Samsung Exynos SoC \n"
-                                 "for blit operations. \n"
-                                 " \n"
-                                 "Performance for software rendered cores \n"
-                                 "should be optimal.");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "drm"))
-            {
-                snprintf(s, len,
-                         "Plain DRM Video Driver. \n"
-                                 " \n"
-                                 "This is a low-level video driver using. \n"
-                                 "libdrm for hardware scaling using \n"
-                                 "GPU overlays.");
-            }
-            else if (string_is_equal(settings->arrays.video_driver, "sunxi"))
-            {
-                snprintf(s, len,
-                         "Sunxi-G2D Video Driver. \n"
-                                 " \n"
-                                 "This is a low-level Sunxi video driver. \n"
-                                 "Uses the G2D block in Allwinner SoCs.");
+               if (string_is_equal(video_driver, "gl"))
+               {
+                  snprintf(s, len,
+                        "OpenGL Video driver. \n"
+                        " \n"
+                        "This driver allows libretro GL cores to  \n"
+                        "be used in addition to software-rendered \n"
+                        "core implementations.\n"
+                        " \n"
+                        "Performance for software-rendered and \n"
+                        "libretro GL core implementations is \n"
+                        "dependent on your graphics card's \n"
+                        "underlying GL driver).");
+               }
+               else if (string_is_equal(video_driver, "sdl2"))
+               {
+                  snprintf(s, len,
+                        "SDL 2 Video driver.\n"
+                        " \n"
+                        "This is an SDL 2 software-rendered video \n"
+                        "driver.\n"
+                        " \n"
+                        "Performance for software-rendered libretro \n"
+                        "core implementations is dependent \n"
+                        "on your platform SDL implementation.");
+               }
+               else if (string_is_equal(video_driver, "sdl1"))
+               {
+                  snprintf(s, len,
+                        "SDL Video driver.\n"
+                        " \n"
+                        "This is an SDL 1.2 software-rendered video \n"
+                        "driver.\n"
+                        " \n"
+                        "Performance is considered to be suboptimal. \n"
+                        "Consider using it only as a last resort.");
+               }
+               else if (string_is_equal(video_driver, "d3d"))
+               {
+                  snprintf(s, len,
+                        "Direct3D Video driver. \n"
+                        " \n"
+                        "Performance for software-rendered cores \n"
+                        "is dependent on your graphic card's \n"
+                        "underlying D3D driver).");
+               }
+               else if (string_is_equal(video_driver, "exynos"))
+               {
+                  snprintf(s, len,
+                        "Exynos-G2D Video Driver. \n"
+                        " \n"
+                        "This is a low-level Exynos video driver. \n"
+                        "Uses the G2D block in Samsung Exynos SoC \n"
+                        "for blit operations. \n"
+                        " \n"
+                        "Performance for software rendered cores \n"
+                        "should be optimal.");
+               }
+               else if (string_is_equal(video_driver, "drm"))
+               {
+                  snprintf(s, len,
+                        "Plain DRM Video Driver. \n"
+                        " \n"
+                        "This is a low-level video driver using. \n"
+                        "libdrm for hardware scaling using \n"
+                        "GPU overlays.");
+               }
+               else if (string_is_equal(video_driver, "sunxi"))
+               {
+                  snprintf(s, len,
+                        "Sunxi-G2D Video Driver. \n"
+                        " \n"
+                        "This is a low-level Sunxi video driver. \n"
+                        "Uses the G2D block in Allwinner SoCs.");
+               }
             }
             break;
         case MENU_ENUM_LABEL_AUDIO_DSP_PLUGIN:
@@ -1804,6 +1806,15 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
                      "Smoothens picture with bilinear filtering. \n"
                              "Should be disabled if using shaders.");
             break;
+      case MENU_ENUM_LABEL_VIDEO_CTX_SCALING:
+         snprintf(s, len,
+#ifdef HAVE_ODROIDGO2
+               "RGA scaling and bicubic filtering. May break widgets."
+#else
+               "Hardware context scaling (if available)."
+#endif
+         );
+         break;
         case MENU_ENUM_LABEL_TIMEDATE_ENABLE:
             snprintf(s, len,
                      "Shows current date and/or time inside menu.");
@@ -1873,7 +1884,6 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
                              "Defines a directory where overlays are \n"
                              "kept for easy access.");
             break;
-#ifdef HAVE_VIDEO_LAYOUT
         case MENU_ENUM_LABEL_VIDEO_LAYOUT_DIRECTORY:
             snprintf(s, len,
                      "Video Layout Directory. \n"
@@ -1881,7 +1891,6 @@ int menu_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
                              "Defines a directory where video layouts are \n"
                              "kept for easy access.");
             break;
-#endif
         case MENU_ENUM_LABEL_INPUT_MAX_USERS:
             snprintf(s, len,
                      "Maximum amount of users supported by \n"

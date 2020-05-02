@@ -35,7 +35,6 @@
 #include "playlist.h"
 #include "verbosity.h"
 #include "file_path_special.h"
-#include "configuration.h"
 
 #ifndef PLAYLIST_ENTRIES
 #define PLAYLIST_ENTRIES 6
@@ -43,25 +42,27 @@
 
 typedef struct
 {
+   bool in_items;
+   bool in_subsystem_roms;
+   bool capacity_exceeded;
+
+   unsigned array_depth;
+   unsigned object_depth;
+
    JSON_Parser parser;
    JSON_Writer writer;
    RFILE *file;
    playlist_t *playlist;
    struct playlist_entry *current_entry;
-   unsigned array_depth;
-   unsigned object_depth;
+   char *current_meta_string;
+   char *current_items_string;
    char **current_entry_val;
+   char **current_meta_val;
    int *current_entry_int_val;
    unsigned *current_entry_uint_val;
    struct string_list **current_entry_string_list_val;
-   char *current_meta_string;
-   char **current_meta_val;
    enum playlist_label_display_mode *current_meta_label_display_mode_val;
    enum playlist_thumbnail_mode *current_meta_thumbnail_mode_val;
-   char *current_items_string;
-   bool in_items;
-   bool in_subsystem_roms;
-   bool capacity_exceeded;
 } JSONContext;
 
 static playlist_t *playlist_cached = NULL;
@@ -321,6 +322,47 @@ void playlist_delete_index(playlist_t *playlist,
          (playlist->size - idx) * sizeof(struct playlist_entry));
 
    playlist->modified = true;
+}
+
+/**
+ * playlist_delete_by_path:
+ * @playlist            : Playlist handle.
+ * @search_path         : Content path.
+ *
+ * Deletes all entries with content path
+ * matching 'search_path'
+ **/
+void playlist_delete_by_path(playlist_t *playlist,
+      const char *search_path,
+      bool fuzzy_archive_match)
+{
+   size_t i = 0;
+   char real_search_path[PATH_MAX_LENGTH];
+
+   real_search_path[0] = '\0';
+
+   if (!playlist || string_is_empty(search_path))
+      return;
+
+   /* Get 'real' search path */
+   strlcpy(real_search_path, search_path, sizeof(real_search_path));
+   path_resolve_realpath(real_search_path, sizeof(real_search_path), true);
+
+   while (i < playlist->size)
+   {
+      if (!playlist_path_equal(real_search_path, playlist->entries[i].path,
+            fuzzy_archive_match))
+      {
+         i++;
+         continue;
+      }
+
+      /* Paths are equal - delete entry */
+      playlist_delete_index(playlist, i);
+
+      /* Entries are shifted up by the delete
+       * operation - *do not* increment i */
+   }
 }
 
 void playlist_get_index_by_path(playlist_t *playlist,
@@ -843,17 +885,17 @@ bool playlist_push(playlist_t *playlist,
        * or command line, certain entry values will be missing.
        * If we are now loading the same content from a playlist,
        * fill in any blanks */
-      if ((playlist->entries[i].label == NULL) && !string_is_empty(entry->label))
+      if (!playlist->entries[i].label && !string_is_empty(entry->label))
       {
          playlist->entries[i].label   = strdup(entry->label);
          entry_updated                = true;
       }
-      if ((playlist->entries[i].crc32 == NULL) && !string_is_empty(entry->crc32))
+      if (!playlist->entries[i].crc32 && !string_is_empty(entry->crc32))
       {
          playlist->entries[i].crc32   = strdup(entry->crc32);
          entry_updated                = true;
       }
-      if ((playlist->entries[i].db_name == NULL) && !string_is_empty(entry->db_name))
+      if (!playlist->entries[i].db_name && !string_is_empty(entry->db_name))
       {
          playlist->entries[i].db_name = strdup(entry->db_name);
          entry_updated                = true;
@@ -2199,7 +2241,7 @@ json_cleanup:
       /* > Exclude trailing newline */
       metadata_char = filestream_getc(file);
 
-      while((metadata_char == '\n') ||
+      while ((metadata_char == '\n') ||
             (metadata_char == '\r'))
       {
          filestream_seek(file, -2, SEEK_CUR);
@@ -2682,7 +2724,8 @@ void playlist_set_default_core_path(playlist_t *playlist, const char *core_path)
    /* Get 'real' core path */
    strlcpy(real_core_path, core_path, sizeof(real_core_path));
    if (!string_is_equal(real_core_path, "DETECT"))
-       playlist_resolve_path(PLAYLIST_SAVE, real_core_path, sizeof(real_core_path));
+       playlist_resolve_path(PLAYLIST_SAVE,
+             real_core_path, sizeof(real_core_path));
 
    if (string_is_empty(real_core_path))
       return;
@@ -2710,32 +2753,36 @@ void playlist_set_default_core_name(playlist_t *playlist, const char *core_name)
    }
 }
 
-void playlist_set_label_display_mode(playlist_t *playlist, enum playlist_label_display_mode label_display_mode)
+void playlist_set_label_display_mode(playlist_t *playlist,
+      enum playlist_label_display_mode label_display_mode)
 {
    if (!playlist)
       return;
 
-   if (playlist->label_display_mode != label_display_mode) {
+   if (playlist->label_display_mode != label_display_mode)
+   {
       playlist->label_display_mode = label_display_mode;
       playlist->modified = true;
    }
 }
 
 void playlist_set_thumbnail_mode(
-      playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id, enum playlist_thumbnail_mode thumbnail_mode)
+      playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id,
+      enum playlist_thumbnail_mode thumbnail_mode)
 {
    if (!playlist)
       return;
 
-   if (thumbnail_id == PLAYLIST_THUMBNAIL_RIGHT)
+   switch (thumbnail_id)
    {
-      playlist->right_thumbnail_mode = thumbnail_mode;
-      playlist->modified = true;
-   }
-   else if (thumbnail_id == PLAYLIST_THUMBNAIL_LEFT)
-   {
-      playlist->left_thumbnail_mode = thumbnail_mode;
-      playlist->modified = true;
+      case PLAYLIST_THUMBNAIL_RIGHT:
+         playlist->right_thumbnail_mode = thumbnail_mode;
+         playlist->modified             = true;
+         break;
+      case PLAYLIST_THUMBNAIL_LEFT:
+         playlist->left_thumbnail_mode = thumbnail_mode;
+         playlist->modified            = true;
+         break;
    }
 }
 

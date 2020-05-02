@@ -23,7 +23,7 @@
 #endif
 
 #include "../menu_driver.h"
-#include "../menu_animation.h"
+#include "../../gfx/gfx_animation.h"
 #include "../menu_cbs.h"
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
 #include "../menu_shader.h"
@@ -39,7 +39,6 @@
 #include "../../managers/cheat_manager.h"
 #include "../../performance_counters.h"
 #include "../../paths.h"
-#include "../../retroarch.h"
 #include "../../verbosity.h"
 #include "../../wifi/wifi_driver.h"
 #include "../../playlist.h"
@@ -49,10 +48,12 @@
 #include "../../network/netplay/netplay.h"
 #endif
 
+#ifdef HAVE_CHEEVOS
+#include "../../cheevos-new/cheevos.h"
+#endif
+
 #ifndef BIND_ACTION_GET_VALUE
-#define BIND_ACTION_GET_VALUE(cbs, name) \
-   cbs->action_get_value = name; \
-   cbs->action_get_value_ident = #name;
+#define BIND_ACTION_GET_VALUE(cbs, name) (cbs)->action_get_value = (name)
 #endif
 
 extern struct key_desc key_descriptors[RARCH_MAX_KEYS];
@@ -110,7 +111,8 @@ static void menu_action_setting_disp_set_label_cheat_num_passes(
    snprintf(s, len, "%u", cheat_manager_get_buf_size());
 }
 
-static void menu_action_setting_disp_set_label_cheevos_unsupported_entry(
+#ifdef HAVE_CHEEVOS
+static void menu_action_setting_disp_set_label_cheevos_entry(
    file_list_t* list,
    unsigned *w, unsigned type, unsigned i,
    const char *label,
@@ -120,65 +122,10 @@ static void menu_action_setting_disp_set_label_cheevos_unsupported_entry(
 {
    *w = 19;
    strlcpy(s2, path, len2);
-   strlcpy(s,
-      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNSUPPORTED_ENTRY), len);
-}
 
-static void menu_action_setting_disp_set_label_cheevos_unofficial_entry(
-   file_list_t* list,
-   unsigned *w, unsigned type, unsigned i,
-   const char *label,
-   char *s, size_t len,
-   const char *path,
-   char *s2, size_t len2)
-{
-   *w = 19;
-   strlcpy(s2, path, len2);
-   strlcpy(s,
-      msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNOFFICIAL_ENTRY), len);
+   rcheevos_get_achievement_state(type - MENU_SETTINGS_CHEEVOS_START, s, len);
 }
-
-static void menu_action_setting_disp_set_label_cheevos_locked_entry(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *path,
-      char *s2, size_t len2)
-{
-   *w = 19;
-   strlcpy(s2, path, len2);
-   strlcpy(s,
-         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_LOCKED_ENTRY), len);
-}
-
-static void menu_action_setting_disp_set_label_cheevos_unlocked_entry(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *path,
-      char *s2, size_t len2)
-{
-   *w = 19;
-   strlcpy(s2, path, len2);
-   strlcpy(s,
-         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ENTRY), len);
-}
-
-static void menu_action_setting_disp_set_label_cheevos_unlocked_entry_hardcore(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *path,
-      char *s2, size_t len2)
-{
-   *w = 19;
-   strlcpy(s2, path, len2);
-   strlcpy(s,
-         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ENTRY_HARDCORE), len);
-}
+#endif
 
 static void menu_action_setting_disp_set_label_remap_file_load(
       file_list_t* list,
@@ -262,6 +209,7 @@ static void menu_action_setting_disp_set_label_netplay_mitm_server(
       char *s2, size_t len2)
 {
    unsigned j;
+   const char *netplay_mitm_server;
    settings_t *settings = config_get_ptr();
 
    *s = '\0';
@@ -271,12 +219,14 @@ static void menu_action_setting_disp_set_label_netplay_mitm_server(
    if (!settings)
       return;
 
-   if (string_is_empty(settings->arrays.netplay_mitm_server))
+   netplay_mitm_server = settings->arrays.netplay_mitm_server;
+
+   if (string_is_empty(netplay_mitm_server))
       return;
 
    for (j = 0; j < ARRAY_SIZE(netplay_mitm_server_list); j++)
    {
-      if (string_is_equal(settings->arrays.netplay_mitm_server,
+      if (string_is_equal(netplay_mitm_server,
                netplay_mitm_server_list[j].name))
          strlcpy(s, netplay_mitm_server_list[j].description, len);
    }
@@ -292,19 +242,17 @@ static void menu_action_setting_disp_set_label_shader_watch_for_changes(
       const char *path,
       char *s2, size_t len2)
 {
-   settings_t *settings = config_get_ptr();
+   settings_t *settings    = config_get_ptr();
+   bool shader_watch_files = settings->bools.video_shader_watch_files;
 
    *s = '\0';
    *w = 19;
    strlcpy(s2, path, len2);
 
-   if (settings)
-   {
-      if (settings->bools.video_shader_watch_files)
-         strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_TRUE), len);
-      else
-         strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_FALSE), len);
-   }
+   if (shader_watch_files)
+      strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_TRUE), len);
+   else
+      strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_FALSE), len);
 }
 
 static void menu_action_setting_disp_set_label_shader_num_passes(
@@ -357,6 +305,7 @@ static void menu_action_setting_disp_set_label_shader_default_filter(
       char *s2, size_t len2)
 {
    settings_t *settings = config_get_ptr();
+   bool video_smooth    = false;
 
    *s = '\0';
    *w = 19;
@@ -364,7 +313,9 @@ static void menu_action_setting_disp_set_label_shader_default_filter(
    if (!settings)
       return;
 
-   if (settings->bools.video_smooth)
+   video_smooth         = settings->bools.video_smooth;
+
+   if (video_smooth)
       strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_LINEAR), len);
    else
       strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NEAREST), len);
@@ -647,7 +598,7 @@ static void general_disp_set_label_perf_counters(
 
    menu_action_setting_disp_set_label_perf_counters_common(
          counters, offset, s, len);
-   menu_animation_ctl(MENU_ANIMATION_CTL_SET_ACTIVE, NULL);
+   gfx_animation_ctl(MENU_ANIMATION_CTL_SET_ACTIVE, NULL);
 }
 
 static void menu_action_setting_disp_set_label_perf_counters(
@@ -762,29 +713,22 @@ static void menu_action_setting_disp_set_label_menu_disk_index(
       const char *path,
       char *s2, size_t len2)
 {
-   unsigned images = 0, current                = 0;
-   struct retro_disk_control_callback *control = NULL;
-   rarch_system_info_t *system                 = runloop_get_system_info();
+   unsigned images             = 0;
+   unsigned current            = 0;
+   rarch_system_info_t *system = runloop_get_system_info();
 
    if (!system)
       return;
 
-   control = &system->disk_control_cb;
-
-   if (!control)
+   if (!disk_control_enabled(&system->disk_control))
       return;
 
    *w = 19;
    *s = '\0';
    strlcpy(s2, path, len2);
 
-   if (!control->get_num_images)
-      return;
-   if (!control->get_image_index)
-      return;
-
-   images  = control->get_num_images();
-   current = control->get_image_index();
+   images  = disk_control_get_num_images(&system->disk_control);
+   current = disk_control_get_image_index(&system->disk_control);
 
    if (current >= images)
       strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_DISK), len);
@@ -1758,7 +1702,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
       case MENU_SETTINGS_CUSTOM_BIND_DEFAULT_ALL:
       case MENU_SETTING_ACTION:
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE: // �ƴ浵
       case 7:   /* Run */
       case MENU_SETTING_ACTION_DELETE_ENTRY:
       case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
@@ -1819,17 +1762,11 @@ int menu_cbs_init_bind_get_string_representation(menu_file_list_cbs_t *cbs,
    {
       switch (cbs->enum_idx)
       {
-         case MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ENTRY:
-            BIND_ACTION_GET_VALUE(cbs,
-                  menu_action_setting_disp_set_label_cheevos_unlocked_entry);
-            return 0;
-         case MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ENTRY_HARDCORE:
-            BIND_ACTION_GET_VALUE(cbs,
-                  menu_action_setting_disp_set_label_cheevos_unlocked_entry_hardcore);
-            return 0;
          case MENU_ENUM_LABEL_CHEEVOS_LOCKED_ENTRY:
+#ifdef HAVE_CHEEVOS
             BIND_ACTION_GET_VALUE(cbs,
-                  menu_action_setting_disp_set_label_cheevos_locked_entry);
+                  menu_action_setting_disp_set_label_cheevos_entry);
+#endif
             return 0;
          case MENU_ENUM_LABEL_CHEEVOS_UNSUPPORTED_ENTRY:
             BIND_ACTION_GET_VALUE(cbs,
@@ -1845,9 +1782,6 @@ int menu_cbs_init_bind_get_string_representation(menu_file_list_cbs_t *cbs,
                   menu_action_setting_disp_set_label_menu_more);
             return 0;
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST:
-            BIND_ACTION_GET_VALUE(cbs,
-                  menu_action_setting_disp_set_label_achievement_information);
-            return 0;
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST_HARDCORE:
             BIND_ACTION_GET_VALUE(cbs,
                   menu_action_setting_disp_set_label_achievement_information);
@@ -1863,7 +1797,7 @@ int menu_cbs_init_bind_get_string_representation(menu_file_list_cbs_t *cbs,
       }
    }
 
-   if (cbs->setting)
+   if (cbs->setting && !cbs->setting->get_string_representation)
    {
       switch (setting_get_type(cbs->setting))
       {

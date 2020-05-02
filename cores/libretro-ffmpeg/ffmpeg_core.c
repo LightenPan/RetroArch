@@ -497,9 +497,6 @@ static void seek_frame(int seek_frames)
    }
    audio_frames = frame_cnt * media.sample_rate / media.interpolate_fps;
 
-   tpool_wait(tpool);
-   video_buffer_clear(video_buffer);
-
    if (audio_decode_fifo)
       fifo_clear(audio_decode_fifo);
    scond_signal(fifo_decode_cond);
@@ -1363,7 +1360,8 @@ static void decode_video(AVCodecContext *ctx, AVPacket *pkt, size_t frame_size)
    {
       if (main_sleeping)
       {
-         log_cb(RETRO_LOG_ERROR, "[FFMPEG] Thread: Video deadlock detected.\n");
+         if (!do_seek)
+            log_cb(RETRO_LOG_ERROR, "[FFMPEG] Thread: Video deadlock detected.\n");
          tpool_wait(tpool);
          video_buffer_clear(video_buffer);
          return;
@@ -1449,7 +1447,7 @@ static int16_t *decode_audio(AVCodecContext *ctx, AVPacket *pkt,
       return buffer;
    }
 
-   while(true)
+   for (;;)
    {
       ret = avcodec_receive_frame(ctx, frame);
       if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)

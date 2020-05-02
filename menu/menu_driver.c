@@ -15,9 +15,9 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <time.h>
 #include <locale.h>
+#include <time.h>
+#include <string.h>
 
 #include <compat/strl.h>
 #include <retro_inline.h>
@@ -28,26 +28,18 @@
 #include <streams/file_stream.h>
 #include <string/stdstring.h>
 #include <encodings/utf.h>
-#include <features/features_cpu.h>
-
-#ifdef HAVE_DISCORD
-#include "discord/discord.h"
-#endif
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
 
-#ifdef HAVE_THREADS
-#include "../gfx/video_thread_wrapper.h"
-#endif
-
-#include "menu_animation.h"
 #include "menu_driver.h"
 #include "menu_cbs.h"
 #include "menu_input.h"
 #include "menu_entries.h"
 #include "widgets/menu_dialog.h"
+#include "widgets/menu_input_bind_dialog.h"
+
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
 #include "menu_shader.h"
 #endif
@@ -60,20 +52,19 @@
 #include "../driver.h"
 #include "../retroarch.h"
 #include "../version.h"
-#include "../defaults.h"
-#include "../frontend/frontend.h"
 #include "../list_special.h"
 #include "../tasks/tasks_internal.h"
-#include "../ui/ui_companion_driver.h"
 #include "../verbosity.h"
 #include "../tasks/task_powerstate.h"
 #ifdef HAVE_NETWORKING
 #include "../core_updater_list.h"
 #endif
 
-#define SCROLL_INDEX_SIZE          (2 * (26 + 2) + 1)
+#ifdef HAVE_ACCESSIBILITY
+#include "./accessibility.h"
+#endif
 
-#define PARTICLES_COUNT            100
+#define SCROLL_INDEX_SIZE          (2 * (26 + 2) + 1)
 
 #define POWERSTATE_CHECK_INTERVAL  (30 * 1000000)
 #define DATETIME_CHECK_INTERVAL    1000000
@@ -94,19 +85,491 @@ typedef struct menu_ctx_load_image
    enum menu_image_type type;
 } menu_ctx_load_image_t;
 
-// float osk_dark[16] =  {
-//    0.00, 0.00, 0.00, 0.85,
-//    0.00, 0.00, 0.00, 0.85,
-//    0.00, 0.00, 0.00, 0.85,
-//    0.00, 0.00, 0.00, 0.85,
-// };
+static enum action_iterate_type action_iterate_type(const char *label)
+{
+   if (string_is_equal(label, "info_screen"))
+      return ITERATE_TYPE_INFO;
+   if (
+         string_is_equal(label, "help") ||
+         string_is_equal(label, "help_controls") ||
+         string_is_equal(label, "help_what_is_a_core") ||
+         string_is_equal(label, "help_loading_content") ||
+         string_is_equal(label, "help_scanning_content") ||
+         string_is_equal(label, "help_change_virtual_gamepad") ||
+         string_is_equal(label, "help_audio_video_troubleshooting") ||
+         string_is_equal(label, "help_send_debug_info") ||
+         string_is_equal(label, "cheevos_description")
+         )
+      return ITERATE_TYPE_HELP;
+   if (
+         string_is_equal(label, "custom_bind") ||
+         string_is_equal(label, "custom_bind_all") ||
+         string_is_equal(label, "custom_bind_defaults")
+      )
+         return ITERATE_TYPE_BIND;
 
-// ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½
-float osk_dark[16] =  {
-	0.00, 0.00, 0.00, 1,
-	0.00, 0.00, 0.00, 1,
-	0.00, 0.00, 0.00, 1,
-	0.00, 0.00, 0.00, 1,
+   return ITERATE_TYPE_DEFAULT;
+}
+
+
+/**
+ * menu_iterate:
+ * @input                    : input sample for this frame
+ * @old_input                : input sample of the previous frame
+ * @trigger_input            : difference' input sample - difference
+ *                             between 'input' and 'old_input'
+ *
+ * Runs RetroArch menu for one frame.
+ *
+ * Returns: 0 on success, -1 if we need to quit out of the loop.
+ **/
+static int generic_menu_iterate(void *data,
+      void *userdata, enum menu_action action,
+      retro_time_t current_time)
+{
+#ifdef HAVE_ACCESSIBILITY
+   static enum action_iterate_type 
+      last_iterate_type           = ITERATE_TYPE_DEFAULT;
+#endif
+   enum action_iterate_type iterate_type;
+   unsigned file_type             = 0;
+   int ret                        = 0;
+   const char *label              = NULL;
+   menu_handle_t *menu            = (menu_handle_t*)data;
+
+   if (!menu)
+      return 0;
+
+   menu_entries_get_last_stack(NULL, &label, &file_type, NULL, NULL);
+
+   menu->menu_state_msg[0]   = '\0';
+
+   iterate_type              = action_iterate_type(label);
+
+   menu_driver_set_binding_state(iterate_type == ITERATE_TYPE_BIND);
+
+   if (     action != MENU_ACTION_NOOP
+         || menu_entries_ctl(MENU_ENTRIES_CTL_NEEDS_REFRESH, NULL)
+         || gfx_display_get_update_pending())
+   {
+      BIT64_SET(menu->state, MENU_STATE_RENDER_FRAMEBUFFER);
+   }
+   switch (iterate_type)
+   {
+      case ITERATE_TYPE_HELP:
+         ret = menu_dialog_iterate(
+               menu->menu_state_msg, sizeof(menu->menu_state_msg),
+               current_time);
+
+#ifdef HAVE_ACCESSIBILITY
+         if (iterate_type != last_iterate_type && is_accessibility_enabled())
+            accessibility_speak_priority(menu->menu_state_msg, 10);
+#endif
+
+         BIT64_SET(menu->state, MENU_STATE_RENDER_MESSAGEBOX);
+         BIT64_SET(menu->state, MENU_STATE_POST_ITERATE);
+
+         {
+            bool pop_stack = false;
+            if (  ret == 1 || 
+                  action == MENU_ACTION_OK ||
+                  action == MENU_ACTION_CANCEL
+               )
+               pop_stack   = true;
+
+            if (pop_stack)
+               BIT64_SET(menu->state, MENU_STATE_POP_STACK);
+         }
+         break;
+      case ITERATE_TYPE_BIND:
+         {
+            menu_input_ctx_bind_t bind;
+
+            bind.s   = menu->menu_state_msg;
+            bind.len = sizeof(menu->menu_state_msg);
+
+            if (menu_input_key_bind_iterate(&bind, current_time))
+            {
+               size_t selection = menu_navigation_get_selection();
+               menu_entries_pop_stack(&selection, 0, 0);
+               menu_navigation_set_selection(selection);
+            }
+            else
+               BIT64_SET(menu->state, MENU_STATE_RENDER_MESSAGEBOX);
+         }
+         break;
+      case ITERATE_TYPE_INFO:
+         {
+            file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
+            size_t selection           = menu_navigation_get_selection();
+            menu_file_list_cbs_t *cbs  = selection_buf ?
+               (menu_file_list_cbs_t*)
+			   file_list_get_actiondata_at_offset(selection_buf, selection)
+               : NULL;
+
+            if (cbs && cbs->enum_idx != MSG_UNKNOWN)
+            {
+               ret = menu_hash_get_help_enum(cbs->enum_idx,
+                     menu->menu_state_msg, sizeof(menu->menu_state_msg));
+
+#ifdef HAVE_ACCESSIBILITY
+               if (iterate_type != last_iterate_type && is_accessibility_enabled())
+               {
+                  if (string_is_equal(menu->menu_state_msg, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_INFORMATION_AVAILABLE)))
+                  {
+                     char current_sublabel[255];
+                     get_current_menu_sublabel(current_sublabel, sizeof(current_sublabel));
+                     if (string_is_equal(current_sublabel, ""))
+                        accessibility_speak_priority(menu->menu_state_msg, 10);
+                     else
+                        accessibility_speak_priority(current_sublabel, 10);
+                  }
+                  else
+                     accessibility_speak_priority(menu->menu_state_msg, 10);
+               }
+#endif
+            }
+            else
+            {
+               unsigned type = 0;
+               enum msg_hash_enums enum_idx = MSG_UNKNOWN;
+               size_t selection             = menu_navigation_get_selection();
+               menu_entries_get_at_offset(selection_buf, selection,
+                     NULL, NULL, &type, NULL, NULL);
+
+               switch (type)
+               {
+                  case FILE_TYPE_FONT:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_FONT;
+                     break;
+                  case FILE_TYPE_RDB:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_RDB;
+                     break;
+                  case FILE_TYPE_OVERLAY:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_OVERLAY;
+                     break;
+#ifdef HAVE_VIDEO_LAYOUT
+                  case FILE_TYPE_VIDEO_LAYOUT:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_VIDEO_LAYOUT;
+                     break;
+#endif
+                  case FILE_TYPE_CHEAT:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_CHEAT;
+                     break;
+                  case FILE_TYPE_SHADER_PRESET:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_SHADER_PRESET;
+                     break;
+                  case FILE_TYPE_SHADER:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_SHADER;
+                     break;
+                  case FILE_TYPE_REMAP:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_REMAP;
+                     break;
+                  case FILE_TYPE_RECORD_CONFIG:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_RECORD_CONFIG;
+                     break;
+                  case FILE_TYPE_CURSOR:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_CURSOR;
+                     break;
+                  case FILE_TYPE_CONFIG:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_CONFIG;
+                     break;
+                  case FILE_TYPE_CARCHIVE:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_COMPRESSED_ARCHIVE;
+                     break;
+                  case FILE_TYPE_DIRECTORY:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_DIRECTORY;
+                     break;
+                  case FILE_TYPE_VIDEOFILTER:            /* TODO/FIXME */
+                  case FILE_TYPE_AUDIOFILTER:            /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_SLANG:           /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_GLSL:            /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_HLSL:            /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_CG:              /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_PRESET_GLSLP:    /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_PRESET_HLSLP:    /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_PRESET_CGP:      /* TODO/FIXME */
+                  case FILE_TYPE_SHADER_PRESET_SLANGP:   /* TODO/FIXME */
+                  case FILE_TYPE_PLAIN:
+                     enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_PLAIN_FILE;
+                     break;
+                  default:
+                     break;
+               }
+
+               if (enum_idx != MSG_UNKNOWN)
+                  ret = menu_hash_get_help_enum(enum_idx,
+                        menu->menu_state_msg, sizeof(menu->menu_state_msg));
+
+            }
+         }
+         BIT64_SET(menu->state, MENU_STATE_RENDER_MESSAGEBOX);
+         BIT64_SET(menu->state, MENU_STATE_POST_ITERATE);
+         if (action == MENU_ACTION_OK || action == MENU_ACTION_CANCEL)
+         {
+            BIT64_SET(menu->state, MENU_STATE_POP_STACK);
+         }
+         break;
+      case ITERATE_TYPE_DEFAULT:
+         {
+            menu_entry_t entry;
+            size_t selection = menu_navigation_get_selection();
+            /* FIXME: Crappy hack, needed for mouse controls
+             * to not be completely broken in case we press back.
+             *
+             * We need to fix this entire mess, mouse controls
+             * should not rely on a hack like this in order to work. */
+            selection = MAX(MIN(selection, (menu_entries_get_size() - 1)), 0);
+
+            menu_entry_init(&entry);
+            /* Note: If menu_entry_action() is modified,
+             * will have to verify that these parameters
+             * remain unused... */
+            entry.rich_label_enabled = false;
+            entry.value_enabled      = false;
+            entry.sublabel_enabled   = false;
+            menu_entry_get(&entry, 0, selection, NULL, false);
+            ret = menu_entry_action(&entry,
+                  selection, (enum menu_action)action);
+            if (ret)
+               goto end;
+
+            BIT64_SET(menu->state, MENU_STATE_POST_ITERATE);
+
+            /* Have to defer it so we let settings refresh. */
+            menu_dialog_push();
+         }
+         break;
+   }
+
+#ifdef HAVE_ACCESSIBILITY
+   if ((last_iterate_type == ITERATE_TYPE_HELP || last_iterate_type == ITERATE_TYPE_INFO) && last_iterate_type != iterate_type && is_accessibility_enabled())
+      accessibility_speak_priority("Closed dialog.", 10);
+
+   last_iterate_type = iterate_type;
+#endif
+
+   BIT64_SET(menu->state, MENU_STATE_BLIT);
+
+   if (BIT64_GET(menu->state, MENU_STATE_POP_STACK))
+   {
+      size_t selection         = menu_navigation_get_selection();
+      size_t new_selection_ptr = selection;
+      menu_entries_pop_stack(&new_selection_ptr, 0, 0);
+      menu_navigation_set_selection(selection);
+   }
+
+   if (BIT64_GET(menu->state, MENU_STATE_POST_ITERATE))
+      menu_input_post_iterate(&ret, action);
+
+end:
+   if (ret)
+      return -1;
+   return 0;
+}
+
+int generic_menu_entry_action(
+      void *userdata, menu_entry_t *entry, size_t i, enum menu_action action)
+{
+   int ret                    = 0;
+   file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
+   menu_file_list_cbs_t *cbs  = selection_buf ?
+      (menu_file_list_cbs_t*)selection_buf->list[i].actiondata : NULL;
+
+   switch (action)
+   {
+      case MENU_ACTION_UP:
+         if (cbs && cbs->action_up)
+            ret = cbs->action_up(entry->type, entry->label);
+         break;
+      case MENU_ACTION_DOWN:
+         if (cbs && cbs->action_down)
+            ret = cbs->action_down(entry->type, entry->label);
+         break;
+      case MENU_ACTION_SCROLL_UP:
+         menu_driver_ctl(MENU_NAVIGATION_CTL_DESCEND_ALPHABET, NULL);
+         break;
+      case MENU_ACTION_SCROLL_DOWN:
+         menu_driver_ctl(MENU_NAVIGATION_CTL_ASCEND_ALPHABET, NULL);
+         break;
+      case MENU_ACTION_CANCEL:
+         if (cbs && cbs->action_cancel)
+            ret = cbs->action_cancel(entry->path,
+                  entry->label, entry->type, i);
+         break;
+      case MENU_ACTION_OK:
+         if (cbs && cbs->action_ok)
+            ret = cbs->action_ok(entry->path,
+                  entry->label, entry->type, i, entry->entry_idx);
+         break;
+      case MENU_ACTION_START:
+         if (cbs && cbs->action_start)
+            ret = cbs->action_start(entry->path,
+                  entry->label, entry->type, i, entry->entry_idx);
+         break;
+      case MENU_ACTION_LEFT:
+         if (cbs && cbs->action_left)
+            ret = cbs->action_left(entry->type, entry->label, false);
+         break;
+      case MENU_ACTION_RIGHT:
+         if (cbs && cbs->action_right)
+            ret = cbs->action_right(entry->type, entry->label, false);
+         break;
+      case MENU_ACTION_INFO:
+         if (cbs && cbs->action_info)
+            ret = cbs->action_info(entry->type, entry->label);
+         break;
+      case MENU_ACTION_SELECT:
+         if (cbs && cbs->action_select)
+            ret = cbs->action_select(entry->path,
+                  entry->label, entry->type, i, entry->entry_idx);
+         break;
+      case MENU_ACTION_SEARCH:
+         menu_input_dialog_start_search();
+         break;
+      case MENU_ACTION_SCAN:
+         if (cbs && cbs->action_scan)
+            ret = cbs->action_scan(entry->path,
+                  entry->label, entry->type, i);
+         break;
+      default:
+         break;
+   }
+
+   cbs = selection_buf ? (menu_file_list_cbs_t*)
+      selection_buf->list[i].actiondata : NULL;
+
+   if (cbs && cbs->action_refresh)
+   {
+      if (menu_entries_ctl(MENU_ENTRIES_CTL_NEEDS_REFRESH, NULL))
+      {
+         bool refresh            = false;
+         file_list_t *menu_stack = menu_entries_get_menu_stack_ptr(0);
+
+         cbs->action_refresh(selection_buf, menu_stack);
+         menu_entries_ctl(MENU_ENTRIES_CTL_UNSET_REFRESH, &refresh);
+      }
+   }
+
+#ifdef HAVE_ACCESSIBILITY
+   if (     action != 0 
+         && is_accessibility_enabled() 
+         && !is_input_keyboard_display_on())
+   {
+      char current_label[255];
+      char current_value[255];
+      char title_name[255];
+      char speak_string[512];
+
+      strlcpy(title_name, "", sizeof(title_name));
+      strlcpy(current_label, "", sizeof(current_label));
+      get_current_menu_value(current_value, sizeof(current_value));
+
+      switch (action)
+      {
+         case MENU_ACTION_INFO:
+            break;
+         case MENU_ACTION_OK:
+         case MENU_ACTION_LEFT:
+         case MENU_ACTION_RIGHT:
+         case MENU_ACTION_CANCEL:
+            menu_entries_get_title(title_name, sizeof(title_name));
+         case MENU_ACTION_UP:
+         case MENU_ACTION_DOWN:
+         case MENU_ACTION_SCROLL_UP:
+         case MENU_ACTION_SCROLL_DOWN:
+            get_current_menu_label(current_label, sizeof(current_label));
+            break;
+         case MENU_ACTION_START:
+         case MENU_ACTION_SELECT:
+         case MENU_ACTION_SEARCH:
+            get_current_menu_label(current_label, sizeof(current_label));
+         case MENU_ACTION_SCAN:
+         default:
+            break;
+      }
+
+      strlcpy(speak_string, "", sizeof(speak_string));
+      if (!string_is_equal(title_name, ""))
+      {
+         strlcpy(speak_string, title_name, sizeof(speak_string));
+         strlcat(speak_string, " ", sizeof(speak_string));
+      }
+      strlcat(speak_string, current_label, sizeof(speak_string));
+      if (!string_is_equal(current_value, "..."))
+      {
+         strlcat(speak_string, " ", sizeof(speak_string));
+         strlcat(speak_string, current_value, sizeof(speak_string));
+      }
+
+      if (!string_is_equal(speak_string, ""))
+         accessibility_speak_priority(speak_string, 10);
+   }
+#endif
+
+   return ret;
+}
+
+static void *null_menu_init(void **userdata, bool video_is_threaded)
+{
+   menu_handle_t *menu = (menu_handle_t*)calloc(1, sizeof(*menu));
+
+   if (!menu)
+      return NULL;
+
+   return menu;
+}
+
+static int null_menu_iterate(void *data, void *userdata,
+      enum menu_action action) { return 1; }
+
+static menu_ctx_driver_t menu_ctx_null = {
+  NULL,  /* set_texture */
+  NULL,  /* render_messagebox */
+  null_menu_iterate,
+  NULL,  /* render */
+  NULL,  /* frame */
+  null_menu_init,
+  NULL,  /* free */
+  NULL,  /* context_reset */
+  NULL,  /* context_destroy */
+  NULL,  /* populate_entries */
+  NULL,  /* toggle */
+  NULL,  /* navigation_clear */
+  NULL,  /* navigation_decrement */
+  NULL,  /* navigation_increment */
+  NULL,  /* navigation_set */
+  NULL,  /* navigation_set_last */
+  NULL,  /* navigation_descend_alphabet */
+  NULL,  /* navigation_ascend_alphabet */
+  NULL,  /* lists_init */
+  NULL,  /* list_insert */
+  NULL,  /* list_prepend */
+  NULL,  /* list_delete */
+  NULL,  /* list_clear */
+  NULL,  /* list_cache */
+  NULL,  /* list_push */
+  NULL,  /* list_get_selection */
+  NULL,  /* list_get_size */
+  NULL,  /* list_get_entry */
+  NULL,  /* list_set_selection */
+  NULL,  /* bind_init */
+  NULL,  /* load_image */
+  "null",
+  NULL,  /* environ */
+  NULL,  /* update_thumbnail_path */
+  NULL,  /* update_thumbnail_image */
+  NULL,  /* refresh_thumbnail_image */
+  NULL,  /* set_thumbnail_system */
+  NULL,  /* get_thumbnail_system */
+  NULL,  /* set_thumbnail_content */
+  NULL,  /* osk_ptr_at_pos */
+  NULL,  /* update_savestate_thumbnail_path */
+  NULL,  /* update_savestate_thumbnail_image */
+  NULL,  /* pointer_down */
+  NULL,  /* pointer_up   */
+  NULL,  /* get_load_content_animation_data */
+  NULL   /* entry_action */
 };
 
 static void *null_menu_init(void **userdata, bool video_is_threaded)
@@ -188,110 +651,13 @@ static const menu_ctx_driver_t *menu_ctx_drivers[] = {
 #if defined(HAVE_XMB)
    &menu_ctx_xmb,
 #endif
-#if defined(HAVE_XUI)
-   &menu_ctx_xui,
-#endif
    &menu_ctx_null,
    NULL
 };
 
-static menu_display_ctx_driver_t menu_display_ctx_null = {
-   NULL, /* draw */
-   NULL, /* draw_pipeline */
-   NULL, /* viewport */
-   NULL, /* blend_begin */
-   NULL, /* blend_end   */
-   NULL, /* restore_clear_color   */
-   NULL, /* clear_color   */
-   NULL, /* get_default_mvp   */
-   NULL, /* get_default_vertices */
-   NULL, /* get_default_tex_coords */
-   NULL, /* font_init_first */
-   MENU_VIDEO_DRIVER_GENERIC,
-   "null",
-   false,
-   NULL,
-   NULL
-};
-
-/* Menu display drivers */
-static menu_display_ctx_driver_t *menu_display_ctx_drivers[] = {
-#ifdef HAVE_D3D8
-   &menu_display_ctx_d3d8,
-#endif
-#ifdef HAVE_D3D9
-   &menu_display_ctx_d3d9,
-#endif
-#ifdef HAVE_D3D10
-   &menu_display_ctx_d3d10,
-#endif
-#ifdef HAVE_D3D11
-   &menu_display_ctx_d3d11,
-#endif
-#ifdef HAVE_D3D12
-   &menu_display_ctx_d3d12,
-#endif
-#ifdef HAVE_OPENGL
-   &menu_display_ctx_gl,
-#endif
-#ifdef HAVE_OPENGL1
-   &menu_display_ctx_gl1,
-#endif
-#ifdef HAVE_OPENGL_CORE
-   &menu_display_ctx_gl_core,
-#endif
-#ifdef HAVE_VULKAN
-   &menu_display_ctx_vulkan,
-#endif
-#ifdef HAVE_METAL
-   &menu_display_ctx_metal,
-#endif
-#ifdef HAVE_VITA2D
-   &menu_display_ctx_vita2d,
-#endif
-#ifdef _3DS
-   &menu_display_ctx_ctr,
-#endif
-#ifdef WIIU
-   &menu_display_ctx_wiiu,
-#endif
-#if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
-#ifdef HAVE_GDI
-   &menu_display_ctx_gdi,
-#endif
-#endif
-#ifdef DJGPP
-   &menu_display_ctx_vga,
-#endif
-#ifdef HAVE_SIXEL
-   &menu_display_ctx_sixel,
-#endif
-#ifdef HAVE_CACA
-   &menu_display_ctx_caca,
-#endif
-#ifdef HAVE_FPGA
-   &menu_display_ctx_fpga,
-#endif
-   &menu_display_ctx_null,
-   NULL,
-};
-
-uintptr_t menu_display_white_texture;
-
-static video_coord_array_t menu_disp_ca;
-
-/* Width, height and pitch of the menu framebuffer */
-static unsigned menu_display_framebuf_width      = 0;
-static unsigned menu_display_framebuf_height     = 0;
-static size_t menu_display_framebuf_pitch        = 0;
-
-/* Height of the menu display header */
-static unsigned menu_display_header_height       = 0;
-
-static bool menu_display_has_windowed            = false;
-static bool menu_display_msg_force               = false;
-static bool menu_display_framebuf_dirty          = false;
-static menu_display_ctx_driver_t *menu_disp      = NULL;
+/* Storage container for current menu datetime
+ * representation string */
+static char menu_datetime_cache[255]             = {0};
 
 /* when enabled, on next iteration the 'Quick Menu' list will
  * be pushed onto the stack */
@@ -317,10 +683,6 @@ static size_t menu_driver_selection_ptr         = 0;
 static retro_time_t menu_driver_current_time_us         = 0;
 static retro_time_t menu_driver_powerstate_last_time_us = 0;
 static retro_time_t menu_driver_datetime_last_time_us   = 0;
-
-/* Storage container for current menu datetime
- * representation string */
-static char menu_datetime_cache[255]                    = {0};
 
 /* Flagged when menu entries need to be refreshed */
 static bool menu_entries_need_refresh              = false;
@@ -833,13 +1195,13 @@ int menu_entry_select(uint32_t i)
    menu_entry_init(&entry);
    menu_entry_get(&entry, 0, i, NULL, false);
 
-   return menu_entry_action(&entry, i, MENU_ACTION_SELECT);
+   return menu_entry_action(&entry, (size_t)i, MENU_ACTION_SELECT);
 }
 
 int menu_entry_action(
       menu_entry_t *entry, size_t i, enum menu_action action)
 {
-   // ä½¿ç”¨è€ç‰ˆæœ¬å®ç°LRç¿»é¡µ
+   // Ê¹ÓÃÀÏ°æ±¾ÊµÏÖLR·­Ò³
    int ret                    = 0;
    file_list_t *selection_buf =
       menu_entries_get_selection_buf_ptr_internal(0);
@@ -1453,6 +1815,8 @@ bool menu_entries_append_enum(file_list_t *list, const char *path,
    size_t idx;
    const char *menu_path           = NULL;
    menu_file_list_cbs_t *cbs       = NULL;
+   const char *menu_ident          = menu_driver_ident();
+
    if (!list || !label)
       return false;
 
@@ -1490,7 +1854,8 @@ bool menu_entries_append_enum(file_list_t *list, const char *path,
        && enum_idx != MENU_ENUM_LABEL_RDB_ENTRY)
       cbs->setting  = menu_setting_find_enum(enum_idx);
 
-   menu_cbs_init(list, cbs, path, label, type, idx);
+   if (!string_is_equal(menu_ident, "null"))
+      menu_cbs_init(list, cbs, path, label, type, idx);
 
    return true;
 }
@@ -1611,12 +1976,12 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
 		return 0;
 	}
 
-	// è®¡ç®—hashid
+	// ¼ÆËãhashid
 	char *basename = path_basename(playlist_name);
 	snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, playlist_size);
 	uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
-	// æ ¹æ®hashidæŸ¥æ‰¾ä¸Šæ¬¡çš„è®°å½•
+	// ¸ù¾İhashid²éÕÒÉÏ´ÎµÄ¼ÇÂ¼
 	int current_playlist = 0;
 	for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
 	{
@@ -1647,12 +2012,12 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 	playlist_t *cached_playlist = playlist_get_cached();
 	if (cached_playlist)
 	{
-		// è®¡ç®—hashid
+		// ¼ÆËãhashid
 		char *basename = path_basename(cached_playlist->conf_path);
 		snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
 		uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
-		// æ²¡æœ‰æ—¶åˆ›å»º
+		// Ã»ÓĞÊ±´´½¨
 		int current_playlist = 0;
 		for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
 		{
@@ -1665,7 +2030,7 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 
 		if (current_playlist < 64)
 		{
-			// ä¿å­˜ä¸Šæ¬¡è®°å½•
+			// ±£´æÉÏ´Î¼ÇÂ¼
 			if (current_playlist == menu_list->playlist_hashids_size)
 			{
 				menu_list->playlist_hashids[current_playlist][0] = playlist_hashid;
@@ -3068,6 +3433,7 @@ void menu_display_handle_thumbnail_upload(retro_task_t *task,
    free(user_data);
 }
 
+
 void menu_display_handle_left_thumbnail_upload(retro_task_t *task,
       void *task_data,
       void *user_data, const char *err)
@@ -3383,7 +3749,7 @@ void menu_display_draw_keyboard_ninenum(
 		1.00, 1.00, 1.00, 1.00,
 	};
 
-	// ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ú¿ò£¬·ï¿½ï¿½ï¿½Å¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ????????????????????
 	// 	menu_display_draw_quad(
 	// 		video_info,
 	// 		0, height/2.0,
@@ -3608,8 +3974,9 @@ static void bundle_decompressed(retro_task_t *task,
       free(dec);
    }
 
-   settings->uints.bundle_assets_extract_last_version =
-      settings->uints.bundle_assets_extract_version_current;
+   configuration_set_uint(settings,
+         settings->uints.bundle_assets_extract_last_version,
+         settings->uints.bundle_assets_extract_version_current);
 
    configuration_set_bool(settings, settings->bools.bundle_finished, true);
 
@@ -3628,6 +3995,10 @@ static void bundle_decompressed(retro_task_t *task,
 static bool menu_init(menu_handle_t *menu_data)
 {
    settings_t *settings        = config_get_ptr();
+#ifdef HAVE_CONFIGFILE
+   bool menu_show_start_screen = settings->bools.menu_show_start_screen;
+   bool config_save_on_exit    = settings->bools.config_save_on_exit;
+#endif
 
    /* Ensure that menu pointer input is correctly
     * initialised */
@@ -3636,7 +4007,8 @@ static bool menu_init(menu_handle_t *menu_data)
    if (!menu_entries_init())
       return false;
 
-   if (settings->bools.menu_show_start_screen)
+#ifdef HAVE_CONFIGFILE
+   if (menu_show_start_screen)
    {
       /* We don't want the welcome dialog screen to show up
        * again after the first startup, so we save to config
@@ -3647,38 +4019,45 @@ static bool menu_init(menu_handle_t *menu_data)
       configuration_set_bool(settings,
             settings->bools.menu_show_start_screen, false);
 #if !(defined(PS2) && defined(DEBUG)) /* TODO: PS2 IMPROVEMENT */
-      if (settings->bools.config_save_on_exit)
+      if (config_save_on_exit)
          command_event(CMD_EVENT_MENU_SAVE_CURRENT_CONFIG, NULL);
 #endif
    }
+#endif
 
    if (      settings->bools.bundle_assets_extract_enable
          && !string_is_empty(settings->arrays.bundle_assets_src)
          && !string_is_empty(settings->arrays.bundle_assets_dst)
-#ifdef IOS
-         && menu_dialog_is_push_pending()
-#else
+#ifndef IOS
+         /* TODO/FIXME - we should make this more generic so that
+          * this platform-specific ifdef is no longer needed */
          && (settings->uints.bundle_assets_extract_version_current
             != settings->uints.bundle_assets_extract_last_version)
 #endif
       )
    {
-      menu_dialog_push_pending(true, MENU_DIALOG_HELP_EXTRACT);
+      if (menu_dialog_push_pending(true, MENU_DIALOG_HELP_EXTRACT))
+      {
 #ifdef HAVE_COMPRESSION
-      task_push_decompress(settings->arrays.bundle_assets_src,
-            settings->arrays.bundle_assets_dst,
-            NULL, settings->arrays.bundle_assets_dst_subdir,
-            NULL, bundle_decompressed, NULL, NULL, false);
+         task_push_decompress(
+               settings->arrays.bundle_assets_src,
+               settings->arrays.bundle_assets_dst,
+               NULL,
+               settings->arrays.bundle_assets_dst_subdir,
+               NULL,
+               bundle_decompressed,
+               NULL,
+               NULL,
+               false);
 #endif
+      }
    }
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
    menu_shader_manager_init();
 #endif
 
-   menu_disp_ca.allocated    =  0;
-
-   menu_display_has_windowed = video_driver_has_windowed();
+   gfx_display_init();
 
    return true;
 }
@@ -3694,21 +4073,226 @@ const char *menu_driver_ident(void)
 
 void menu_driver_frame(video_frame_info_t *video_info)
 {
-   if (video_info->menu_is_alive && menu_driver_ctx->frame)
+   bool menu_is_alive = video_info->menu_is_alive;
+   if (menu_is_alive && menu_driver_ctx->frame)
       menu_driver_ctx->frame(menu_userdata, video_info);
 }
 
-bool menu_driver_get_load_content_animation_data(menu_texture_item *icon, char **playlist_name)
+bool menu_driver_get_load_content_animation_data(uintptr_t *icon, char **playlist_name)
 {
    return menu_driver_ctx && menu_driver_ctx->get_load_content_animation_data
       && menu_driver_ctx->get_load_content_animation_data(menu_userdata, icon, playlist_name);
 }
 
+/* Time format strings with AM-PM designation require special
+ * handling due to platform dependence */
+static void strftime_am_pm(char* ptr, size_t maxsize, const char* format,
+      const struct tm* timeptr)
+{
+   char *local = NULL;
+
+#if defined(__linux__) && !defined(ANDROID)
+   strftime(ptr, maxsize, format, timeptr);
+#else
+   strftime(ptr, maxsize, format, timeptr);
+   local = local_to_utf8_string_alloc(ptr);
+
+   if (!string_is_empty(local))
+      strlcpy(ptr, local, maxsize);
+
+   if (local)
+   {
+      free(local);
+      local = NULL;
+   }
+#endif
+}
+
+
+/* Display the date and time - time_mode will influence how
+ * the time representation will look like.
+ * */
+void menu_display_timedate(gfx_display_ctx_datetime_t *datetime)
+{
+   if (!datetime)
+      return;
+
+   /* Trigger an update, if required */
+   if (menu_driver_current_time_us - menu_driver_datetime_last_time_us >=
+         DATETIME_CHECK_INTERVAL)
+   {
+      time_t time_;
+      const struct tm *tm_;
+
+      menu_driver_datetime_last_time_us = menu_driver_current_time_us;
+
+      /* Get current time */
+      time(&time_);
+
+      setlocale(LC_TIME, "");
+
+      tm_ = localtime(&time_);
+
+      /* Format string representation */
+      switch (datetime->time_mode)
+      {
+         case MENU_TIMEDATE_STYLE_YMD_HMS: /* YYYY-MM-DD HH:MM:SS */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m-%d %H:%M:%S", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_YMD_HM: /* YYYY-MM-DD HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m-%d %H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_YMD: /* YYYY-MM-DD */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m-%d", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_YM: /* YYYY-MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MDYYYY_HMS: /* MM-DD-YYYY HH:MM:SS */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d-%Y %H:%M:%S", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MDYYYY_HM: /* MM-DD-YYYY HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d-%Y %H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MD_HM: /* MM/DD HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m/%d %H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MDYYYY: /* MM-DD-YYYY */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d-%Y", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MD: /* MM-DD */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMMYYYY_HMS: /* DD/MM/YYYY HH:MM:SS */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m/%Y %H:%M:%S", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMMYYYY_HM: /* DD/MM/YYYY HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m/%Y %H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMM_HM: /* DD/MM HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m %H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMMYYYY: /* DD/MM/YYYY */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m/%Y", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMM: /* DD/MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_HMS: /* HH:MM:SS */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%H:%M:%S", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_HM: /* HH:MM */
+            strftime(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%H:%M", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_YMD_HMS_AM_PM: /* YYYY-MM-DD HH:MM:SS (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m-%d %I:%M:%S %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_YMD_HM_AM_PM: /* YYYY-MM-DD HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%Y-%m-%d %I:%M %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MDYYYY_HMS_AM_PM: /* MM-DD-YYYY HH:MM:SS (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d-%Y %I:%M:%S %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MDYYYY_HM_AM_PM: /* MM-DD-YYYY HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m-%d-%Y %I:%M %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_MD_HM_AM_PM: /* MM/DD HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%m/%d %I:%M %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMMYYYY_HMS_AM_PM: /* DD/MM/YYYY HH:MM:SS (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m/%Y %I:%M:%S %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMMYYYY_HM_AM_PM: /* DD/MM/YYYY HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m/%Y %I:%M %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_DDMM_HM_AM_PM: /* DD/MM HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%d/%m %I:%M %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_HMS_AM_PM: /* HH:MM:SS (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%I:%M:%S %p", tm_);
+            break;
+         case MENU_TIMEDATE_STYLE_HM_AM_PM: /* HH:MM (am/pm) */
+            strftime_am_pm(menu_datetime_cache, sizeof(menu_datetime_cache),
+                  "%I:%M %p", tm_);
+            break;
+      }
+   }
+
+   /* Copy cached datetime string to input
+    * menu_display_ctx_datetime_t struct */
+   strlcpy(datetime->s, menu_datetime_cache, datetime->len);
+}
+
+
+/* Display current (battery) power state */
+void menu_display_powerstate(gfx_display_ctx_powerstate_t *powerstate)
+{
+   int percent                    = 0;
+   enum frontend_powerstate state = FRONTEND_POWERSTATE_NONE;
+
+   if (!powerstate)
+      return;
+
+   /* Trigger an update, if required */
+   if (menu_driver_current_time_us - menu_driver_powerstate_last_time_us >=
+         POWERSTATE_CHECK_INTERVAL)
+   {
+      menu_driver_powerstate_last_time_us = menu_driver_current_time_us;
+      task_push_get_powerstate();
+   }
+
+   /* Get last recorded state */
+   state = get_last_powerstate(&percent);
+
+   /* Populate gfx_display_ctx_powerstate_t */
+   powerstate->battery_enabled = (state != FRONTEND_POWERSTATE_NONE) &&
+                                 (state != FRONTEND_POWERSTATE_NO_SOURCE);
+
+   if (powerstate->battery_enabled)
+   {
+      powerstate->charging = (state == FRONTEND_POWERSTATE_CHARGING);
+      powerstate->percent  = percent > 0 ? (unsigned)percent : 0;
+      snprintf(powerstate->s, powerstate->len, "%u%%", powerstate->percent);
+   }
+   else
+   {
+      powerstate->charging = false;
+      powerstate->percent  = 0;
+   }
+}
+
+
 /* Iterate the menu driver for one frame. */
-bool menu_driver_iterate(menu_ctx_iterate_t *iterate)
+bool menu_driver_iterate(menu_ctx_iterate_t *iterate,
+      retro_time_t current_time)
 {
    /* Get current time */
-   menu_driver_current_time_us = cpu_features_get_time_usec();
+   menu_driver_current_time_us = current_time;
 
    if (menu_driver_pending_quick_menu)
    {
@@ -3719,7 +4303,7 @@ bool menu_driver_iterate(menu_ctx_iterate_t *iterate)
 
       menu_driver_pending_quick_menu = false;
       menu_entries_flush_stack(NULL, MENU_SETTINGS);
-      menu_display_set_msg_force(true);
+      gfx_display_set_msg_force(true);
 
       generic_action_ok_displaylist_push("", NULL,
             "", 0, 0, 0, ACTION_OK_DL_CONTENT_SETTINGS);
@@ -3729,12 +4313,18 @@ bool menu_driver_iterate(menu_ctx_iterate_t *iterate)
       return true;
    }
 
-   if (
-         menu_driver_ctx          &&
-         menu_driver_ctx->iterate &&
-         menu_driver_ctx->iterate(menu_driver_data,
-            menu_userdata, iterate->action) != -1)
-      return true;
+   if (  menu_driver_ctx          &&
+         menu_driver_ctx->iterate)
+   {
+      if (menu_driver_ctx->iterate(menu_driver_data,
+               menu_userdata, iterate->action) != -1)
+         return true;
+   }
+   else
+      if (generic_menu_iterate(menu_driver_data,
+            menu_userdata, iterate->action,
+            current_time) != -1)
+         return true;
 
    return false;
 }
@@ -3782,8 +4372,70 @@ bool menu_driver_list_set_selection(file_list_t *list)
    return true;
 }
 
+static void menu_driver_set_id(void)
+{
+   const char *driver_name = NULL;
+
+   gfx_display_set_driver_id(MENU_DRIVER_ID_UNKNOWN);
+
+   if (!menu_driver_ctx || !menu_driver_ctx->ident)
+      return;
+
+   driver_name = menu_driver_ctx->ident;
+
+   if (string_is_empty(driver_name))
+      return;
+
+   if (string_is_equal(driver_name, "rgui"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_RGUI);
+   else if (string_is_equal(driver_name, "ozone"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_OZONE);
+   else if (string_is_equal(driver_name, "glui"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_GLUI);
+   else if (string_is_equal(driver_name, "xmb"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_XMB);
+   else if (string_is_equal(driver_name, "xui"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_XUI);
+   else if (string_is_equal(driver_name, "stripes"))
+      gfx_display_set_driver_id(MENU_DRIVER_ID_STRIPES);
+}
+
+static bool generic_menu_init_list(void *data)
+{
+   menu_displaylist_info_t info;
+   file_list_t *menu_stack      = menu_entries_get_menu_stack_ptr(0);
+   file_list_t *selection_buf   = menu_entries_get_selection_buf_ptr(0);
+
+   menu_displaylist_info_init(&info);
+
+   info.label    = strdup(
+         msg_hash_to_str(MENU_ENUM_LABEL_MAIN_MENU));
+   info.enum_idx = MENU_ENUM_LABEL_MAIN_MENU;
+
+   menu_entries_append_enum(menu_stack,
+         info.path,
+         info.label,
+         MENU_ENUM_LABEL_MAIN_MENU,
+         info.type, info.flags, 0);
+
+   info.list  = selection_buf;
+
+   if (menu_displaylist_ctl(DISPLAYLIST_MAIN_MENU, &info))
+      menu_displaylist_process(&info);
+
+   menu_displaylist_info_free(&info);
+
+   return true;
+}
+
 static bool menu_driver_init_internal(bool video_is_threaded)
 {
+   /* ID must be set first, since it is required for
+    * the proper determination of pixel/dpi scaling
+    * parameters (and some menu drivers fetch the
+    * current pixel/dpi scale during 'menu_driver_ctx->init()') */
+   menu_driver_set_id();
+
    if (menu_driver_ctx->init)
    {
       menu_driver_data               = (menu_handle_t*)
@@ -3796,14 +4448,19 @@ static bool menu_driver_init_internal(bool video_is_threaded)
       return false;
 
    {
+      /* TODO/FIXME - can we get rid of this? Is this needed? */
       settings_t *settings           = config_get_ptr();
-      strlcpy(settings->arrays.menu_driver, menu_driver_ctx->ident,
-            sizeof(settings->arrays.menu_driver));
+      configuration_set_string(settings,
+            settings->arrays.menu_driver, menu_driver_ctx->ident);
    }
 
    if (menu_driver_ctx->lists_init)
+   {
       if (!menu_driver_ctx->lists_init(menu_driver_data))
          return false;
+   }
+   else
+      generic_menu_init_list(menu_driver_data);
 
    return true;
 }
@@ -3822,6 +4479,10 @@ bool menu_driver_init(bool video_is_threaded)
          return true;
       }
    }
+
+   /* If driver initialisation failed, must reset
+    * driver id to 'unknown' */
+   gfx_display_set_driver_id(MENU_DRIVER_ID_UNKNOWN);
 
    return false;
 }
@@ -3932,7 +4593,7 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
          {
             int i;
             driver_ctx_info_t drv;
-            settings_t *settings = config_get_ptr();
+            settings_t *settings    = config_get_ptr();
 
             drv.label = "menu_driver";
             drv.s     = settings->arrays.menu_driver;
@@ -4019,6 +4680,8 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                free(menu_userdata);
             menu_userdata = NULL;
 
+            gfx_display_set_driver_id(MENU_DRIVER_ID_UNKNOWN);
+
 #ifndef HAVE_DYNAMIC
             if (frontend_driver_has_fork())
 #endif
@@ -4028,17 +4691,8 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                memset(&system->info, 0, sizeof(struct retro_system_info));
             }
 
-            video_coord_array_free(&menu_disp_ca);
-            menu_display_msg_force       = false;
-            menu_display_header_height   = 0;
-            menu_disp                    = NULL;
-            menu_display_has_windowed    = false;
+            gfx_display_free();
 
-            menu_animation_ctl(MENU_ANIMATION_CTL_DEINIT, NULL);
-
-            menu_display_framebuf_width  = 0;
-            menu_display_framebuf_height = 0;
-            menu_display_framebuf_pitch  = 0;
             menu_entries_settings_deinit();
             menu_entries_list_deinit();
 
@@ -4376,14 +5030,6 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
    return true;
 }
 
-void hex32_to_rgba_normalized(uint32_t hex, float* rgba, float alpha)
-{
-   rgba[0] = rgba[4] = rgba[8]  = rgba[12] = ((hex >> 16) & 0xFF) * (1.0f / 255.0f); /* r */
-   rgba[1] = rgba[5] = rgba[9]  = rgba[13] = ((hex >> 8 ) & 0xFF) * (1.0f / 255.0f); /* g */
-   rgba[2] = rgba[6] = rgba[10] = rgba[14] = ((hex >> 0 ) & 0xFF) * (1.0f / 255.0f); /* b */
-   rgba[3] = rgba[7] = rgba[11] = rgba[15] = alpha;
-}
-
 void get_current_menu_value(char* retstr, size_t max)
 {
    const char*      entry_label;
@@ -4408,6 +5054,19 @@ void get_current_menu_label(char* retstr, size_t max)
    menu_entry_get_rich_label(&entry, &entry_label);
 
    strlcpy(retstr, entry_label, max);
+}
+
+void get_current_menu_sublabel(char* retstr, size_t max)
+{
+   const char*      entry_sublabel;
+   menu_entry_t     entry;
+
+   menu_driver_selection_ptr = menu_navigation_get_selection();
+   menu_entry_init(&entry);
+   menu_entry_get(&entry, 0, menu_navigation_get_selection(), NULL, true);
+ 
+   menu_entry_get_sublabel(&entry, &entry_sublabel);
+   strlcpy(retstr, entry_sublabel, max);
 }
 
 void get_current_menu_sublabel(char* retstr, size_t max)

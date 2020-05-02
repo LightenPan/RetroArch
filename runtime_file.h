@@ -58,6 +58,42 @@ typedef struct
    char path[PATH_MAX_LENGTH];
 } runtime_log_t;
 
+enum playlist_sublabel_last_played_style_type
+{
+   PLAYLIST_LAST_PLAYED_STYLE_YMD_HMS = 0,
+   PLAYLIST_LAST_PLAYED_STYLE_YMD_HM,
+   PLAYLIST_LAST_PLAYED_STYLE_YMD,
+   PLAYLIST_LAST_PLAYED_STYLE_YM,
+   PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HMS,
+   PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HM,
+   PLAYLIST_LAST_PLAYED_STYLE_MD_HM,
+   PLAYLIST_LAST_PLAYED_STYLE_MDYYYY,
+   PLAYLIST_LAST_PLAYED_STYLE_MD,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HMS,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HM,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMM_HM,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMM,
+   PLAYLIST_LAST_PLAYED_STYLE_YMD_HMS_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_YMD_HM_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HMS_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_MDYYYY_HM_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_MD_HM_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HMS_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMMYYYY_HM_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_DDMM_HM_AM_PM,
+   PLAYLIST_LAST_PLAYED_STYLE_LAST
+};
+
+enum playlist_sublabel_runtime
+{
+   PLAYLIST_RUNTIME_PER_CORE = 0,
+   PLAYLIST_RUNTIME_AGGREGATE,
+   PLAYLIST_RUNTIME_LAST
+};
+
+
+
 /* Initialisation */
 
 /* Initialise runtime log, loading current parameters
@@ -147,7 +183,12 @@ void runtime_log_convert_usec2hms(retro_time_t usec, unsigned *hours, unsigned *
 
 /* Updates specified playlist entry runtime values with
  * contents of associated log file */
-void runtime_update_playlist(playlist_t *playlist, size_t idx);
+void runtime_update_playlist(
+      playlist_t *playlist, size_t idx,
+      const char *dir_runtime_log,
+      const char *dir_playlist,
+      bool log_per_core,
+      enum playlist_sublabel_last_played_style_type timedate_style);
 
 RETRO_END_DECLS
 

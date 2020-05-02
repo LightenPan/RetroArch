@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2018 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (net_http.c).
@@ -230,16 +230,6 @@ static void net_http_send_str(
 struct http_connection_t *net_http_connection_new(const char *url,
       const char *method, const char *data)
 {
-	RARCH_LOG("net_http_connection_new begin.\n");
-   char new_domain[2048];
-   bool error                     = false;
-   char **domain                  = NULL;
-   char *uri                      = NULL;
-   char *url_dup                  = NULL;
-   char *domain_port              = NULL;
-   char *domain_port2             = NULL;
-   char *url_port                 = NULL;
-
    struct http_connection_t *conn = (struct http_connection_t*)calloc(1,
          sizeof(*conn));
 
@@ -260,6 +250,7 @@ struct http_connection_t *net_http_connection_new(const char *url,
    if (data)
 		conn->postdatacopy   = strdup(data);
 
+   conn->urlcopy           = strdup(url);
    if (!conn->urlcopy)
 		goto error;
 
@@ -271,13 +262,12 @@ struct http_connection_t *net_http_connection_new(const char *url,
       conn->sock_state.ssl = true;
    }
    else
-      error = true;
+      goto error;
 
    if (string_is_empty(conn->scan))
       goto error;
 
-   /* Get the port here from the url if it's specified.
-      does not work on username password urls: user:pass@domain.com
+   conn->domain = conn->scan;
 
       This code is not supposed to be needed, since the port 
       should be gotten elsewhere when the url is being scanned
@@ -353,39 +343,80 @@ bool net_http_connection_iterate(struct http_connection_t *conn)
 
 bool net_http_connection_done(struct http_connection_t *conn)
 {
-   char **location = NULL;
+   int has_port = 0;
 
    if (!conn)
       return false;
 
-   location     = &conn->location;
-
-   if (*conn->scan == '\0')
+   if (!conn->domain || !*conn->domain)
       return false;
-   *conn->scan  = '\0';
-
-   if (conn->port == 0)
-   {
-      if (conn->sock_state.ssl)
-         conn->port   = 443;
-      else
-         conn->port   = 80;
-   }
 
    if (*conn->scan == ':')
    {
-      if (!isdigit((int)conn->scan[1]))
+      /* domain followed by port, split off the port */
+      *conn->scan++ = '\0';
+
+      if (!isdigit((int)(*conn->scan)))
          return false;
 
-      conn->port = (int)strtoul(conn->scan + 1, &conn->scan, 10);
-
-      if (*conn->scan != '/')
-         return false;
+      conn->port = (int)strtoul(conn->scan, &conn->scan, 10);
+      has_port = 1;
+   }
+   else if (conn->port == 0)
+   {
+      /* port not specified, default to standard HTTP or HTTPS port */
+      if (conn->sock_state.ssl)
+         conn->port = 443;
+      else
+         conn->port = 80;
    }
 
-   *location = conn->scan + 1;
+   if (*conn->scan == '/')
+   {
+      /* domain followed by location - split off the location */
+      /*   site.com/path.html   or   site.com:80/path.html   */
+      *conn->scan = '\0';
+      conn->location = conn->scan + 1;
+      return true;
+   }
+   else if (!*conn->scan)
+   {
+      /* domain with no location - point location at empty string */
+      /*   site.com   or   site.com:80   */
+      conn->location = conn->scan;
+      return true;
+   }
+   else if (*conn->scan == '?')
+   {
+      /* domain with no location, but still has query parms - point location at the query parms */
+      /*   site.com?param=3   or  site.com:80?param=3   */
+      if (!has_port)
+      {
+         /* if there wasn't a port, we have to expand the urlcopy so we can separate the two parts */
+         size_t domain_len = strlen(conn->domain);
+         size_t location_len = strlen(conn->scan);
+         char* urlcopy = (char*)malloc(domain_len + location_len + 2);
+         memcpy(urlcopy, conn->domain, domain_len);
+         urlcopy[domain_len] = '\0';
+         memcpy(urlcopy + domain_len + 1, conn->scan, location_len + 1);
 
-   return true;
+         free(conn->urlcopy);
+         conn->domain = conn->urlcopy = urlcopy;
+         conn->location = conn->scan = urlcopy + domain_len + 1;
+      }
+      else
+      {
+         /* there was a port, so overwriting the : will terminate the domain and we can just point at the ? */
+         conn->location = conn->scan;
+      }
+
+      return true;
+   }
+   else
+   {
+      /* invalid character after domain/port */
+      return false;
+   }
 }
 
 void net_http_connection_free(struct http_connection_t *conn)

@@ -233,7 +233,7 @@ static void frontend_psp_deinit(void *data)
 {
    (void)data;
 #ifndef IS_SALAMANDER
-   // verbosity_disable();
+   verbosity_disable();
    pthread_terminate();
 #endif
 }
@@ -394,9 +394,9 @@ static bool frontend_psp_set_fork(enum frontend_fork fork_mode)
 }
 #endif
 
-static void frontend_psp_exitspawn(char *s, size_t len)
+static void frontend_psp_exitspawn(char *s, size_t len, char *args)
 {
-   bool should_load_game = false;
+   bool should_load_content = false;
 #ifndef IS_SALAMANDER
    if (psp_fork_mode == FRONTEND_FORK_NONE)
       return;
@@ -404,14 +404,14 @@ static void frontend_psp_exitspawn(char *s, size_t len)
    switch (psp_fork_mode)
    {
       case FRONTEND_FORK_CORE_WITH_ARGS:
-         should_load_game = true;
+         should_load_content = true;
          break;
       case FRONTEND_FORK_NONE:
       default:
          break;
    }
 #endif
-   frontend_psp_exec(s, should_load_game);
+   frontend_psp_exec(s, should_load_content);
 }
 
 static int frontend_psp_get_rating(void)
@@ -560,12 +560,10 @@ enum retro_language psp_get_retro_lang_from_langid(int langid)
 }
 
 enum retro_language frontend_psp_get_user_language(void)
-{
-	// vita 默认使用12简体中文
-	return DEFAULT_USER_LANGUAGE;
-//    int langid;
-//    sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
-//    return psp_get_retro_lang_from_langid(langid);
+{ 
+   int langid;
+   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
+   return psp_get_retro_lang_from_langid(langid);
 }
 
 static uint64_t frontend_psp_get_mem_total(void)
@@ -618,9 +616,13 @@ frontend_ctx_driver_t frontend_ctx_psp = {
    NULL,                         /* get_cpu_model_name */
 #ifdef VITA
    frontend_psp_get_user_language,
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "vita",
 #else
    NULL,                         /* get_user_language */
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "psp",
 #endif
 };

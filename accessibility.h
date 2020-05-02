@@ -39,4 +39,7 @@ bool accessibility_speak_priority(const char* speak_text, int priority);
 
 RETRO_END_DECLS
 
+int generic_menu_entry_action(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
+
+
 #endif

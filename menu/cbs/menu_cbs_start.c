@@ -45,9 +45,7 @@
 #include "../../config.def.h"
 
 #ifndef BIND_ACTION_START
-#define BIND_ACTION_START(cbs, name) \
-   cbs->action_start = name; \
-   cbs->action_start_ident = #name;
+#define BIND_ACTION_START(cbs, name) (cbs)->action_start = (name)
 #endif
 
 /* Forward declarations */
@@ -75,7 +73,9 @@ static int action_start_remap_file_load(
       const char *path, const char *label,
       unsigned type, size_t idx, size_t entry_idx)
 {
+#ifdef HAVE_CONFIGFILE
    input_remapping_set_defaults(true);
+#endif
    return 0;
 }
 
@@ -242,7 +242,9 @@ static int action_start_netplay_mitm_server(
       unsigned type, size_t idx, size_t entry_idx)
 {
    settings_t *settings = config_get_ptr();
-   strlcpy(settings->arrays.netplay_mitm_server, netplay_mitm_server, sizeof(settings->arrays.netplay_mitm_server));
+   configuration_set_string(settings,
+         settings->arrays.netplay_mitm_server,
+         DEFAULT_NETPLAY_MITM_SERVER);
    return 0;
 }
 
@@ -551,6 +553,7 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    {
       BIND_ACTION_START(cbs, action_start_core_setting);
    }
+   /* TODO/FIXME - refactor this */
    else if (type == MENU_LABEL_SCREEN_RESOLUTION)
    {
       BIND_ACTION_START(cbs, action_start_video_resolution);
