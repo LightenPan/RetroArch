@@ -42,6 +42,7 @@
 #include <libretro.h>
 #include <libretro_vulkan.h>
 
+#include "../video_defines.h"
 #include "../../driver.h"
 #include "../../retroarch.h"
 #include "../../verbosity.h"
@@ -101,6 +102,7 @@ typedef struct vulkan_context
    uint32_t graphics_queue_index;
    uint32_t num_swapchain_images;
    uint32_t current_swapchain_index;
+   uint32_t current_frame_index;
 
    VkInstance instance;
    VkPhysicalDevice gpu;
@@ -115,6 +117,11 @@ typedef struct vulkan_context
    bool swapchain_fences_signalled[VULKAN_MAX_SWAPCHAIN_IMAGES];
    VkSemaphore swapchain_semaphores[VULKAN_MAX_SWAPCHAIN_IMAGES];
    VkFormat swapchain_format;
+
+   VkSemaphore swapchain_acquire_semaphore;
+   unsigned num_recycled_acquire_semaphores;
+   VkSemaphore swapchain_recycled_semaphores[VULKAN_MAX_SWAPCHAIN_IMAGES];
+   VkSemaphore swapchain_wait_semaphores[VULKAN_MAX_SWAPCHAIN_IMAGES];
 
    slock_t *queue_lock;
    retro_vulkan_destroy_device_t destroy_device;
@@ -152,6 +159,10 @@ typedef struct gfx_ctx_vulkan_data
    bool created_new_swapchain;
    bool emulate_mailbox;
    bool emulating_mailbox;
+   /* If set, prefer a path where we use
+    * semaphores instead of fences for vkAcquireNextImageKHR.
+    * Helps workaround certain performance issues on some drivers. */
+   bool use_wsi_semaphore;
    vulkan_context_t context;
    VkSurfaceKHR vk_surface;
    VkSwapchainKHR swapchain;
@@ -284,7 +295,6 @@ struct vk_descriptor_manager
 
 struct vk_per_frame
 {
-   struct vk_image backbuffer;
    struct vk_texture texture;
    struct vk_texture texture_optimal;
    struct vk_buffer_chain vbo;
@@ -343,7 +353,9 @@ typedef struct vk
    VkRenderPass render_pass;
    struct video_viewport vp;
    struct vk_per_frame *chain;
+   struct vk_image *backbuffer;
    struct vk_per_frame swapchain[VULKAN_MAX_SWAPCHAIN_IMAGES];
+   struct vk_image backbuffers[VULKAN_MAX_SWAPCHAIN_IMAGES];
    struct vk_texture default_texture;
 
    /* Currently active command buffer. */
@@ -418,7 +430,7 @@ typedef struct vk
 
       struct retro_hw_render_interface_vulkan iface;
       const struct retro_vulkan_image *image;
-      const VkSemaphore *semaphores;
+      VkSemaphore *semaphores;
       VkSemaphore signal_semaphore;
       VkPipelineStageFlags *wait_dst_stages;
       VkCommandBuffer *cmd;
@@ -591,6 +603,38 @@ void vulkan_acquire_next_image(gfx_ctx_vulkan_data_t *vk);
 bool vulkan_create_swapchain(gfx_ctx_vulkan_data_t *vk,
       unsigned width, unsigned height,
       unsigned swap_interval);
+
+void vulkan_set_uniform_buffer(
+      VkDevice device,
+      VkDescriptorSet set,
+      unsigned binding,
+      VkBuffer buffer,
+      VkDeviceSize offset,
+      VkDeviceSize range);
+
+void vulkan_framebuffer_generate_mips(
+      VkFramebuffer framebuffer,
+      VkImage image,
+      struct Size2D size,
+      VkCommandBuffer cmd,
+      unsigned levels
+      );
+
+void vulkan_framebuffer_copy(VkImage image, 
+      struct Size2D size,
+      VkCommandBuffer cmd,
+      VkImage src_image, VkImageLayout src_layout);
+
+void vulkan_framebuffer_clear(VkImage image, VkCommandBuffer cmd);
+
+void vulkan_initialize_render_pass(VkDevice device,
+      VkFormat format, VkRenderPass *render_pass);
+
+void vulkan_pass_set_texture(
+      VkDevice device,
+      VkDescriptorSet set, VkSampler sampler,
+      unsigned binding,
+      VkImageView imageView, VkImageLayout imageLayout);
 
 RETRO_END_DECLS
 

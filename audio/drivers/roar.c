@@ -45,7 +45,7 @@ static void *ra_init(const char *device, unsigned rate, unsigned latency,
 
    (void)latency;
 
-   if ((vss = roar_vs_new_simple(device, "RetroArch", rate, 2, ROAR_CODEC_PCM_S, 16, ROAR_DIR_PLAY, &err)) == NULL)
+   if (!(vss = roar_vs_new_simple(device, "RetroArch", rate, 2, ROAR_CODEC_PCM_S, 16, ROAR_DIR_PLAY, &err)))
    {
       RARCH_ERR("RoarAudio: \"%s\"\n", roar_vs_strerr(err));
       free(roar);
@@ -105,8 +105,11 @@ static bool ra_alive(void *data)
 static void ra_set_nonblock_state(void *data, bool state)
 {
    roar_t *roar = (roar_t*)data;
+
    if (roar_vs_blocking(roar->vss, (state) ? ROAR_VS_FALSE : ROAR_VS_TRUE, NULL) < 0)
-      fprintf(stderr, "RetroArch [ERROR]: Can't set nonblocking. Will not be able to fast-forward.\n");
+   {
+      RARCH_ERR("Can't set nonblocking. Will not be able to fast-forward.\n");
+   }
    roar->nonblocking = state;
 }
 

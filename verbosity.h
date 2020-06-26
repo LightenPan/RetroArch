@@ -17,6 +17,7 @@
 #define __RARCH_VERBOSITY_H
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <boolean.h>
 #include <retro_common_api.h>
@@ -40,8 +41,6 @@ void verbosity_disable(void);
 void verbosity_set_log_level(unsigned level);
 
 bool *verbosity_get_ptr(void);
-
-void *retro_main_log_file(void);
 
 void retro_main_log_file_deinit(void);
 
@@ -147,6 +146,16 @@ void RARCH_ERR(const char *fmt, ...);
 #define RARCH_WARN_V RARCH_LOG_V
 #define RARCH_ERR_V RARCH_LOG_V
 #endif /* HAVE_LOGGER */
+
+void rarch_log_file_init(
+      bool log_to_file,
+      bool log_to_file_timestamp,
+      const char *log_dir);
+
+void rarch_log_file_deinit(void);
+
+void rarch_log_file_set_override(const char *path);
+
 
 RETRO_END_DECLS
 

@@ -1,26 +1,15 @@
 #pragma once
 
-#if defined(DISCORD_DYNAMIC_LIB)
-#if defined(_WIN32)
-#if defined(DISCORD_BUILDING_SDK)
-#define DISCORD_EXPORT __declspec(dllexport)
-#else
-#define DISCORD_EXPORT __declspec(dllimport)
-#endif
-#else
-#define DISCORD_EXPORT __attribute__((visibility("default")))
-#endif
-#else
-#define DISCORD_EXPORT
-#endif
+#include <retro_common_api.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(CXX_BUILD)
 extern "C" {
 #endif
 
-DISCORD_EXPORT void Discord_Register(const char* applicationId, const char* command);
-DISCORD_EXPORT void Discord_RegisterSteamGame(const char* applicationId, const char* steamId);
+int get_process_id(void);
+void Discord_Register(const char* applicationId, const char* command);
+void Discord_RegisterSteamGame(const char* applicationId, const char* steamId);
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(CXX_BUILD)
 }
 #endif

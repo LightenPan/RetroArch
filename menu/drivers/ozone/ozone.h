@@ -24,11 +24,8 @@ typedef struct ozone_handle ozone_handle_t;
 
 #include <retro_miscellaneous.h>
 
-#include "../../menu_thumbnail_path.h"
-#include "../../menu_thumbnail.h"
-#include "../../menu_driver.h"
-
-#include "../../../retroarch.h"
+#include "../../gfx/gfx_thumbnail_path.h"
+#include "../../gfx/gfx_thumbnail.h"
 
 #define ANIMATION_PUSH_ENTRY_DURATION  166
 #define ANIMATION_CURSOR_DURATION      133
@@ -52,6 +49,8 @@ typedef struct ozone_handle ozone_handle_t;
 #define ENTRY_ICON_SIZE                46
 #define ENTRY_ICON_PADDING             15
 
+/* > 'SIDEBAR_WIDTH' must be kept in sync with
+ *   menu driver metrics */
 #define SIDEBAR_WIDTH               408
 #define SIDEBAR_X_PADDING           40
 #define SIDEBAR_Y_PADDING           20
@@ -59,10 +58,15 @@ typedef struct ozone_handle ozone_handle_t;
 #define SIDEBAR_ENTRY_Y_PADDING     10
 #define SIDEBAR_ENTRY_ICON_SIZE     46
 #define SIDEBAR_ENTRY_ICON_PADDING  15
+#define SIDEBAR_GRADIENT_HEIGHT     28
 
 #define FULLSCREEN_THUMBNAIL_PADDING 48
 
 #define CURSOR_SIZE 64
+/* Cursor becomes active when it moves more
+ * than CURSOR_ACTIVE_DELTA pixels (adjusted
+ * by current scale factor) */
+#define CURSOR_ACTIVE_DELTA 3
 
 #define INTERVAL_OSK_CURSOR            (0.5f * 1000000)
 
@@ -75,31 +79,57 @@ typedef struct ozone_handle ozone_handle_t;
 #define OZONE_TICKER_SPACER "\xE2\x80\x83\xE2\x80\xA2\xE2\x80\x83"
 #endif
 
+enum ozone_onscreen_entry_position_type
+{
+   OZONE_ONSCREEN_ENTRY_FIRST = 0,
+   OZONE_ONSCREEN_ENTRY_LAST,
+   OZONE_ONSCREEN_ENTRY_CENTRE
+};
+
+/* This structure holds all objects + metadata
+ * corresponding to a particular font */
+typedef struct
+{
+   font_data_t *font;
+   video_font_raster_block_t raster_block;
+   int glyph_width;
+   int line_height;
+   int line_ascender;
+   int line_centre_offset;
+} ozone_font_data_t;
+
+/* Container for a footer text label */
+typedef struct
+{
+   const char *str;
+   int width;
+} ozone_footer_label_t;
+
 struct ozone_handle
 {
    struct
    {
-      font_data_t *footer;
-      font_data_t *title;
-      font_data_t *time;
-      font_data_t *entries_label;
-      font_data_t *entries_sublabel;
-      font_data_t *sidebar;
+      ozone_font_data_t footer;
+      ozone_font_data_t title;
+      ozone_font_data_t time;
+      ozone_font_data_t entries_label;
+      ozone_font_data_t entries_sublabel;
+      ozone_font_data_t sidebar;
    } fonts;
 
    struct
    {
-      video_font_raster_block_t footer;
-      video_font_raster_block_t title;
-      video_font_raster_block_t time;
-      video_font_raster_block_t entries_label;
-      video_font_raster_block_t entries_sublabel;
-      video_font_raster_block_t sidebar;
-   } raster_blocks;
+      unsigned lanuage;
+      ozone_footer_label_t ok;
+      ozone_footer_label_t back;
+      ozone_footer_label_t search;
+      ozone_footer_label_t fullscreen_thumbs;
+      ozone_footer_label_t metadata_toggle;
+   } footer_labels;
 
-   menu_texture_item textures[OZONE_THEME_TEXTURE_LAST];
-   menu_texture_item icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_LAST];
-   menu_texture_item tab_textures[OZONE_TAB_TEXTURE_LAST];
+   uintptr_t textures[OZONE_THEME_TEXTURE_LAST];
+   uintptr_t icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_LAST];
+   uintptr_t tab_textures[OZONE_TAB_TEXTURE_LAST];
 
    char title[PATH_MAX_LENGTH];
 
@@ -131,6 +161,7 @@ struct ozone_handle
       float thumbnail_bar_position;
 
       float fullscreen_thumbnail_alpha;
+      float left_thumbnail_alpha;
    } animations;
 
    bool fade_direction; /* false = left to right, true = right to left */
@@ -146,12 +177,6 @@ struct ozone_handle
    bool draw_sidebar;
    float sidebar_offset;
 
-   unsigned title_font_glyph_width;
-   unsigned entry_font_glyph_width;
-   unsigned sublabel_font_glyph_width;
-   unsigned footer_font_glyph_width;
-   unsigned sidebar_font_glyph_width;
-
    ozone_theme_t *theme;
 
    struct {
@@ -166,6 +191,10 @@ struct ozone_handle
       float cursor_border[16];
       float message_background[16];
    } theme_dynamic;
+
+   unsigned last_width;
+   unsigned last_height;
+   float last_scale_factor;
 
    bool need_compute;
 
@@ -213,12 +242,28 @@ struct ozone_handle
       int sidebar_entry_height;
       int sidebar_entry_icon_size;
       int sidebar_entry_icon_padding;
+      int sidebar_gradient_height;
 
       int cursor_size;
 
       int thumbnail_bar_width;
       int fullscreen_thumbnail_padding;
+
+      int spacer_1px;
+      int spacer_2px;
+      int spacer_3px;
+      int spacer_5px;
    } dimensions;
+
+   menu_input_pointer_t pointer;
+   int16_t pointer_active_delta;
+   bool pointer_in_sidebar;
+   bool last_pointer_in_sidebar;
+   size_t pointer_categories_selection;
+   size_t first_onscreen_entry;
+   size_t last_onscreen_entry;
+   size_t first_onscreen_category;
+   size_t last_onscreen_category;
 
    bool show_cursor;
    bool cursor_mode;
@@ -231,11 +276,11 @@ struct ozone_handle
    /* Thumbnails data */
    bool show_thumbnail_bar;
 
-   menu_thumbnail_path_data_t *thumbnail_path_data;
+   gfx_thumbnail_path_data_t *thumbnail_path_data;
 
    struct {
-      menu_thumbnail_t right;
-      menu_thumbnail_t left;
+      gfx_thumbnail_t right;
+      gfx_thumbnail_t left;
    } thumbnails;
 
    bool fullscreen_thumbnails_available;
@@ -249,6 +294,8 @@ struct ozone_handle
    unsigned selection_core_name_lines;
    unsigned selection_lastplayed_lines;
    bool selection_core_is_viewer;
+
+   bool force_metadata_display;
 
    bool is_db_manager_list;
    bool is_file_list;
@@ -265,6 +312,7 @@ typedef struct ozone_node
    unsigned height;
    unsigned position_y;
    bool wrap;
+   unsigned sublabel_lines;
    char *fullpath;
 
    /* Console tabs */
@@ -273,12 +321,26 @@ typedef struct ozone_node
    uintptr_t content_icon;
 } ozone_node_t;
 
-void ozone_draw_entries(ozone_handle_t *ozone, video_frame_info_t *video_info,
-   unsigned selection, unsigned selection_old,
-   file_list_t *selection_buf, float alpha, float scroll_y,
-   bool is_playlist);
+void ozone_draw_entries(
+      ozone_handle_t *ozone,
+      void *userdata,
+      unsigned video_width,
+      unsigned video_height,
+      unsigned selection,
+      unsigned selection_old,
+      file_list_t *selection_buf,
+      float alpha,
+      float scroll_y,
+      bool is_playlist);
 
-void ozone_draw_sidebar(ozone_handle_t *ozone, video_frame_info_t *video_info);
+void ozone_draw_sidebar(
+      ozone_handle_t *ozone,
+      void *userdata,
+      unsigned video_width,
+      unsigned video_height,
+      bool libretro_running,
+      float menu_framebuffer_opacity
+      );
 
 void ozone_change_tab(ozone_handle_t *ozone,
       enum msg_hash_enums tab,
@@ -316,9 +378,17 @@ void ozone_update_scroll(ozone_handle_t *ozone, bool allow_animation, ozone_node
 
 void ozone_sidebar_update_collapse(ozone_handle_t *ozone, bool allow_animation);
 
+void ozone_refresh_sidebars(ozone_handle_t *ozone, unsigned video_height);
+
 void ozone_entries_update_thumbnail_bar(ozone_handle_t *ozone, bool is_playlist, bool allow_animation);
 
-void ozone_draw_thumbnail_bar(ozone_handle_t *ozone, video_frame_info_t *video_info);
+void ozone_draw_thumbnail_bar(
+      ozone_handle_t *ozone,
+      void *userdata,
+      unsigned video_width,
+      unsigned video_height,
+      bool libretro_running,
+      float menu_framebuffer_opacity);
 
 void ozone_hide_fullscreen_thumbnails(ozone_handle_t *ozone, bool animate);
 void ozone_show_fullscreen_thumbnails(ozone_handle_t *ozone);
@@ -326,5 +396,9 @@ void ozone_show_fullscreen_thumbnails(ozone_handle_t *ozone);
 unsigned ozone_count_lines(const char *str);
 
 void ozone_update_content_metadata(ozone_handle_t *ozone);
+
+void ozone_font_flush(
+      unsigned video_width, unsigned video_height,
+      ozone_font_data_t *font_data);
 
 #endif

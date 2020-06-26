@@ -18,6 +18,10 @@
 #define HAVE_COMPRESSION 1
 #endif
 
+#if defined(_WIN32) && !defined(_XBOX)
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #if defined(_MSC_VER)
 #include <string.h>
 #include <compat/posix_string.h>
@@ -33,13 +37,6 @@
 #ifndef HAVE_EGL
 #define HAVE_EGL       1
 #endif
-#endif
-
-/*============================================================
-MENU
-============================================================ */
-#ifdef HAVE_XUI
-#include "../menu/drivers/xui.cpp"
 #endif
 
 /*============================================================

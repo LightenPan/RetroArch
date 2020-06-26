@@ -109,15 +109,14 @@ static int16_t gx_lightgun_state(gx_input_t *gx, unsigned id, uint16_t joy_idx)
 
 static int16_t gx_mouse_state(gx_input_t *gx, unsigned id, uint16_t joy_idx)
 {
-   int x = 0;
-   int y = 0;
-
-   settings_t *settings = config_get_ptr();
-   int x_scale = settings->uints.input_mouse_scale;
-   int y_scale = settings->uints.input_mouse_scale;
-
-   x = (gx->mouse[joy_idx].x_abs - gx->mouse[joy_idx].x_last) * x_scale;
-   y = (gx->mouse[joy_idx].y_abs - gx->mouse[joy_idx].y_last) * y_scale;
+   settings_t *settings       = config_get_ptr();
+   unsigned input_mouse_scale = settings->uints.input_mouse_scale;
+   int x_scale                = input_mouse_scale;
+   int y_scale                = input_mouse_scale;
+   int x                      = (gx->mouse[joy_idx].x_abs 
+         - gx->mouse[joy_idx].x_last) * x_scale;
+   int y                      = (gx->mouse[joy_idx].y_abs 
+         - gx->mouse[joy_idx].y_last) * y_scale;
 
    switch (id)
    {
@@ -136,7 +135,7 @@ static int16_t gx_mouse_state(gx_input_t *gx, unsigned id, uint16_t joy_idx)
 #endif
 
 static int16_t gx_input_state(void *data,
-      rarch_joypad_info_t joypad_info,
+      rarch_joypad_info_t *joypad_info,
       const struct retro_keybind **binds,
       unsigned port, unsigned device,
       unsigned idx, unsigned id)
@@ -155,21 +154,13 @@ static int16_t gx_input_state(void *data,
             int16_t ret = 0;
             for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
             {
-               /* Auto-binds are per joypad, not per user. */
-               const uint64_t joykey  = (binds[port][i].joykey != NO_BTN)
-                  ? binds[port][i].joykey : joypad_info.auto_binds[i].joykey;
-               const uint32_t joyaxis = (binds[port][i].joyaxis != AXIS_NONE)
-                  ? binds[port][i].joyaxis : joypad_info.auto_binds[i].joyaxis;
-
-               if ((uint16_t)joykey != NO_BTN && gx->joypad->button(joypad_info.joy_idx, (uint16_t)joykey))
+               if (binds[port][i].valid)
                {
-                  ret |= (1 << i);
-                  continue;
-               }
-               if (((float)abs(gx->joypad->axis(joypad_info.joy_idx, joyaxis)) / 0x8000) > joypad_info.axis_threshold)
-               {
-                  ret |= (1 << i);
-                  continue;
+                  if (
+                        button_is_pressed(
+                           gx->joypad, joypad_info, binds[port],
+                           port, i))
+                     ret |= (1 << i);
                }
             }
 
@@ -177,29 +168,21 @@ static int16_t gx_input_state(void *data,
          }
          else
          {
-            /* Auto-binds are per joypad, not per user. */
-            const uint64_t joykey  = (binds[port][id].joykey != NO_BTN)
-               ? binds[port][id].joykey : joypad_info.auto_binds[id].joykey;
-            const uint32_t joyaxis = (binds[port][id].joyaxis != AXIS_NONE)
-               ? binds[port][id].joyaxis : joypad_info.auto_binds[id].joyaxis;
-
-            if ((uint16_t)joykey != NO_BTN && gx->joypad->button(joypad_info.joy_idx, (uint16_t)joykey))
-               return true;
-            if (((float)abs(gx->joypad->axis(joypad_info.joy_idx, joyaxis)) / 0x8000) > joypad_info.axis_threshold)
-               return true;
+            if (binds[port][id].valid)
+               if (
+                     button_is_pressed(gx->joypad, joypad_info, binds[port],
+                        port, id))
+                  return 1;
          }
          break;
       case RETRO_DEVICE_ANALOG:
-         if (binds[port])
-            return input_joypad_analog(gx->joypad,
-                  joypad_info, port, idx, id, binds[port]);
          break;
 #ifdef HW_RVL
       case RETRO_DEVICE_MOUSE:
-         return gx_mouse_state(gx, id, joypad_info.joy_idx);
+         return gx_mouse_state(gx, id, joypad_info->joy_idx);
 
       case RETRO_DEVICE_LIGHTGUN:
-         return gx_lightgun_state(gx, id, joypad_info.joy_idx);
+         return gx_lightgun_state(gx, id, joypad_info->joy_idx);
 #endif
    }
 
@@ -216,7 +199,7 @@ static void gx_input_free_input(void *data)
    if (gx->joypad)
       gx->joypad->destroy();
 #ifdef HW_RVL
-   if(gx->mouse)
+   if (gx->mouse)
       free(gx->mouse);
 #endif
    free(gx);
@@ -225,18 +208,17 @@ static void gx_input_free_input(void *data)
 #ifdef HW_RVL
 static inline int gx_count_mouse(gx_input_t *gx)
 {
+   unsigned i;
    int count = 0;
 
-   if(gx)
+   if (gx)
    {
-      for(int i=0; i<DEFAULT_MAX_PADS; i++)
+      for (i = 0; i < DEFAULT_MAX_PADS; i++)
       {
-         if(gx->joypad->name(i))
+         if (gx->joypad->name(i))
          {
-            if(!strcmp(gx->joypad->name(i), "Wiimote Controller"))
-            {
+            if (string_is_equal(gx->joypad->name(i), "Wiimote Controller"))
                count++;
-            }
          }
       }
    }
@@ -251,11 +233,12 @@ static void *gx_input_init(const char *joypad_driver)
    if (!gx)
       return NULL;
 
-   gx->joypad = input_joypad_init_driver(joypad_driver, gx);
+   gx->joypad     = input_joypad_init_driver(joypad_driver, gx);
 #ifdef HW_RVL
    /* Allocate at least 1 mouse at startup */
-   gx->mouse_max = 1;
-   gx->mouse = (gx_input_mouse_t*) calloc(gx->mouse_max, sizeof(gx_input_mouse_t));
+   gx->mouse_max  = 1;
+   gx->mouse      = (gx_input_mouse_t*)calloc(
+         gx->mouse_max, sizeof(gx_input_mouse_t));
 #endif
    return gx;
 }
@@ -263,26 +246,25 @@ static void *gx_input_init(const char *joypad_driver)
 #ifdef HW_RVL
 static void gx_input_poll_mouse(gx_input_t *gx)
 {
-   int count = 0;
-   count = gx_count_mouse(gx);
+   int count = gx_count_mouse(gx);
 
-   if(gx && count > 0)
+   if (gx && count > 0)
    {
-      if(count != gx->mouse_max)
+      if (count != gx->mouse_max)
       {
          gx_input_mouse_t* tmp = NULL;
 
-         tmp = (gx_input_mouse_t*)realloc(gx->mouse, count * sizeof(gx_input_mouse_t));
-         if(!tmp) 
-         {
+         tmp = (gx_input_mouse_t*)realloc(
+               gx->mouse, count * sizeof(gx_input_mouse_t));
+         if (!tmp) 
             free(gx->mouse);
-         }
          else
          {
-            gx->mouse = tmp;
+            unsigned i;
+            gx->mouse     = tmp;
             gx->mouse_max = count;
 
-            for(int i=0; i<gx->mouse_max; i++)
+            for (i = 0; i < gx->mouse_max; i++)
             {
                gx->mouse[i].x_last = 0;
                gx->mouse[i].y_last = 0;
@@ -294,7 +276,8 @@ static void gx_input_poll_mouse(gx_input_t *gx)
       {
          gx->mouse[i].x_last = gx->mouse[i].x_abs;
          gx->mouse[i].y_last = gx->mouse[i].y_abs;
-         gx_joypad_read_mouse(i, &gx->mouse[i].x_abs, &gx->mouse[i].y_abs, &gx->mouse[i].button);
+         gx_joypad_read_mouse(i, &gx->mouse[i].x_abs,
+               &gx->mouse[i].y_abs, &gx->mouse[i].button);
       } 
    }
 }
@@ -308,7 +291,7 @@ static void gx_input_poll(void *data)
    {
       gx->joypad->poll();
 #ifdef HW_RVL
-      if(gx->mouse)
+      if (gx->mouse)
          gx_input_poll_mouse(gx);
 #endif
    }

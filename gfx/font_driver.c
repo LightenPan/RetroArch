@@ -24,7 +24,6 @@
 #include "font_driver.h"
 #include "video_thread_wrapper.h"
 
-#include "../configuration.h"
 #include "../retroarch.h"
 #include "../verbosity.h"
 
@@ -36,7 +35,7 @@ static const font_renderer_driver_t *font_backends[] = {
    &coretext_font_renderer,
 #endif
 #ifdef HAVE_STB_FONT
-#if defined(VITA) || defined(WIIU) || defined(ANDROID) || (defined(_WIN32) && !defined(_XBOX) && !defined(_MSC_VER) && _MSC_VER >= 1400) || (defined(_WIN32) && !defined(_XBOX) && defined(_MSC_VER)) || defined(__CELLOS_LV2__) || defined(HAVE_LIBNX) || defined(__linux__) || defined (HAVE_EMSCRIPTEN) || defined(__APPLE__)
+#if defined(VITA) || defined(WIIU) || defined(ANDROID) || (defined(_WIN32) && !defined(_XBOX) && !defined(_MSC_VER) && _MSC_VER >= 1400) || (defined(_WIN32) && !defined(_XBOX) && defined(_MSC_VER)) || defined(__CELLOS_LV2__) || defined(HAVE_LIBNX) || defined(__linux__) || defined (HAVE_EMSCRIPTEN) || defined(__APPLE__) || defined(HAVE_ODROIDGO2)
    &stb_unicode_font_renderer,
 #else
    &stb_font_renderer,
@@ -46,6 +45,7 @@ static const font_renderer_driver_t *font_backends[] = {
    NULL
 };
 
+/* TODO/FIXME - global */
 static void *video_font_driver = NULL;
 
 int font_renderer_create_default(
@@ -73,7 +73,7 @@ int font_renderer_create_default(
          return 1;
       }
       else
-         RARCH_ERR("Failed to create rendering backend: %s.\n",
+         RARCH_ERR("[Font]: Failed to create rendering backend: %s.\n",
                font_backends[i]->ident);
    }
 
@@ -941,13 +941,20 @@ static INLINE unsigned font_get_replacement(const char* src, const char* start)
    return 0;
 }
 
-static char* font_driver_reshape_msg(const char* msg)
+static char* font_driver_reshape_msg(const char* msg, unsigned char *buffer, size_t buffer_size)
 {
-   /* worst case transformations are 2 bytes to 4 bytes */
-   unsigned char*       buffer  = (unsigned char*)malloc((strlen(msg) * 2) + 1);
+   unsigned char*       dst_buffer = buffer;
    const unsigned char* src     = (const unsigned char*)msg;
-   unsigned char*       dst     = (unsigned char*)buffer;
+   unsigned char*       dst;
    bool                 reverse = false;
+   size_t              msg_size = (strlen(msg) * 2) + 1;
+
+   /* fallback to heap allocated buffer if the buffer is too small */
+   /* worst case transformations are 2 bytes to 4 bytes -- aliaspider */
+   if (buffer_size < msg_size)
+      dst_buffer = (unsigned char*)malloc(msg_size);
+
+   dst = (unsigned char*)dst_buffer;
 
    while (*src || reverse)
    {
@@ -1026,13 +1033,12 @@ static char* font_driver_reshape_msg(const char* msg)
 end:
    *dst = '\0';
 
-   return (char*)buffer;
+   return (char*)dst_buffer;
 }
 #endif
 
 void font_driver_render_msg(
       void *data,
-      video_frame_info_t *video_info,
       const char *msg,
       const void *_params,
       void *font_data)
@@ -1044,15 +1050,16 @@ void font_driver_render_msg(
    if (msg && *msg && font && font->renderer && font->renderer->render_msg)
    {
 #ifdef HAVE_LANGEXTRA
-      char *new_msg = font_driver_reshape_msg(msg);
+      unsigned char tmp_buffer[64];
+      char *new_msg = font_driver_reshape_msg(msg, tmp_buffer, sizeof(tmp_buffer));
 #else
       char *new_msg = (char*)msg;
 #endif
-
-      font->renderer->render_msg(video_info,
+      font->renderer->render_msg(data,
             font->renderer_data, new_msg, params);
 #ifdef HAVE_LANGEXTRA
-      free(new_msg);
+      if (new_msg != (char*)tmp_buffer)
+         free(new_msg);
 #endif
    }
 }
@@ -1065,12 +1072,11 @@ void font_driver_bind_block(void *font_data, void *block)
       font->renderer->bind_block(font->renderer_data, block);
 }
 
-void font_driver_flush(unsigned width, unsigned height, void *font_data,
-      video_frame_info_t *video_info)
+void font_driver_flush(unsigned width, unsigned height, void *font_data)
 {
    font_data_t *font = (font_data_t*)(font_data ? font_data : video_font_driver);
    if (font && font->renderer && font->renderer->flush)
-      font->renderer->flush(width, height, font->renderer_data, video_info);
+      font->renderer->flush(width, height, font->renderer_data);
 }
 
 int font_driver_get_message_width(void *font_data,
@@ -1086,16 +1092,67 @@ int font_driver_get_message_width(void *font_data,
 
 int font_driver_get_line_height(void *font_data, float scale)
 {
-   int line_height;
+   struct font_line_metrics *metrics = NULL;
    font_data_t *font = (font_data_t*)(font_data ? font_data : video_font_driver);
 
-   /* First try the line height implementation */
-   if (font && font->renderer && font->renderer->get_line_height)
-      if ((line_height = font->renderer->get_line_height(font->renderer_data)) != -1)
-         return (int)(line_height * roundf(scale));
+   /* First try the line metrics implementation */
+   if (font && font->renderer && font->renderer->get_line_metrics)
+      if ((font->renderer->get_line_metrics(font->renderer_data, &metrics)))
+         return (int)roundf(metrics->height * scale);
 
-   /* Else return an approximation (width of 'a') */
-   return font_driver_get_message_width(font_data, "a", 1, scale);
+   /* Else return an approximation
+    * (uses a fudge of standard font metrics - mostly garbage...)
+    * > font_size = (width of 'a') / 0.6
+    * > line_height = font_size * 1.7f */
+   return (int)roundf(1.7f * (float)font_driver_get_message_width(font_data, "a", 1, scale) / 0.6f);
+}
+
+int font_driver_get_line_ascender(void *font_data, float scale)
+{
+   struct font_line_metrics *metrics = NULL;
+   font_data_t *font = (font_data_t*)(font_data ? font_data : video_font_driver);
+
+   /* First try the line metrics implementation */
+   if (font && font->renderer && font->renderer->get_line_metrics)
+      if ((font->renderer->get_line_metrics(font->renderer_data, &metrics)))
+         return (int)roundf(metrics->ascender * scale);
+
+   /* Else return an approximation
+    * (uses a fudge of standard font metrics - mostly garbage...)
+    * > font_size = (width of 'a') / 0.6
+    * > ascender = 1.58 * font_size * 0.75 */
+   return (int)roundf(1.58f * 0.75f * (float)font_driver_get_message_width(font_data, "a", 1, scale) / 0.6f);
+}
+
+int font_driver_get_line_descender(void *font_data, float scale)
+{
+   struct font_line_metrics *metrics = NULL;
+   font_data_t *font = (font_data_t*)(font_data ? font_data : video_font_driver);
+
+   /* First try the line metrics implementation */
+   if (font && font->renderer && font->renderer->get_line_metrics)
+      if ((font->renderer->get_line_metrics(font->renderer_data, &metrics)))
+         return (int)roundf(metrics->descender * scale);
+
+   /* Else return an approximation
+    * (uses a fudge of standard font metrics - mostly garbage...)
+    * > font_size = (width of 'a') / 0.6
+    * > descender = 1.58 * font_size * 0.25 */
+   return (int)roundf(1.58f * 0.25f * (float)font_driver_get_message_width(font_data, "a", 1, scale) / 0.6f);
+}
+
+int font_driver_get_line_centre_offset(void *font_data, float scale)
+{
+   struct font_line_metrics *metrics = NULL;
+   font_data_t *font = (font_data_t*)(font_data ? font_data : video_font_driver);
+
+   /* First try the line metrics implementation */
+   if (font && font->renderer && font->renderer->get_line_metrics)
+      if ((font->renderer->get_line_metrics(font->renderer_data, &metrics)))
+         return (int)roundf((metrics->ascender - metrics->descender) * 0.5f * scale);
+
+   /* Else return an approximation... */
+   return (int)roundf((1.58f * 0.5f * (float)font_driver_get_message_width(font_data, "a", 1, scale) / 0.6f) / 2.0f);
 }
 
 void font_driver_free(void *font_data)
@@ -1155,33 +1212,21 @@ font_data_t *font_driver_init_first(
 
 void font_driver_init_osd(
       void *video_data,
+      const void *video_info_data,
       bool threading_hint,
       bool is_threaded,
       enum font_driver_render_api api)
 {
-   settings_t *settings = config_get_ptr();
-   if (video_font_driver)
+   const video_info_t *video_info = (const video_info_t*)video_info_data;
+   if (video_font_driver || !video_info)
       return;
 
-   // 这里优先使用ozone的regular.ttf，可以保证是中文字体
-   char font_path[PATH_MAX_LENGTH] = {0};
-   if (!settings->paths.path_font || settings->paths.path_font[0] == '\0')
-   {
-      char ozone_path[PATH_MAX_LENGTH] = {0};
-      fill_pathname_join(
-         ozone_path,
-         settings->paths.directory_assets,
-         "ozone",
-         sizeof(ozone_path)
-         );
-      fill_pathname_join(font_path, ozone_path, "regular.ttf", sizeof(font_path));
-   }
-
-   video_font_driver = font_driver_init_first(video_data, font_path,
-         settings->floats.video_font_size, threading_hint, is_threaded, api);
+   video_font_driver = font_driver_init_first(video_data,
+         *video_info->path_font ? video_info->path_font : NULL,
+         video_info->font_size, threading_hint, is_threaded, api);
 
    if (!video_font_driver)
-      RARCH_ERR("[font]: Failed to initialize OSD font.\n");
+      RARCH_ERR("[Font]: Failed to initialize OSD font.\n");
 }
 
 void font_driver_free_osd(void)

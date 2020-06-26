@@ -87,11 +87,6 @@ static bool switch_joypad_button(unsigned port_num, uint16_t key)
 {
    if (port_num >= DEFAULT_MAX_PADS)
       return false;
-
-#if 0
-   RARCH_LOG("button(%d, %d)\n", port_num, key);
-#endif
-
    return (pad_state[port_num] & (1 << key));
 }
 
@@ -202,13 +197,16 @@ static void switch_joypad_poll(void)
       {
          for (i = 0; i < MAX_USERS; i += 2)
          {
-            if (settings->uints.input_split_joycon[i])
+            unsigned input_split_joycon = 
+               settings->uints.input_split_joycon[i];
+
+            if (input_split_joycon)
             {
                hidSetNpadJoyAssignmentModeSingleByDefault(i);
                hidSetNpadJoyAssignmentModeSingleByDefault(i + 1);
                hidSetNpadJoyHoldType(HidJoyHoldType_Horizontal);
             } 
-            else if (!settings->uints.input_split_joycon[i])
+            else if (!input_split_joycon)
             {
                hidSetNpadJoyAssignmentModeDual(i);
                hidSetNpadJoyAssignmentModeDual(i + 1);
@@ -227,8 +225,10 @@ static void switch_joypad_poll(void)
        * joycons are correctly split. */
       for (i = 0; i < MAX_USERS; i += 2)
       {
+         unsigned input_split_joycon = settings->uints.input_split_joycon[i];
+
          /* CONTROLLER_PLAYER_X, X == i++ */
-         if (settings->uints.input_split_joycon[i])
+         if (input_split_joycon)
          {
             hidSetNpadJoyAssignmentModeSingleByDefault(i);
             hidSetNpadJoyAssignmentModeSingleByDefault(i + 1);
@@ -273,14 +273,15 @@ static void switch_joypad_poll(void)
       /* split or join joycons every time the user changes a setting */
       for (i = 0; i < MAX_USERS; i += 2)
       {
-         if (      settings->uints.input_split_joycon[i] 
+         unsigned input_split_joycon = settings->uints.input_split_joycon[i];
+         if (input_split_joycon
                && !previous_split_joycon_setting[i])
          {
             hidSetNpadJoyAssignmentModeSingleByDefault(i);
             hidSetNpadJoyAssignmentModeSingleByDefault(i + 1);
             hidSetNpadJoyHoldType(HidJoyHoldType_Horizontal);
          } 
-         else if (!settings->uints.input_split_joycon[i] 
+         else if (!input_split_joycon
                && previous_split_joycon_setting[i])
          {
             hidSetNpadJoyAssignmentModeDual(i);

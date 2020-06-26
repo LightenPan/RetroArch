@@ -75,7 +75,7 @@ typedef struct libretrodb_metadata
 
 typedef struct libretrodb_header
 {
-	char magic_number[sizeof(MAGIC_NUMBER)-1];
+	char magic_number[sizeof(MAGIC_NUMBER)];
 	uint64_t metadata_offset;
 } libretrodb_header_t;
 
@@ -87,8 +87,6 @@ struct libretrodb_cursor
 	libretrodb_query_t *query;
 	libretrodb_t *db;
 };
-
-static struct rmsgpack_dom_value sentinal;
 
 static int libretrodb_read_metadata(RFILE *fd, libretrodb_metadata_t *md)
 {
@@ -140,10 +138,11 @@ int libretrodb_create(RFILE *fd, libretrodb_value_provider value_provider,
 {
    int rv;
    libretrodb_metadata_t md;
+   static struct rmsgpack_dom_value sentinal;
    struct rmsgpack_dom_value item;
    uint64_t item_count        = 0;
    libretrodb_header_t header = {{0}};
-   ssize_t root = filestream_tell(fd);
+   ssize_t root               = filestream_tell(fd);
 
    memcpy(header.magic_number, MAGIC_NUMBER, sizeof(MAGIC_NUMBER)-1);
 
@@ -173,8 +172,7 @@ int libretrodb_create(RFILE *fd, libretrodb_value_provider value_provider,
    if ((rv = rmsgpack_dom_write(fd, &sentinal)) < 0)
       goto clean;
 
-   header.metadata_offset = swap_if_little64(filestream_seek(
-            fd, 0, RETRO_VFS_SEEK_POSITION_CURRENT));
+   header.metadata_offset = swap_if_little64(filestream_tell(fd));
    md.count = item_count;
    libretrodb_write_metadata(fd, &md);
    filestream_seek(fd, root, RETRO_VFS_SEEK_POSITION_START);

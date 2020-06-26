@@ -144,7 +144,7 @@ static void gfx_ctx_drm_swap_interval(void *data, int interval)
 }
 
 static void gfx_ctx_drm_check_window(void *data, bool *quit,
-      bool *resize, unsigned *width, unsigned *height, bool is_shutdown)
+      bool *resize, unsigned *width, unsigned *height)
 {
    (void)data;
    (void)width;
@@ -229,10 +229,11 @@ static bool gfx_ctx_drm_queue_flip(void)
    return false;
 }
 
-static void gfx_ctx_drm_swap_buffers(void *data, void *data2)
+static void gfx_ctx_drm_swap_buffers(void *data)
 {
    gfx_ctx_drm_data_t        *drm = (gfx_ctx_drm_data_t*)data;
-   video_frame_info_t *video_info = (video_frame_info_t*)data2;
+   settings_t *settings           = config_get_ptr();
+   unsigned max_swapchain_images  = settings->uints.video_max_swapchain_images;
 
    switch (drm_api)
    {
@@ -258,7 +259,7 @@ static void gfx_ctx_drm_swap_buffers(void *data, void *data2)
    waiting_for_flip = gfx_ctx_drm_queue_flip();
 
    /* Triple-buffered page flips */
-   if (video_info->max_swapchain_images >= 3 &&
+   if (max_swapchain_images >= 3 &&
          gbm_surface_has_free_buffers(g_gbm_surface))
       return;
 
@@ -342,15 +343,17 @@ static void gfx_ctx_drm_destroy_resources(gfx_ctx_drm_data_t *drm)
    g_next_bo           = NULL;
 }
 
-static void *gfx_ctx_drm_init(video_frame_info_t *video_info, void *video_driver)
+static void *gfx_ctx_drm_init(void *video_driver)
 {
    int fd, i;
    unsigned monitor_index;
    unsigned gpu_index                   = 0;
    const char *gpu                      = NULL;
    struct string_list *gpu_descriptors  = NULL;
+   settings_t *settings                 = config_get_ptr();
    gfx_ctx_drm_data_t *drm              = (gfx_ctx_drm_data_t*)
       calloc(1, sizeof(gfx_ctx_drm_data_t));
+   unsigned video_monitor_index         = settings->uints.video_monitor_index;
 
    if (!drm)
       return NULL;
@@ -380,7 +383,7 @@ nextgpu:
    if (!drm_get_resources(fd))
       goto nextgpu;
 
-   if (!drm_get_connector(fd, video_info))
+   if (!drm_get_connector(fd, video_monitor_index))
       goto nextgpu;
 
    if (!drm_get_encoder(fd))
@@ -391,10 +394,13 @@ nextgpu:
    /* Choose the optimal video mode for get_video_size():
      - the current video mode from the CRTC
      - otherwise pick first connector mode */
-   if (g_orig_crtc->mode_valid) {
+   if (g_orig_crtc->mode_valid)
+   {
       drm->fb_width  = g_orig_crtc->mode.hdisplay;
       drm->fb_height = g_orig_crtc->mode.vdisplay;
-   } else {
+   }
+   else
+   {
       drm->fb_width  = g_drm_connector->modes[0].hdisplay;
       drm->fb_height = g_drm_connector->modes[0].vdisplay;
    }
@@ -635,7 +641,6 @@ error:
 #endif
 
 static bool gfx_ctx_drm_set_video_mode(void *data,
-      video_frame_info_t *video_info,
       unsigned width, unsigned height,
       bool fullscreen)
 {
@@ -643,6 +648,9 @@ static bool gfx_ctx_drm_set_video_mode(void *data,
    int i, ret                  = 0;
    struct drm_fb *fb           = NULL;
    gfx_ctx_drm_data_t *drm     = (gfx_ctx_drm_data_t*)data;
+   settings_t *settings        = config_get_ptr();
+   bool black_frame_insertion  = settings->bools.video_black_frame_insertion;
+   float video_refresh_rate    = settings->floats.video_refresh_rate;
 
    if (!drm)
       return false;
@@ -652,7 +660,7 @@ static bool gfx_ctx_drm_set_video_mode(void *data,
    /* If we use black frame insertion,
     * we fake a 60 Hz monitor for 120 Hz one,
     * etc, so try to match that. */
-   refresh_mod = video_info->black_frame_insertion
+   refresh_mod = black_frame_insertion
       ? 0.5f : 1.0f;
 
    /* Find desired video mode, and use that.
@@ -678,7 +686,7 @@ static bool gfx_ctx_drm_set_video_mode(void *data,
             continue;
 
          diff = fabsf(refresh_mod * g_drm_connector->modes[i].vrefresh
-               - video_info->refresh_rate);
+               - video_refresh_rate);
 
          if (!g_drm_mode || diff < minimum_fps_diff)
          {

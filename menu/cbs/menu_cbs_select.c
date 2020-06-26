@@ -31,28 +31,17 @@
 #endif
 
 #ifndef BIND_ACTION_SELECT
-#define BIND_ACTION_SELECT(cbs, name) \
-   cbs->action_select = name; \
-   cbs->action_select_ident = #name;
+#define BIND_ACTION_SELECT(cbs, name) (cbs)->action_select = (name)
 #endif
 
-static int action_select_default(const char *path, const char *label, unsigned type,
+static int action_select_default(
+      const char *path, const char *label, unsigned type,
       size_t idx, size_t entry_idx)
 {
-   menu_entry_t entry;
    int ret                    = 0;
    enum menu_action action    = MENU_ACTION_NOOP;
    menu_file_list_cbs_t *cbs  = NULL;
    file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
-
-   menu_entry_init(&entry);
-   /* Note: If menu_entry_action() is modified,
-    * will have to verify that these parameters
-    * remain unused... */
-   entry.rich_label_enabled = false;
-   entry.value_enabled      = false;
-   entry.sublabel_enabled   = false;
-   menu_entry_get(&entry, 0, idx, NULL, false);
 
    if (selection_buf)
       cbs                     = (menu_file_list_cbs_t*)
@@ -103,7 +92,20 @@ static int action_select_default(const char *path, const char *label, unsigned t
    }
 
    if (action != MENU_ACTION_NOOP)
-       ret = menu_entry_action(&entry, idx, action);
+   {
+      menu_entry_t entry;
+      menu_entry_init(&entry);
+
+      /* Note: If menu_entry_action() is modified,
+       * will have to verify that these parameters
+       * remain unused... */
+      entry.rich_label_enabled = false;
+      entry.value_enabled      = false;
+      entry.sublabel_enabled   = false;
+      menu_entry_get(&entry, 0, idx, NULL, false);
+
+      ret = menu_entry_action(&entry, idx, action);
+   }
 
    task_queue_check();
 
@@ -134,44 +136,6 @@ static int action_select_input_desc_kbd(const char *path,
 {
    return action_right_input_desc_kbd(type, label, true);
 }
-
-#ifdef HAVE_NETWORKING
-static int action_select_netplay_connect_room(const char *path,
-      const char *label, unsigned type,
-      size_t idx, size_t entry_idx)
-{
-   char tmp_hostname[4115];
-   unsigned offset = idx - 4;
-
-   tmp_hostname[0] = '\0';
-
-   if (netplay_driver_ctl(RARCH_NETPLAY_CTL_IS_DATA_INITED, NULL))
-      command_event(CMD_EVENT_NETPLAY_DEINIT, NULL);
-   netplay_driver_ctl(RARCH_NETPLAY_CTL_ENABLE_CLIENT, NULL);
-
-   if (netplay_room_list[offset].host_method == NETPLAY_HOST_METHOD_MITM)
-      snprintf(tmp_hostname,
-            sizeof(tmp_hostname),
-            "%s|%d",
-            netplay_room_list[offset].mitm_address,
-            netplay_room_list[offset].mitm_port);
-   else
-      snprintf(tmp_hostname,
-            sizeof(tmp_hostname),
-            "%s|%d",
-            netplay_room_list[offset].address,
-            netplay_room_list[offset].port);
-
-   task_push_netplay_crc_scan(
-         netplay_room_list[offset].gamecrc,
-         netplay_room_list[offset].gamename,
-         tmp_hostname,
-         netplay_room_list[offset].corename,
-         netplay_room_list[offset].subsystem_name);
-
-   return 0;
-}
-#endif
 
 static int menu_cbs_init_bind_select_compare_type(
       menu_file_list_cbs_t *cbs, unsigned type)
@@ -215,14 +179,6 @@ int menu_cbs_init_bind_select(menu_file_list_cbs_t *cbs,
       return -1;
 
    BIND_ACTION_SELECT(cbs, action_select_default);
-
-#ifdef HAVE_NETWORKING
-   if (cbs->enum_idx == MENU_ENUM_LABEL_CONNECT_NETPLAY_ROOM)
-   {
-      BIND_ACTION_SELECT(cbs, action_select_netplay_connect_room);
-      return 0;
-   }
-#endif
 
    if ((type >= MENU_SETTINGS_CORE_OPTION_START) &&
        (type < MENU_SETTINGS_CHEEVOS_START))

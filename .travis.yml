@@ -33,17 +33,23 @@ matrix:
     - compiler: gcc
       env: CC=gcc-8 CXX=g++-8
     - compiler: gcc
+      env: CC="gcc-8 --sysroot=/" CXX="g++-8 --sysroot=/"
+    - compiler: gcc
       env: C89_BUILD=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: CXX_BUILD=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: DISABLE_MENU=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
+      env: DISABLE_NETWORKING=1 CC=gcc-8 CXX=g++-8
+    - compiler: gcc
       env: DISABLE_OVERLAY=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: DISABLE_CDROM=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: DISABLE_VIDEO_LAYOUT=1 CC=gcc-8 CXX=g++-8
+    - compiler: gcc
+      env: DISABLE_THREADS=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
       env: DISABLE_AUDIOMIXER=1 CC=gcc-8 CXX=g++-8
     - compiler: gcc
@@ -103,9 +109,13 @@ matrix:
         - cd pkg/android/phoenix
         - ./gradlew assembleNormalRelease
 
+jobs:
+  allow_failure:
+    - os: osx
+
 before_install:
   - |
-     if [ "$CC" = gcc-8 ]; then
+     if [[ "$CC" =~ ^gcc-8.* ]]; then
        # Install a more recent gcc than the default
        sudo apt-get install -y g++-8
      elif [ "$CC" = clang-6.0 ]; then
@@ -131,12 +141,20 @@ before_script:
        ARGS="$ARGS --disable-overlay"
      fi
   - |
+     if [ -n "$DISABLE_NETWORKING" ]; then
+       ARGS="$ARGS --disable-networking"
+     fi
+  - |
      if [ -n "$DISABLE_CDROM" ]; then
        ARGS="$ARGS --disable-cdrom"
      fi
   - |
      if [ -n "$DISABLE_VIDEO_LAYOUT" ]; then
        ARGS="$ARGS --disable-video_layout"
+     fi
+  - |
+     if [ -n "$DISABLE_THREADS" ]; then
+       ARGS="$ARGS --disable-threads --disable-glslang"
      fi
   - |
      if [ -n "$DISABLE_AUDIOMIXER" ]; then

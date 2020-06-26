@@ -497,9 +497,6 @@ static void seek_frame(int seek_frames)
    }
    audio_frames = frame_cnt * media.sample_rate / media.interpolate_fps;
 
-   tpool_wait(tpool);
-   video_buffer_clear(video_buffer);
-
    if (audio_decode_fifo)
       fifo_clear(audio_decode_fifo);
    scond_signal(fifo_decode_cond);
@@ -512,7 +509,6 @@ static void seek_frame(int seek_frames)
    }
 
    slock_unlock(fifo_lock);
-
 }
 
 void CORE_PREFIX(retro_run)(void)
@@ -696,38 +692,42 @@ void CORE_PREFIX(retro_run)(void)
          frames[0] = tmp;
       }
 
-      while (!decode_thread_dead && min_pts > frames[1].pts)
-      {
-         int64_t pts = 0;
-
-         if (!decode_thread_dead)
-            video_buffer_wait_for_finished_slot(video_buffer);
-
-         if (!decode_thread_dead)
-         {
-            uint32_t *data = video_frame_temp_buffer;
-
-            video_decoder_context_t *ctx = NULL;
-            video_buffer_get_finished_slot(video_buffer, &ctx);
-            pts = ctx->pts;
-
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-            if (use_gl)
+      if (use_gl)
+      {
+         float mix_factor;
+
+         while (!decode_thread_dead && min_pts > frames[1].pts)
+         {
+            int64_t pts = 0;
+
+            if (!decode_thread_dead)
+               video_buffer_wait_for_finished_slot(video_buffer);
+
+            if (!decode_thread_dead)
             {
+               unsigned y;
+               const uint8_t *src;
+               int stride, width;
+               uint32_t               *data = video_frame_temp_buffer;
+
+               video_decoder_context_t *ctx = NULL;
+               video_buffer_get_finished_slot(video_buffer, &ctx);
+               pts                          = ctx->pts;
+
 #ifndef HAVE_OPENGLES
                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, frames[1].pbo);
 #ifdef __MACH__
-               data = (uint32_t*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+               data                         = (uint32_t*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 #else
-               data = (uint32_t*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER,
+               data                         = (uint32_t*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER,
                      0, media.width * media.height * sizeof(uint32_t), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 #endif
 #endif
-
-               const uint8_t *src = ctx->target->data[0];
-               int stride = ctx->target->linesize[0];
-               int width = media.width * sizeof(uint32_t);
-               for (unsigned y = 0; y < media.height; y++, src += stride, data += width/4)
+               src                          = ctx->target->data[0];
+               stride                       = ctx->target->linesize[0];
+               width                        = media.width * sizeof(uint32_t);
+               for (y = 0; y < media.height; y++, src += stride, data += width/4)
                   memcpy(data, src, width);
 
 #ifndef HAVE_OPENGLES
@@ -745,28 +745,13 @@ void CORE_PREFIX(retro_run)(void)
 #ifndef HAVE_OPENGLES
                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 #endif
+               video_buffer_open_slot(video_buffer, ctx);
             }
-            else
-#endif
-            {
-               const uint8_t *src = ctx->target->data[0];
-               int stride = ctx->target->linesize[0];
-               size_t width = media.width * sizeof(uint32_t);
-               for (unsigned y = 0; y < media.height; y++, src += stride, data += width/4)
-                  memcpy(data, src, width);
 
-               dupe = false;
-            }
-            video_buffer_open_slot(video_buffer, ctx);
+            frames[1].pts = av_q2d(fctx->streams[video_stream_index]->time_base) * pts;
          }
 
-         frames[1].pts = av_q2d(fctx->streams[video_stream_index]->time_base) * pts;
-      }
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-      if (use_gl)
-      {
-         float mix_factor = (min_pts - frames[0].pts) / (frames[1].pts - frames[0].pts);
+         mix_factor = (min_pts - frames[0].pts) / (frames[1].pts - frames[0].pts);
 
          if (!temporal_interpolation)
             mix_factor = 1.0f;
@@ -808,6 +793,36 @@ void CORE_PREFIX(retro_run)(void)
       else
 #endif
       {
+         while (!decode_thread_dead && min_pts > frames[1].pts)
+         {
+            int64_t pts = 0;
+
+            if (!decode_thread_dead)
+               video_buffer_wait_for_finished_slot(video_buffer);
+
+            if (!decode_thread_dead)
+            {
+               unsigned y;
+               const uint8_t *src;
+               int stride, width;
+               uint32_t *data               = video_frame_temp_buffer;
+               video_decoder_context_t *ctx = NULL;
+
+               video_buffer_get_finished_slot(video_buffer, &ctx);
+               pts                          = ctx->pts;
+               src                          = ctx->target->data[0];
+               stride                       = ctx->target->linesize[0];
+               width                        = media.width * sizeof(uint32_t);
+               for (y = 0; y < media.height; y++, src += stride, data += width/4)
+                  memcpy(data, src, width);
+
+               dupe                         = false;
+               video_buffer_open_slot(video_buffer, ctx);
+            }
+
+            frames[1].pts = av_q2d(fctx->streams[video_stream_index]->time_base) * pts;
+         }
+
          CORE_PREFIX(video_cb)(dupe ? NULL : video_frame_temp_buffer,
                media.width, media.height, media.width * sizeof(uint32_t));
       }
@@ -1363,7 +1378,8 @@ static void decode_video(AVCodecContext *ctx, AVPacket *pkt, size_t frame_size)
    {
       if (main_sleeping)
       {
-         log_cb(RETRO_LOG_ERROR, "[FFMPEG] Thread: Video deadlock detected.\n");
+         if (!do_seek)
+            log_cb(RETRO_LOG_ERROR, "[FFMPEG] Thread: Video deadlock detected.\n");
          tpool_wait(tpool);
          video_buffer_clear(video_buffer);
          return;
@@ -1449,7 +1465,7 @@ static int16_t *decode_audio(AVCodecContext *ctx, AVPacket *pkt,
       return buffer;
    }
 
-   while(true)
+   for (;;)
    {
       ret = avcodec_receive_frame(ctx, frame);
       if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)

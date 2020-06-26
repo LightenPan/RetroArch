@@ -14,10 +14,12 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include <compat/strl.h>
 #include <string/stdstring.h>
+#include <retro_miscellaneous.h>
 #include <libretro.h>
 
 #if defined(_3DS)
@@ -29,7 +31,6 @@
 #endif
 
 #include "frontend_driver.h"
-#include "../../paths.h" // 获取路径配置
 
 #ifndef __WINRT__
 #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
@@ -69,6 +70,8 @@ static frontend_ctx_driver_t frontend_ctx_null = {
    NULL,                         /* set_sustained_performance_mode */
    NULL,                         /* get_cpu_model_name */
    NULL,                         /* get_user_language */
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "null",
    NULL,                         /* get_video_driver */
 };
@@ -132,6 +135,7 @@ static frontend_ctx_driver_t *frontend_ctx_drivers[] = {
 };
 
 #ifndef IS_SALAMANDER
+/* TODO/FIXME - static public global variable */
 static frontend_ctx_driver_t *current_frontend_ctx;
 #endif
 
@@ -215,6 +219,9 @@ bool frontend_driver_get_core_extension(char *s, size_t len)
 #elif defined(HAVE_LIBNX)
    strlcpy(s, "nro", len);
    return true;
+#elif defined(DJGPP)
+   strlcpy(s, "exe", len);
+   return true;
 #elif defined(_3DS)
    if (envIsHomebrew())
       strlcpy(s, "3dsx", len);
@@ -260,6 +267,9 @@ bool frontend_driver_get_salamander_basename(char *s, size_t len)
    return true;
 #elif defined(_3DS)
    strlcpy(s, "retroarch.core", len);
+   return true;
+#elif defined(DJGPP)
+   strlcpy(s, "retrodos.exe", len);
    return true;
 #elif defined(SWITCH)
    strlcpy(s, "retroarch_switch.nro", len);
@@ -367,17 +377,12 @@ const struct video_driver *frontend_driver_get_video_driver(void)
    return frontend->get_video_driver();
 }
 
-void frontend_driver_exitspawn(char *s, size_t len)
+void frontend_driver_exitspawn(char *s, size_t len, char *args)
 {
-	RARCH_LOG("frontend_driver_exitspawn. game: %s, label: %s\n",
-		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
-
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
    if (!frontend || !frontend->exitspawn)
       return;
-	frontend->exitspawn(s, len);
-	RARCH_LOG("frontend_driver_exitspawn end. game: %s, label: %s\n",
-		path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+   frontend->exitspawn(s, len, args);
 }
 
 void frontend_driver_deinit(void *args)
@@ -402,6 +407,48 @@ enum frontend_architecture frontend_driver_get_cpu_architecture(void)
    if (!frontend || !frontend->get_architecture)
       return FRONTEND_ARCH_NONE;
    return frontend->get_architecture();
+}
+
+const void *frontend_driver_get_cpu_architecture_str(
+      char *architecture, size_t size)
+{
+   const frontend_ctx_driver_t
+      *frontend                    = frontend_get_ptr();
+   enum frontend_architecture arch = frontend_driver_get_cpu_architecture();
+
+   switch (arch)
+   {
+      case FRONTEND_ARCH_X86:
+         strlcpy(architecture, "x86", size);
+         break;
+      case FRONTEND_ARCH_X86_64:
+         strlcpy(architecture, "x64", size);
+         break;
+      case FRONTEND_ARCH_PPC:
+         strlcpy(architecture, "PPC", size);
+         break;
+      case FRONTEND_ARCH_ARM:
+         strlcpy(architecture, "ARM", size);
+         break;
+      case FRONTEND_ARCH_ARMV7:
+         strlcpy(architecture, "ARMv7", size);
+         break;
+      case FRONTEND_ARCH_ARMV8:
+         strlcpy(architecture, "ARMv8", size);
+         break;
+      case FRONTEND_ARCH_MIPS:
+         strlcpy(architecture, "MIPS", size);
+         break;
+      case FRONTEND_ARCH_TILE:
+         strlcpy(architecture, "Tilera", size);
+         break;
+      case FRONTEND_ARCH_NONE:
+      default:
+         strlcpy(architecture, "N/A", size);
+         break;
+   }
+
+   return frontend;
 }
 
 uint64_t frontend_driver_get_total_memory(void)
@@ -512,7 +559,15 @@ enum retro_language frontend_driver_get_user_language(void)
 {
    frontend_ctx_driver_t *frontend = frontend_get_ptr();
    if (!frontend || !frontend->get_user_language)
-      return RETRO_LANGUAGE_CHINESE_SIMPLIFIED; // 默认使用中文
+      return RETRO_LANGUAGE_ENGLISH;
    return frontend->get_user_language();
+}
+
+bool frontend_driver_is_narrator_running(void)
+{
+   frontend_ctx_driver_t *frontend = frontend_get_ptr();
+   if (!frontend || !frontend->is_narrator_running)
+      return false;
+   return frontend->is_narrator_running();
 }
 #endif

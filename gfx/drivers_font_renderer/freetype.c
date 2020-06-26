@@ -54,6 +54,7 @@ typedef struct freetype_renderer
    freetype_atlas_slot_t atlas_slots[FT_ATLAS_SIZE];
    freetype_atlas_slot_t* uc_map[0x100];
    unsigned usage_counter;
+   struct font_line_metrics line_metrics;
 } ft_font_renderer_t;
 
 static struct font_atlas *font_renderer_ft_get_atlas(void *data)
@@ -261,6 +262,10 @@ static void *font_renderer_ft_init(const char *font_path, float font_size)
    if (!font_renderer_create_atlas(handle, font_size))
       goto error;
 
+   handle->line_metrics.ascender  = (float)handle->face->size->metrics.ascender / 64.0f;
+   handle->line_metrics.descender = (float)(-handle->face->size->metrics.descender) / 64.0f;
+   handle->line_metrics.height    = (float)handle->face->size->metrics.height / 64.0f;
+
    return handle;
 
 error:
@@ -304,23 +309,9 @@ static const char *font_renderer_ft_get_default_font(void)
    return "";
 #else
    size_t i;
-#if 0
-   char asset_path[PATH_MAX_LENGTH];
-#endif
 
    for (i = 0; i < ARRAY_SIZE(font_paths); i++)
    {
-#if 0
-      /* Check if we are getting the font from the assets directory. */
-      if (string_is_equal(font_paths[i], "assets://pkg/osd-font.ttf"))
-      {
-         settings_t *settings = config_get_ptr();
-         fill_pathname_join(asset_path,
-               settings->paths.directory_assets, "pkg/osd-font.ttf", PATH_MAX_LENGTH);
-         font_paths[i] = asset_path;
-      }
-#endif
-
       if (path_is_valid(font_paths[i]))
          return font_paths[i];
    }
@@ -329,12 +320,15 @@ static const char *font_renderer_ft_get_default_font(void)
 #endif
 }
 
-static int font_renderer_ft_get_line_height(void* data)
+static bool font_renderer_ft_get_line_metrics(
+      void* data, struct font_line_metrics **metrics)
 {
    ft_font_renderer_t *handle = (ft_font_renderer_t*)data;
-   if (!handle || !handle->face)
-      return 0;
-   return handle->face->size->metrics.height/64;
+   if (!handle)
+      return false;
+
+   *metrics = &handle->line_metrics;
+   return true;
 }
 
 font_renderer_driver_t freetype_font_renderer = {
@@ -344,5 +338,5 @@ font_renderer_driver_t freetype_font_renderer = {
    font_renderer_ft_free,
    font_renderer_ft_get_default_font,
    "freetype",
-   font_renderer_ft_get_line_height,
+   font_renderer_ft_get_line_metrics
 };

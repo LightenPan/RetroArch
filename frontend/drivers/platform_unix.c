@@ -61,7 +61,6 @@
 #include <retro_inline.h>
 #include <compat/strl.h>
 #include <compat/fopen_utf8.h>
-#include <rhash.h>
 #include <lists/file_list.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
@@ -76,6 +75,7 @@
 #include "../../retroarch.h"
 #include "../../verbosity.h"
 #include "../../paths.h"
+#include "../../msg_hash.h"
 #include "platform_unix.h"
 
 #ifdef HAVE_MENU
@@ -119,6 +119,10 @@ static const char *proc_acpi_ac_adapter_path       = "/proc/acpi/ac_adapter";
 static char unix_cpu_model_name[64] = {0};
 #endif
 
+#if (defined(__linux__) || defined(__unix__)) && !defined(ANDROID)
+static int speak_pid                            = 0;
+#endif
+
 static volatile sig_atomic_t unix_sighandler_quit;
 
 #ifndef ANDROID
@@ -160,7 +164,7 @@ int system_property_get(const char *command,
 
    while (!feof(pipe))
    {
-      if (fgets(buffer, 128, pipe) != NULL)
+      if (fgets(buffer, 128, pipe))
       {
          int curlen = strlen(buffer);
 
@@ -302,11 +306,11 @@ static void* onSaveInstanceState(
    while (!android_app->stateSaved)
       scond_wait(android_app->cond, android_app->mutex);
 
-   if (android_app->savedState != NULL)
+   if (android_app->savedState)
    {
-      savedState = android_app->savedState;
-      *outLen    = android_app->savedStateSize;
-      android_app->savedState = NULL;
+      savedState                  = android_app->savedState;
+      *outLen                     = android_app->savedStateSize;
+      android_app->savedState     = NULL;
       android_app->savedStateSize = 0;
    }
 
@@ -447,9 +451,9 @@ static struct android_app* android_app_create(ANativeActivity* activity,
    android_app->mutex    = slock_new();
    android_app->cond     = scond_new();
 
-   if (savedState != NULL)
+   if (savedState)
    {
-      android_app->savedState = malloc(savedStateSize);
+      android_app->savedState     = malloc(savedStateSize);
       android_app->savedStateSize = savedStateSize;
       memcpy(android_app->savedState, savedState, savedStateSize);
    }
@@ -665,7 +669,6 @@ static bool make_proc_acpi_key_val(char **_ptr, char **_key, char **_val)
 }
 
 #define ACPI_VAL_CHARGING_DISCHARGING  0xf268327aU
-#define ACPI_VAL_ONLINE                0x6842bf17U
 
 static void check_proc_acpi_battery(const char * node, bool * have_battery,
       bool * charging, int *seconds, int *percent)
@@ -712,19 +715,8 @@ static void check_proc_acpi_battery(const char * node, bool * have_battery,
       {
          if (string_is_equal(val, "charging"))
             charge = true;
-         else
-         {
-            uint32_t val_hash = djb2_calculate(val);
-
-            switch (val_hash)
-            {
-               case ACPI_VAL_CHARGING_DISCHARGING:
-                  charge = true;
-                  break;
-               default:
-                  break;
-            }
-         }
+         else if (string_is_equal(val, "charging/discharging"))
+            charge = true;
       }
       else if (string_is_equal(key, "remaining capacity"))
       {
@@ -867,10 +859,8 @@ static void check_proc_acpi_ac_adapter(const char * node, bool *have_ac)
    ptr = &buf[0];
    while (make_proc_acpi_key_val(&ptr, &key, &val))
    {
-      uint32_t val_hash = djb2_calculate(val);
-
       if (string_is_equal(key, "state") &&
-            val_hash == ACPI_VAL_ONLINE)
+            string_is_equal(val, "on-line"))
          *have_ac = true;
    }
 
@@ -1089,7 +1079,7 @@ static bool frontend_unix_powerstate_check_acpi_sysfs(
 #ifdef HAVE_LAKKA_SWITCH
       if (node && strstr(node, "max170xx_battery"))
 #else
-      if (node && strstr(node, "BAT"))
+      if (node && (strstr(node, "BAT") || strstr(node, "battery")))
 #endif
          check_proc_acpi_sysfs_battery(node,
                &have_battery, &charging, seconds, percent);
@@ -1689,17 +1679,15 @@ static void frontend_unix_get_env(int *argc,
    /* For gamepad-like/console devices:
     *
     * - Explicitly disable input overlay by default
-    * - Use XMB menu driver by default
+    * - Use Ozone menu driver by default
     *
     * */
 
-   // 安卓也会走到这里，默认使用xmb菜单
-   strlcpy(g_defaults.settings.menu, "xmb", sizeof(g_defaults.settings.menu));
    if (device_is_game_console(device_model) || device_is_android_tv())
    {
       g_defaults.overlay.set    = true;
       g_defaults.overlay.enable = false;
-      strlcpy(g_defaults.settings.menu, "xmb",
+      strlcpy(g_defaults.settings.menu, "ozone",
             sizeof(g_defaults.settings.menu));
    }
 #else
@@ -1780,6 +1768,12 @@ static void frontend_unix_get_env(int *argc,
          "thumbnails", sizeof(g_defaults.dirs[DEFAULT_DIR_THUMBNAILS]));
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_LOGS], base_path,
          "logs", sizeof(g_defaults.dirs[DEFAULT_DIR_LOGS]));
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SRAM], base_path,
+         "saves", sizeof(g_defaults.dirs[DEFAULT_DIR_SRAM]));
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SAVESTATE], base_path,
+         "states", sizeof(g_defaults.dirs[DEFAULT_DIR_SAVESTATE]));
+   fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_SYSTEM], base_path,
+         "system", sizeof(g_defaults.dirs[DEFAULT_DIR_SYSTEM]));
 #endif
 
    for (i = 0; i < DEFAULT_DIR_LAST; i++)
@@ -1795,10 +1789,10 @@ static void free_saved_state(struct android_app* android_app)
 {
     slock_lock(android_app->mutex);
 
-    if (android_app->savedState != NULL)
+    if (android_app->savedState)
     {
         free(android_app->savedState);
-        android_app->savedState = NULL;
+        android_app->savedState     = NULL;
         android_app->savedStateSize = 0;
     }
 
@@ -2068,7 +2062,7 @@ static bool frontend_unix_set_fork(enum frontend_fork fork_mode)
    return true;
 }
 
-static void frontend_unix_exec(const char *path, bool should_load_game)
+static void frontend_unix_exec(const char *path, bool should_load_content)
 {
    char *newargv[]    = { NULL, NULL };
    size_t len         = strlen(path);
@@ -2080,9 +2074,9 @@ static void frontend_unix_exec(const char *path, bool should_load_game)
    execv(path, newargv);
 }
 
-static void frontend_unix_exitspawn(char *core_path, size_t core_path_size)
+static void frontend_unix_exitspawn(char *s, size_t len, char *args)
 {
-   bool should_load_game = false;
+   bool should_load_content = false;
 
    if (unix_fork_mode == FRONTEND_FORK_NONE)
       return;
@@ -2090,27 +2084,27 @@ static void frontend_unix_exitspawn(char *core_path, size_t core_path_size)
    switch (unix_fork_mode)
    {
       case FRONTEND_FORK_CORE_WITH_ARGS:
-         should_load_game = true;
+         should_load_content = true;
          break;
       case FRONTEND_FORK_NONE:
       default:
          break;
    }
 
-   frontend_unix_exec(core_path, should_load_game);
+   frontend_unix_exec(s, should_load_content);
 }
 #endif
 
 static uint64_t frontend_unix_get_mem_total(void)
 {
-   long pages            = sysconf(_SC_PHYS_PAGES);
-   long page_size        = sysconf(_SC_PAGE_SIZE);
+   uint64_t pages            = sysconf(_SC_PHYS_PAGES);
+   uint64_t page_size        = sysconf(_SC_PAGE_SIZE);
    return pages * page_size;
 }
 
 static uint64_t frontend_unix_get_mem_free(void)
 {
-#ifdef ANDROID
+#if defined(ANDROID) || (!defined(__linux__) && !defined(__OpenBSD__))
    char line[256];
    uint64_t total    = 0;
    uint64_t freemem  = 0;
@@ -2400,8 +2394,7 @@ static const char* frontend_unix_get_cpu_model_name(void)
 
 enum retro_language frontend_unix_get_user_language(void)
 {
-   // 安卓默认使用中文
-   enum retro_language lang = RETRO_LANGUAGE_CHINESE_SIMPLIFIED;
+   enum retro_language lang = RETRO_LANGUAGE_ENGLISH;
 #ifdef HAVE_LANGEXTRA
 #ifdef ANDROID
    jstring jstr = NULL;
@@ -2427,12 +2420,80 @@ enum retro_language frontend_unix_get_user_language(void)
 #else
    char *envvar = getenv("LANG");
 
-   if (envvar != NULL)
+   if (envvar)
       lang = rarch_get_language_from_iso(envvar);
 #endif
 #endif
    return lang;
 }
+
+#if (defined(__linux__) || defined(__unix__)) && !defined(ANDROID)
+static bool is_narrator_running_unix(void)
+{
+   return (kill(speak_pid, 0) == 0);
+}
+
+static bool accessibility_speak_unix(int speed,
+      const char* speak_text, int priority)
+{
+   int pid;
+   const char *language   = get_user_language_iso639_1(true);
+   char* voice_out        = (char*)malloc(3+strlen(language));
+   char* speed_out        = (char*)malloc(3+3);
+   const char* speeds[10] = {"80", "100", "125", "150", "170", "210", "260", "310", "380", "450"};
+
+   if (speed < 1)
+      speed = 1;
+   else if (speed > 10)
+      speed = 10;
+
+   strlcpy(voice_out, "-v", 3);
+   strlcat(voice_out, language, 5);
+
+   strlcpy(speed_out, "-s", 3);
+   strlcat(speed_out, speeds[speed-1], 6);
+
+   if (priority < 10 && speak_pid > 0)
+   {
+      /* check if old pid is running */
+      if (is_narrator_running_unix())
+         return true;
+   }
+
+   if (speak_pid > 0)
+   {
+      /* Kill the running espeak */
+      kill(speak_pid, SIGTERM);
+      speak_pid = 0;
+   }
+
+   pid = fork();
+   if (pid < 0)
+   {
+      /* error */
+      RARCH_LOG("ERROR: could not fork for espeak.\n");
+   }
+   else if (pid > 0)
+   {
+      /* parent process */
+      speak_pid = pid;
+
+      /* Tell the system that we'll ignore the exit status of the child 
+       * process.  This prevents zombie processes. */
+      signal(SIGCHLD,SIG_IGN);
+   }
+   else
+   { 
+      /* child process: replace process with the espeak command */ 
+      char* cmd[] = { (char*) "espeak", NULL, NULL, NULL, NULL};
+      cmd[1] = voice_out;
+      cmd[2] = speed_out;
+      cmd[3] = (char*)speak_text;
+      execvp("espeak", cmd);
+   }
+   return true;
+}
+#endif
 
 frontend_ctx_driver_t frontend_ctx_unix = {
    frontend_unix_get_env,       /* environment_get */
@@ -2480,6 +2541,13 @@ frontend_ctx_driver_t frontend_ctx_unix = {
    frontend_unix_set_sustained_performance_mode,
    frontend_unix_get_cpu_model_name,
    frontend_unix_get_user_language,
+#if (defined(__linux__) || defined(__unix__)) && !defined(ANDROID)
+   is_narrator_running_unix,
+   accessibility_speak_unix,
+#else
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
+#endif
 #ifdef ANDROID
    "android"
 #else

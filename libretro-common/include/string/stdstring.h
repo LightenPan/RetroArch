@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2019 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (stdstring.h).
@@ -44,6 +44,33 @@ static INLINE bool string_is_equal(const char *a, const char *b)
 {
    return (a && b) ? !strcmp(a, b) : false;
 }
+
+static INLINE bool string_starts_with_size(const char *str, const char *prefix,
+      size_t size)
+{
+   return (str && prefix) ? !strncmp(prefix, str, size) : false;
+}
+
+static INLINE bool string_starts_with(const char *str, const char *prefix)
+{
+   return (str && prefix) ? !strncmp(prefix, str, strlen(prefix)) : false;
+}
+
+static INLINE bool string_ends_with_size(const char *str, const char *suffix,
+      size_t str_len, size_t suffix_len)
+{
+   return (str_len < suffix_len) ? false :
+         !memcmp(suffix, str + (str_len - suffix_len), suffix_len);
+}
+
+static INLINE bool string_ends_with(const char *str, const char *suffix)
+{
+   if (!str || !suffix)
+      return false;
+   return string_ends_with_size(str, suffix, strlen(str), strlen(suffix));
+}
+
+
 
 #define STRLEN_CONST(x)                   ((sizeof((x))-1))
 
@@ -145,6 +172,10 @@ unsigned string_to_unsigned(const char *str);
  * Handles optional leading '0x'.
  * Returns 0 if string is invalid  */
 unsigned string_hex_to_unsigned(const char *str);
+
+char *string_init(const char *src);
+
+void string_set(char **string, const char *src);
 
 RETRO_END_DECLS
 

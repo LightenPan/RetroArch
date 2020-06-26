@@ -18,7 +18,6 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "../../config.def.h"
 #ifdef HAVE_CONFIG_H
 #include "../../config.h"
 #endif
@@ -147,7 +146,7 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
    fill_pathname_join(g_defaults.path.config, user_path,
-         "retroarch.cfg", sizeof(g_defaults.path.config)); // 修复salamander编译依赖
+         file_path_str(FILE_PATH_MAIN_CONFIG), sizeof(g_defaults.path.config));
 #else
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_CORE], g_defaults.dirs[DEFAULT_DIR_PORT],
@@ -185,7 +184,7 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
    fill_pathname_join(g_defaults.path.config, user_path,
-         "retroarch.cfg", sizeof(g_defaults.path.config)); // 修复salamander编译依赖
+         file_path_str(FILE_PATH_MAIN_CONFIG), sizeof(g_defaults.path.config));
 #endif
 
 #ifndef IS_SALAMANDER
@@ -233,7 +232,7 @@ static void frontend_psp_deinit(void *data)
 {
    (void)data;
 #ifndef IS_SALAMANDER
-   // verbosity_disable();
+   verbosity_disable();
    pthread_terminate();
 #endif
 }
@@ -288,7 +287,7 @@ static void frontend_psp_init(void *data)
    scePowerSetGpuClockFrequency(222);
    scePowerSetGpuXbarClockFrequency(166);
    sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
-   
+
    SceAppUtilInitParam appUtilParam;
    SceAppUtilBootParam appUtilBootParam;
    memset(&appUtilParam, 0, sizeof(SceAppUtilInitParam));
@@ -320,6 +319,8 @@ static void frontend_psp_exec(const char *path, bool should_load_game)
 {
 #if defined(HAVE_KERNEL_PRX) || defined(IS_SALAMANDER) || defined(VITA)
    char argp[512] = {0};
+   char boot_params[1024];
+   char core_name[256];
    SceSize   args = 0;
 
 #if !defined(VITA)
@@ -332,34 +333,30 @@ static void frontend_psp_exec(const char *path, bool should_load_game)
    {
       argp[args] = '\0';
       strlcat(argp + args, path_get(RARCH_PATH_CONTENT), sizeof(argp) - args);
-		args += strlen(argp + args) + 1;
+      args += strlen(argp + args) + 1;
    }
 #endif
 
    RARCH_LOG("Attempt to load executable: [%s].\n", path);
 #if defined(VITA)
-	// 添加游戏标签，用于静态拉起核心时，传递游戏名显示中文
-	// 但是没有卵用，PSV的SDK不支持传递多个参数
-	int ret = 0;
-#ifndef IS_SALAMANDER
-	char *label = path_get(RARCH_PATH_LABEL);
-#else
-	char *label = NULL;
+   RARCH_LOG("Attempt to load executable: %d [%s].\n", args, argp);
+#ifdef IS_SALAMANDER
+   sceAppMgrGetAppParam(boot_params);
+   if (strstr(boot_params,"psgm:play")) {
+      char *param1 = strstr(boot_params, "&param=")+7;
+      char *param2 = strstr(boot_params, "&param2=");
+      memcpy(core_name, param1, param2 - param1);
+      core_name[param2-param1] = 0;
+      sprintf(argp, param2 + 8);
+      int ret =  sceAppMgrLoadExec(core_name, (char * const*)((const char*[]){argp, 0}), NULL);
+      RARCH_LOG("Attempt to load executable: [%d].\n", ret);
+   }
+   else
 #endif
-	if (label && !string_is_empty(label))
-	{
-		char game_label[512] = {0};
-		strncpy(game_label, label, sizeof(game_label));
-		RARCH_LOG("Attempt to load executable: %d [%s] [%s].\n", args, argp, game_label);
-		char *const argv[] = {argp, game_label, NULL};
-		ret = sceAppMgrLoadExec(path, args==0? NULL : argv, NULL);
-	}
-	else
-	{
-		RARCH_LOG("Attempt to load executable: %d [%s].\n", args, argp);
-		ret = sceAppMgrLoadExec(path, args==0? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
-	}
-   RARCH_LOG("Attempt to load executable: [%d].\n", ret);
+   {
+      int ret =  sceAppMgrLoadExec(path, args == 0 ? NULL : (char * const*)((const char*[]){argp, 0}), NULL);
+      RARCH_LOG("Attempt to load executable: [%d].\n", ret);
+   }
 #else
    exitspawn_kernel(path, args, argp);
 #endif
@@ -394,9 +391,9 @@ static bool frontend_psp_set_fork(enum frontend_fork fork_mode)
 }
 #endif
 
-static void frontend_psp_exitspawn(char *s, size_t len)
+static void frontend_psp_exitspawn(char *s, size_t len, char *args)
 {
-   bool should_load_game = false;
+   bool should_load_content = false;
 #ifndef IS_SALAMANDER
    if (psp_fork_mode == FRONTEND_FORK_NONE)
       return;
@@ -404,14 +401,14 @@ static void frontend_psp_exitspawn(char *s, size_t len)
    switch (psp_fork_mode)
    {
       case FRONTEND_FORK_CORE_WITH_ARGS:
-         should_load_game = true;
+         should_load_content = true;
          break;
       case FRONTEND_FORK_NONE:
       default:
          break;
    }
 #endif
-   frontend_psp_exec(s, should_load_game);
+   frontend_psp_exec(s, should_load_content);
 }
 
 static int frontend_psp_get_rating(void)
@@ -552,6 +549,11 @@ enum retro_language psp_get_retro_lang_from_langid(int langid)
       return RETRO_LANGUAGE_PORTUGUESE_BRAZIL;
    case SCE_SYSTEM_PARAM_LANG_TURKISH:
       return RETRO_LANGUAGE_TURKISH;
+#if 0
+   /* TODO/FIXME - this doesn't seem to actually exist */
+   case SCE_SYSTEM_PARAM_LANG_SLOVAK:
+      return RETRO_LANGUAGE_SLOVAK;
+#endif
    case SCE_SYSTEM_PARAM_LANG_ENGLISH_US:
    case SCE_SYSTEM_PARAM_LANG_ENGLISH_GB:
    default:
@@ -561,11 +563,9 @@ enum retro_language psp_get_retro_lang_from_langid(int langid)
 
 enum retro_language frontend_psp_get_user_language(void)
 {
-	// vita 默认使用12简体中文
-	return DEFAULT_USER_LANGUAGE;
-//    int langid;
-//    sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
-//    return psp_get_retro_lang_from_langid(langid);
+   int langid;
+   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
+   return psp_get_retro_lang_from_langid(langid);
 }
 
 static uint64_t frontend_psp_get_mem_total(void)
@@ -618,9 +618,13 @@ frontend_ctx_driver_t frontend_ctx_psp = {
    NULL,                         /* get_cpu_model_name */
 #ifdef VITA
    frontend_psp_get_user_language,
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "vita",
 #else
    NULL,                         /* get_user_language */
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "psp",
 #endif
 };

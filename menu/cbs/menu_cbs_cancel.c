@@ -25,9 +25,7 @@
 #include "../widgets/menu_filebrowser.h"
 
 #ifndef BIND_ACTION_CANCEL
-#define BIND_ACTION_CANCEL(cbs, name) \
-   cbs->action_cancel = name; \
-   cbs->action_cancel_ident = #name;
+#define BIND_ACTION_CANCEL(cbs, name) (cbs)->action_cancel = (name)
 #endif
 
 /* Clicks the back button */
@@ -35,10 +33,13 @@ int action_cancel_pop_default(const char *path,
       const char *label, unsigned type, size_t idx)
 {
    size_t new_selection_ptr;
-   const char *menu_label       = NULL;
+   const char *menu_label        = NULL;
 #ifdef HAVE_AUDIOMIXER
-   settings_t *settings         = config_get_ptr();
-   if (settings->bools.audio_enable_menu && settings->bools.audio_enable_menu_cancel)
+   settings_t *settings          = config_get_ptr();
+   bool audio_enable_menu        = settings->bools.audio_enable_menu;
+   bool audio_enable_menu_cancel = settings->bools.audio_enable_menu_cancel;
+
+   if (audio_enable_menu && audio_enable_menu_cancel)
       audio_driver_mixer_play_menu_sound(AUDIO_MIXER_SYSTEM_SLOT_CANCEL);
 #endif
 
@@ -115,7 +116,6 @@ static int menu_cbs_init_bind_cancel_compare_type(
 
    switch (cbs->enum_idx)
    {
-
       case MENU_ENUM_LABEL_CHEAT_IDX:
       case MENU_ENUM_LABEL_CHEAT_STATE:
       case MENU_ENUM_LABEL_CHEAT_DESC:
@@ -141,14 +141,12 @@ static int menu_cbs_init_bind_cancel_compare_type(
       case MENU_ENUM_LABEL_CHEAT_COPY_AFTER:
       case MENU_ENUM_LABEL_CHEAT_COPY_BEFORE:
       case MENU_ENUM_LABEL_CHEAT_DELETE:
-      {
-         BIND_ACTION_CANCEL(cbs, action_cancel_cheat_details);
-         break ;
-      }
+         {
+            BIND_ACTION_CANCEL(cbs, action_cancel_cheat_details);
+            break ;
+         }
       default :
-      {
          break ;
-      }
    }
    return -1;
 }

@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2018 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (archive_file.c).
@@ -236,7 +236,7 @@ static int file_archive_extract_cb(const char *name, const char *valid_exts,
       {
          strlcpy(wanted_file, delim + 1, sizeof(wanted_file));
 
-         if (!string_is_equal_noncase(userdata->extracted_file_path,
+         if (!string_is_equal_noncase(userdata->current_file_path,
                    wanted_file))
            return 1; /* keep searching for the right file */
       }
@@ -342,15 +342,13 @@ end:
          {
 #ifdef HAVE_7ZIP
             if (handle->backend != &sevenzip_backend)
+#endif
             {
                handle->backend->stream_free(handle->stream);
 
                if (handle->data)
                   free(handle->data);
             }
-#else
-            handle->backend->stream_free(handle->stream);
-#endif
          }
       }
    }
@@ -524,8 +522,8 @@ bool file_archive_extract_file(
    struct string_list *list                 = string_split(valid_exts, "|");
 
    userdata.archive_path[0]                 = '\0';
+   userdata.current_file_path[0]            = '\0';
    userdata.first_extracted_file_path       = NULL;
-   userdata.extracted_file_path             = NULL;
    userdata.extraction_directory            = extraction_directory;
    userdata.archive_path_size               = archive_path_size;
    userdata.ext                             = list;
@@ -533,7 +531,6 @@ bool file_archive_extract_file(
    userdata.found_file                      = false;
    userdata.list_only                       = false;
    userdata.context                         = NULL;
-   userdata.archive_name[0]                 = '\0';
    userdata.crc                             = 0;
    userdata.dec                             = NULL;
 
@@ -587,8 +584,8 @@ struct string_list *file_archive_get_file_list(const char *path,
    struct archive_extract_userdata userdata;
 
    strlcpy(userdata.archive_path, path, sizeof(userdata.archive_path));
+   userdata.current_file_path[0]            = '\0';
    userdata.first_extracted_file_path       = NULL;
-   userdata.extracted_file_path             = NULL;
    userdata.extraction_directory            = NULL;
    userdata.archive_path_size               = 0;
    userdata.ext                             = NULL;
@@ -596,7 +593,6 @@ struct string_list *file_archive_get_file_list(const char *path,
    userdata.found_file                      = false;
    userdata.list_only                       = true;
    userdata.context                         = NULL;
-   userdata.archive_name[0]                 = '\0';
    userdata.crc                             = 0;
    userdata.dec                             = NULL;
 
@@ -869,7 +865,7 @@ uint32_t file_archive_get_file_crc32(const char *path)
       /* Stop when the right file in the archive is found. */
       if (archive_path)
       {
-         if (string_is_equal(userdata.extracted_file_path, archive_path))
+         if (string_is_equal(userdata.current_file_path, archive_path))
             break;
       }
       else

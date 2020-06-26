@@ -38,28 +38,30 @@ static void xenon360_input_poll(void *data)
    for (unsigned i = 0; i < DEFAULT_MAX_PADS; i++)
    {
       struct controller_data_s pad;
+      uint64_t *cur_state;
+
       usb_do_poll();
       get_controller_data(&pad, i);
 
-      uint64_t *cur_state = &state[i];
+      cur_state   = &state[i];
 
-      *cur_state |= pad.b ? RETRO_DEVICE_ID_JOYPAD_A : 0;
-      *cur_state |= pad.a ? RETRO_DEVICE_ID_JOYPAD_B : 0;
-      *cur_state |= pad.y ? RETRO_DEVICE_ID_JOYPAD_X : 0;
-      *cur_state |= pad.x ? RETRO_DEVICE_ID_JOYPAD_Y : 0;
-      *cur_state |= pad.left ? RETRO_DEVICE_ID_JOYPAD_LEFT : 0;
-      *cur_state |= pad.right ? RETRO_DEVICE_ID_JOYPAD_RIGHT : 0;
-      *cur_state |= pad.up ? RETRO_DEVICE_ID_JOYPAD_UP : 0;
-      *cur_state |= pad.down ? RETRO_DEVICE_ID_JOYPAD_DOWN : 0;
-      *cur_state |= pad.start ? RETRO_DEVICE_ID_JOYPAD_START : 0;
-      *cur_state |= pad.back ? RETRO_DEVICE_ID_JOYPAD_SELECT : 0;
-      *cur_state |= pad.lt ? RETRO_DEVICE_ID_JOYPAD_L : 0;
-      *cur_state |= pad.rt ? RETRO_DEVICE_ID_JOYPAD_R : 0;
+      *cur_state |= pad.b     ? RETRO_DEVICE_ID_JOYPAD_A      : 0;
+      *cur_state |= pad.a     ? RETRO_DEVICE_ID_JOYPAD_B      : 0;
+      *cur_state |= pad.y     ? RETRO_DEVICE_ID_JOYPAD_X      : 0;
+      *cur_state |= pad.x     ? RETRO_DEVICE_ID_JOYPAD_Y      : 0;
+      *cur_state |= pad.left  ? RETRO_DEVICE_ID_JOYPAD_LEFT   : 0;
+      *cur_state |= pad.right ? RETRO_DEVICE_ID_JOYPAD_RIGHT  : 0;
+      *cur_state |= pad.up    ? RETRO_DEVICE_ID_JOYPAD_UP     : 0;
+      *cur_state |= pad.down  ? RETRO_DEVICE_ID_JOYPAD_DOWN   : 0;
+      *cur_state |= pad.start ? RETRO_DEVICE_ID_JOYPAD_START  : 0;
+      *cur_state |= pad.back  ? RETRO_DEVICE_ID_JOYPAD_SELECT : 0;
+      *cur_state |= pad.lt    ? RETRO_DEVICE_ID_JOYPAD_L      : 0;
+      *cur_state |= pad.rt    ? RETRO_DEVICE_ID_JOYPAD_R      : 0;
    }
 }
 
 static int16_t xenon360_input_state(void *data,
-      rarch_joypad_info_t joypad_info,
+      rarch_joypad_info_t *joypad_info,
       const struct retro_keybind **binds,
       bool port, unsigned device,
       unsigned idx, unsigned id)
@@ -79,15 +81,23 @@ static int16_t xenon360_input_state(void *data,
 
             for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
             {
-               if (state[port] & binds[port][i].joykey)
-                  ret |= (1 << i);
+               if (binds[port][i].valid)
+               {
+                  if (state[port] & binds[port][i].joykey)
+                     ret |= (1 << i);
+               }
             }
 
             return ret;
          }
          else
-            if (state[port] & binds[port][id].joykey)
-               return true;
+         {
+            if (binds[port][id].valid)
+            {
+               if (state[port] & binds[port][id].joykey)
+                  return 1;
+            }
+         }
          break;
       default:
          break;
@@ -132,6 +142,11 @@ static bool xenon360_input_set_rumble(void *data, unsigned port,
    return false;
 }
 
+static const input_device_driver_t *xenon360_get_joypad_driver(void *data)
+{
+   return NULL;
+}
+
 input_driver_t input_xenon360 = {
    xenon360_input_init,
    xenon360_input_poll,
@@ -145,6 +160,7 @@ input_driver_t input_xenon360 = {
    xenon360_input_grab_mouse,
    NULL,
    xenon360_input_set_rumble,
+   xenon360_get_joypad_driver,
    NULL,
    false
 };

@@ -62,8 +62,6 @@ void create_graphics_context(HWND hwnd, bool *quit);
 
 void create_gdi_context(HWND hwnd, bool *quit);
 
-bool gdi_has_menu_frame(void);
-
 bool win32_get_video_output(DEVMODE *dm, int mode, size_t len);
 
 #if !defined(__WINRT__)
@@ -127,7 +125,7 @@ LRESULT CALLBACK WndProcD3D(HWND hwnd, UINT message,
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_OPENGL_CORE) || defined(HAVE_VULKAN)
-LRESULT CALLBACK WndProcGL(HWND hwnd, UINT message,
+LRESULT CALLBACK WndProcWGL(HWND hwnd, UINT message,
       WPARAM wparam, LPARAM lparam);
 #endif
 
@@ -137,8 +135,6 @@ LRESULT CALLBACK WndProcGDI(HWND hwnd, UINT message,
 #ifdef _XBOX
 BOOL IsIconic(HWND hwnd);
 #endif
-
-LRESULT win32_menu_loop(HWND owner, WPARAM wparam);
 
 bool win32_load_content_from_gui(const char *szFilename);
 

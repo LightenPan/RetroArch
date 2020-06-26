@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2018 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (rpng.c).
@@ -992,10 +992,12 @@ bool rpng_iterate_image(rpng_t *rpng)
       goto error;
 
 #if 0
+#ifdef RPNG_TEST
    for (i = 0; i < 4; i++)
    {
       fprintf(stderr, "chunktype: %c\n", chunk.type[i]);
    }
+#endif
 #endif
 
    switch (png_chunk_type(&chunk))

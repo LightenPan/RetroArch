@@ -16,26 +16,20 @@
 
 #include "../frontend_driver.h"
 
-#include <io_common.h>
 #include <loadfile.h>
 #include <unistd.h>
 #include <sbv_patches.h>
 #include <sifrpc.h>
 #include <iopcontrol.h>
 #include <libpwroff.h>
-#include <libmc.h>
 #include <libmtap.h>
 #include <audsrv.h>
 #include <libpad.h>
-#include <libcdvd-common.h>
-#include <cdvd_rpc.h>
-#include <fileXio_cdvd.h>
 #include <ps2_devices.h>
 #include <ps2_irx_variables.h>
-#include <ps2_descriptor.h>
 
-char eboot_path[512];
-char user_path[512];
+static char eboot_path[512];
+static char user_path[512];
 
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 
@@ -44,9 +38,13 @@ static void create_path_names(void)
    char cwd[FILENAME_MAX];
    int bootDeviceID;
 
+#if defined(BUILD_FOR_PCSX2)
+   strlcpy(cwd, rootDevicePath(BOOT_DEVICE_MC0), sizeof(cwd));
+#else
    getcwd(cwd, sizeof(cwd));
    bootDeviceID=getBootDeviceID(cwd);
    strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+#endif
    strcat(cwd, "RETROARCH");
 
    strlcpy(eboot_path, cwd, sizeof(eboot_path));
@@ -93,17 +91,6 @@ static void create_path_names(void)
 
 static void poweroffCallback(void *arg)
 {
-#if 0
-	/* Close all files and unmount all partitions. */
-	close(fd);
-
-	/* If you use PFS, close all files and unmount all partitions. */
-	fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0)
-
-	/* Shut down DEV9, if you used it. */
-	while(fileXioDevctl("dev9x:", DDIOC_OFF, NULL, 0, NULL, 0) < 0){};
-#endif
-
 	printf("Shutdown!");
 	poweroffShutdown();
 }
@@ -187,11 +174,7 @@ static void frontend_ps2_init(void *data)
    SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
 
    /* CDVD */
-   SifExecModuleBuffer(&cdvd_irx, size_cdvd_irx, 0, NULL, NULL);
-
-   if (mcInit(MC_TYPE_XMC)) {
-      RARCH_ERR("mcInit library not initalizated\n");
-   }
+   SifExecModuleBuffer(&cdfs_irx, size_cdfs_irx, 0, NULL, NULL);
 
    /* Initializes audsrv library */
    if (audsrv_init()) {
@@ -210,20 +193,6 @@ static void frontend_ps2_init(void *data)
       RARCH_ERR("mtapPortOpen library not initalizated\n");
    }
 
-   /* Initializes CDVD library */
-   /* SCECdINoD init without check for a disc. Reduces risk of a lockup if the drive is in a erroneous state. */
-   sceCdInit(SCECdINoD);
-   if (CDVD_Init() != 1) {
-      RARCH_ERR("CDVD_Init library not initalizated\n");
-   }
-
-   _init_ps2_io();
-
-   /* Prepare device */
-   getcwd(cwd, sizeof(cwd));
-   bootDeviceID=getBootDeviceID(cwd);
-   waitUntilDeviceIsReady(bootDeviceID);
-
 #if defined(HAVE_FILE_LOGGER)
    retro_main_log_file_init("retroarch.log", false);
    verbosity_enable();
@@ -237,11 +206,8 @@ static void frontend_ps2_deinit(void *data)
    verbosity_disable();
    command_event(CMD_EVENT_LOG_FILE_DEINIT, NULL);
 #endif
-   _free_ps2_io();
-   CDVD_Stop();
    padEnd();
    audsrv_quit();
-   fileXioExit();
    Exit(0);
 }
 
@@ -298,9 +264,9 @@ static bool frontend_ps2_set_fork(enum frontend_fork fork_mode)
 }
 #endif
 
-static void frontend_ps2_exitspawn(char *core_path, size_t core_path_size)
+static void frontend_ps2_exitspawn(char *s, size_t len, char *args)
 {
-   bool should_load_game = false;
+   bool should_load_content = false;
 #ifndef IS_SALAMANDER
    if (ps2_fork_mode == FRONTEND_FORK_NONE)
       return;
@@ -308,14 +274,14 @@ static void frontend_ps2_exitspawn(char *core_path, size_t core_path_size)
    switch (ps2_fork_mode)
    {
       case FRONTEND_FORK_CORE_WITH_ARGS:
-         should_load_game = true;
+         should_load_content = true;
          break;
       case FRONTEND_FORK_NONE:
       default:
          break;
    }
 #endif
-   frontend_ps2_exec(core_path, should_load_game);
+   frontend_ps2_exec(s, should_load_content);
 }
 
 static void frontend_ps2_shutdown(bool unused)
@@ -416,5 +382,7 @@ frontend_ctx_driver_t frontend_ctx_ps2 = {
    NULL,                         /* set_sustained_performance_mode */
    NULL,                         /* get_cpu_model_name */
    NULL,                         /* get_user_language */
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "null",
 };

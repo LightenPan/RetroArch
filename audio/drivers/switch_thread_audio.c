@@ -39,7 +39,6 @@ static const size_t thread_stack_size = 1024 * 8;
 static const int thread_preferred_cpu = 2;
 static const int channel_count = 2;
 static const size_t sample_size = sizeof(uint16_t);
-static const size_t frame_size = channel_count * sample_size;
 
 #define AUDIO_BUFFER_COUNT 2
 
@@ -87,7 +86,7 @@ static void mainLoop(void* data)
       if (!released_out_buffer)
       {
 #ifdef HAVE_LIBNX
-         rc = audoutWaitPlayFinish(&released_out_buffer, &released_out_count, U64_MAX);
+         rc = audoutWaitPlayFinish(&released_out_buffer, &released_out_count, UINT64_MAX);
 #else
          uint32_t handle_idx = 0;
          svcWaitSynchronization(&handle_idx, &swa->event, 1, 33333333);
@@ -144,8 +143,10 @@ static void *switch_thread_audio_init(const char *device, unsigned rate, unsigne
    Result rc;
    unsigned i;
    uint32_t prio;
+#ifndef HAVE_LIBNX
    char names[8][0x20];
    uint32_t num_names  = 0;
+#endif
    switch_thread_audio_t *swa = (switch_thread_audio_t *)calloc(1, sizeof(*swa));
 
    if (!swa)

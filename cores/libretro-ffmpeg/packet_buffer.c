@@ -16,7 +16,7 @@ struct packet_buffer
 
 packet_buffer_t *packet_buffer_create()
 {
-   packet_buffer_t *b = malloc(sizeof(packet_buffer_t));
+   packet_buffer_t *b = (packet_buffer_t*)malloc(sizeof(packet_buffer_t));
    if (!b)
       return NULL;
 
@@ -99,7 +99,7 @@ void packet_buffer_get_packet(packet_buffer_t *packet_buffer, AVPacket *pkt)
 {
    AVPacketNode_t *new_tail = NULL;
 
-   if (packet_buffer->tail == NULL)
+   if (!packet_buffer->tail)
       return;
 
    av_packet_move_ref(pkt, packet_buffer->tail->data);

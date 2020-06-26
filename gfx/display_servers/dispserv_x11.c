@@ -36,7 +36,6 @@
 
 #include "../video_display_server.h"
 #include "../common/x11_common.h"
-#include "../../configuration.h"
 #include "../../retroarch.h"
 #include "../video_crt_switch.h" /* needed to set aspect for low res in linux */
 
@@ -481,10 +480,13 @@ static void x11_display_server_set_screen_orientation(enum rotation rotation)
 static enum rotation x11_display_server_get_screen_orientation(void)
 {
    int i, j;
-   Display *dpy = x11_display_server_open_display();
-   XRRScreenResources *screen = XRRGetScreenResources(dpy, DefaultRootWindow(dpy));
-   XRRScreenConfiguration *config = XRRGetScreenInfo(dpy, DefaultRootWindow(dpy));
-   enum rotation rotation = ORIENTATION_NORMAL;
+   XRRScreenConfiguration *config = NULL;
+   enum rotation     rotation     = ORIENTATION_NORMAL;
+   Display               *dpy     = x11_display_server_open_display();
+   XRRScreenResources *screen     = XRRGetScreenResources(dpy, DefaultRootWindow(dpy));
+   if (!screen)
+     return ORIENTATION_NORMAL;
+   config                         = XRRGetScreenInfo(dpy, DefaultRootWindow(dpy));
 
    for (i = 0; i < screen->noutput; i++)
    {

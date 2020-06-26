@@ -1,19 +1,14 @@
 #pragma once
 #include <stdint.h>
 
-// clang-format off
-
-#  define DISCORD_EXPORT
-
-// clang-format on
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct DiscordRichPresence {
-    const char* state;   /* max 128 bytes */
-    const char* details; /* max 128 bytes */
+typedef struct DiscordRichPresence
+{
+    const char* state;          /* max 128 bytes */
+    const char* details;        /* max 128 bytes */
     int64_t startTimestamp;
     int64_t endTimestamp;
     const char* largeImageKey;  /* max 32 bytes */
@@ -29,14 +24,16 @@ typedef struct DiscordRichPresence {
     int8_t instance;
 } DiscordRichPresence;
 
-typedef struct DiscordUser {
+typedef struct DiscordUser
+{
     const char* userId;
     const char* username;
     const char* discriminator;
     const char* avatar;
 } DiscordUser;
 
-typedef struct DiscordEventHandlers {
+typedef struct DiscordEventHandlers
+{
     void (*ready)(const DiscordUser* request);
     void (*disconnected)(int errorCode, const char* message);
     void (*errored)(int errorCode, const char* message);
@@ -49,26 +46,28 @@ typedef struct DiscordEventHandlers {
 #define DISCORD_REPLY_YES 1
 #define DISCORD_REPLY_IGNORE 2
 
-DISCORD_EXPORT void Discord_Initialize(const char* applicationId,
-                                       DiscordEventHandlers* handlers,
-                                       int autoRegister,
-                                       const char* optionalSteamId);
-DISCORD_EXPORT void Discord_Shutdown(void);
+void Discord_Initialize(const char* applicationId,
+      DiscordEventHandlers* handlers,
+      int autoRegister,
+      const char* optionalSteamId);
+void Discord_Shutdown(void);
 
 /* checks for incoming messages, dispatches callbacks */
-DISCORD_EXPORT void Discord_RunCallbacks(void);
+void Discord_RunCallbacks(void);
 
-/* If you disable the lib starting its own io thread, you'll need to call this from your own */
+/* If you disable the lib starting its own I/O thread, 
+ * you'll need to call this from your own */
 #ifdef DISCORD_DISABLE_IO_THREAD
-DISCORD_EXPORT void Discord_UpdateConnection(void);
+void Discord_UpdateConnection(void);
 #endif
 
-DISCORD_EXPORT void Discord_UpdatePresence(const DiscordRichPresence* presence);
-DISCORD_EXPORT void Discord_ClearPresence(void);
+void Discord_UpdatePresence(const DiscordRichPresence* presence);
+void Discord_ClearPresence(void);
 
-DISCORD_EXPORT void Discord_Respond(const char* userid, /* DISCORD_REPLY_ */ int reply);
+void Discord_Respond(const char* userid,
+      /* DISCORD_REPLY_ */ int reply);
 
-DISCORD_EXPORT void Discord_UpdateHandlers(DiscordEventHandlers* handlers);
+void Discord_UpdateHandlers(DiscordEventHandlers* handlers);
 
 #ifdef __cplusplus
 } /* extern "C" */

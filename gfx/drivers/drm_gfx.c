@@ -757,6 +757,7 @@ static bool drm_gfx_frame(void *data, const void *frame, unsigned width,
       video_frame_info_t *video_info)
 {
    struct drm_video *_drmvars = data;
+   bool menu_is_alive         = video_info->menu_is_alive;
 
    if (  ( width != _drmvars->core_width) ||
          (height != _drmvars->core_height))
@@ -769,7 +770,7 @@ static bool drm_gfx_frame(void *data, const void *frame, unsigned width,
       _drmvars->core_height = height;
       _drmvars->core_pitch  = pitch;
 
-      if (_drmvars->main_surface != NULL)
+      if (_drmvars->main_surface)
          drm_surface_free(_drmvars, &_drmvars->main_surface);
 
       /* We need to recreate the main surface and it's pages (buffers). */
@@ -790,11 +791,8 @@ static bool drm_gfx_frame(void *data, const void *frame, unsigned width,
    }
 
 #ifdef HAVE_MENU
-   menu_driver_frame(video_info);
+   menu_driver_frame(menu_is_alive, video_info);
 #endif
-
-   video_info->cb_update_window_title(
-         video_info->context_data, video_info);
 
    /* Update main surface: locate free page, blit and flip. */
    drm_surface_update(_drmvars, frame, _drmvars->main_surface);
@@ -879,27 +877,11 @@ static void drm_set_texture_frame(void *data, const void *frame, bool rgb32,
    drm_surface_update(_drmvars, frame_output, _drmvars->menu_surface);
 }
 
-static void drm_gfx_set_nonblock_state(void *data, bool state)
-{
-   struct drm_video *vid = data;
+static void drm_gfx_set_nonblock_state(void *a, bool b, bool c, unsigned d) { }
 
-   (void)data;
-   (void)vid;
+static bool drm_gfx_alive(void *data) { return true; }
 
-   /* TODO */
-}
-
-static bool drm_gfx_alive(void *data)
-{
-   (void)data;
-   return true; /* always alive */
-}
-
-static bool drm_gfx_focus(void *data)
-{
-   (void)data;
-   return true; /* fb device always has focus */
-}
+static bool drm_gfx_focus(void *data) { return true; }
 
 static void drm_gfx_viewport_info(void *data, struct video_viewport *vp)
 {

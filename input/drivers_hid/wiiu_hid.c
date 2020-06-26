@@ -244,7 +244,6 @@ static int32_t wiiu_hid_read(void *data, void *buffer, size_t size)
 static void start_polling_thread(wiiu_hid_t *hid)
 {
    OSThreadAttributes attributes = OS_THREAD_ATTRIB_AFFINITY_CPU2;
-   BOOL result                   = false;
    int32_t stack_size            = 0x8000;
    int32_t priority              = 10;
    OSThread *thread              = new_thread();
@@ -331,7 +330,7 @@ static void log_device(HIDDevice *device)
 static uint8_t try_init_driver(wiiu_adapter_t *adapter)
 {
    adapter->driver_handle = adapter->driver->init(adapter);
-   if (adapter->driver_handle == NULL)
+   if (!adapter->driver_handle)
    {
      RARCH_ERR("[hid]: Failed to initialize driver: %s\n",
         adapter->driver->name);
@@ -557,10 +556,13 @@ static void report_hid_error(const char *msg, wiiu_adapter_t *adapter, int32_t e
       case -111:
          RARCH_ERR("[hid]: invalid device handle (%s)\n", device);
          break;
-#if 0
       default:
+#if 0
          RARCH_ERR("[hid]: Unknown error (%d:%d: %s)\n",
             error_category, hid_error_code, device);
+#else
+         (void)error_category;
+         break;
 #endif
    }
 }

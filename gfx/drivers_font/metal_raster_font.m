@@ -247,7 +247,6 @@ static INLINE void write_quad6(SpriteVertex *pv,
 }
 
 - (void)_renderLine:(const char *)msg
-              video:(video_frame_info_t *)video
              length:(NSUInteger)length
               scale:(float)scale
               color:(vector_float4)color
@@ -344,60 +343,52 @@ static INLINE void write_quad6(SpriteVertex *pv,
 }
 
 - (void)renderMessage:(const char *)msg
-                video:(video_frame_info_t *)video
+                height:(unsigned)height
                 scale:(float)scale
                 color:(vector_float4)color
                  posX:(float)posX
                  posY:(float)posY
               aligned:(unsigned)aligned
 {
-   /* If the font height is not supported just draw as usual */
-   if (!_font_driver->get_line_height)
+   struct font_line_metrics *line_metrics = NULL;
+
+   /* If font line metrics are not supported just draw as usual */
+   if (!_font_driver->get_line_metrics ||
+       !_font_driver->get_line_metrics(_font_data, &line_metrics))
    {
-      [self _renderLine:msg video:video length:strlen(msg) scale:scale color:color posX:posX posY:posY aligned:aligned];
+      [self _renderLine:msg length:strlen(msg) scale:scale color:color posX:posX posY:posY aligned:aligned];
       return;
    }
 
    int lines = 0;
-   float line_height = _font_driver->get_line_height(_font_data) * scale / video->height;
+   float line_height = line_metrics->height * scale / height;
 
    for (;;)
    {
-      const char *delim = strchr(msg, '\n');
+      const char *delim  = strchr(msg, '\n');
+      NSUInteger msg_len = delim ?
+         (unsigned)(delim - msg) : strlen(msg);
 
       /* Draw the line */
-      if (delim)
-      {
-         NSUInteger msg_len = delim - msg;
-         [self _renderLine:msg
-                     video:video
-                    length:msg_len
-                     scale:scale
-                     color:color
-                      posX:posX
-                      posY:posY - (float)lines * line_height
-                   aligned:aligned];
-         msg += msg_len + 1;
-         lines++;
-      }
-      else
-      {
-         NSUInteger msg_len = strlen(msg);
-         [self _renderLine:msg
-                     video:video
-                    length:msg_len
-                     scale:scale
-                     color:color
-                      posX:posX
-                      posY:posY - (float)lines * line_height
-                   aligned:aligned];
+      [self _renderLine:msg
+                 length:msg_len
+                  scale:scale
+                  color:color
+                   posX:posX
+                   posY:posY - (float)lines * line_height
+                aligned:aligned];
+
+      if (!delim)
          break;
-      }
+
+      msg += msg_len + 1;
+      lines++;
    }
 }
 
 - (void)renderMessage:(const char *)msg
-                video:(video_frame_info_t *)video
+                width:(unsigned)width
+                height:(unsigned)height
                params:(const struct font_params *)params
 {
 
@@ -408,21 +399,25 @@ static INLINE void write_quad6(SpriteVertex *pv,
    int drop_x, drop_y;
    enum text_alignment text_align;
    vector_float4 color, color_dark;
-   unsigned width = video->width;
-   unsigned height = video->height;
+   settings_t *settings             = config_get_ptr();
+   float video_msg_pos_x            = settings->floats.video_msg_pos_x;
+   float video_msg_pos_y            = settings->floats.video_msg_pos_y;
+   float video_msg_color_r          = settings->floats.video_msg_color_r;
+   float video_msg_color_g          = settings->floats.video_msg_color_g;
+   float video_msg_color_b          = settings->floats.video_msg_color_b;
 
    if (params)
    {
-      x = params->x;
-      y = params->y;
-      scale = params->scale;
+      x          = params->x;
+      y          = params->y;
+      scale      = params->scale;
       text_align = params->text_align;
-      drop_x = params->drop_x;
-      drop_y = params->drop_y;
-      drop_mod = params->drop_mod;
+      drop_x     = params->drop_x;
+      drop_y     = params->drop_y;
+      drop_mod   = params->drop_mod;
       drop_alpha = params->drop_alpha;
 
-      color = simd_make_float4(
+      color      = simd_make_float4(
          FONT_COLOR_GET_RED(params->color) / 255.0f,
          FONT_COLOR_GET_GREEN(params->color) / 255.0f,
          FONT_COLOR_GET_BLUE(params->color) / 255.0f,
@@ -431,20 +426,20 @@ static INLINE void write_quad6(SpriteVertex *pv,
    }
    else
    {
-      x = video->font_msg_pos_x;
-      y = video->font_msg_pos_y;
-      scale = 1.0f;
+      x          = video_msg_pos_x;
+      y          = video_msg_pos_y;
+      scale      = 1.0f;
       text_align = TEXT_ALIGN_LEFT;
 
-      color = simd_make_float4(
-         video->font_msg_color_r,
-         video->font_msg_color_g,
-         video->font_msg_color_b,
+      color      = simd_make_float4(
+         video_msg_color_r,
+         video_msg_color_g,
+         video_msg_color_b,
          1.0f);
 
-      drop_x = -2;
-      drop_y = -2;
-      drop_mod = 0.3f;
+      drop_x     = -2;
+      drop_y     = -2;
+      drop_mod   = 0.3f;
       drop_alpha = 1.0f;
    }
 
@@ -456,9 +451,7 @@ static INLINE void write_quad6(SpriteVertex *pv,
          max_glyphs *= 2;
 
       if (max_glyphs * 6 + _offset > _capacity)
-      {
          _offset = 0;
-      }
 
       if (drop_x || drop_y)
       {
@@ -468,7 +461,7 @@ static INLINE void write_quad6(SpriteVertex *pv,
          color_dark.w = color.w * drop_alpha;
 
          [self renderMessage:msg
-                       video:video
+                       height:height
                        scale:scale
                        color:color_dark
                         posX:x + scale * drop_x / width
@@ -477,7 +470,7 @@ static INLINE void write_quad6(SpriteVertex *pv,
       }
 
       [self renderMessage:msg
-                    video:video
+                    height:height
                     scale:scale
                     color:color
                      posX:x
@@ -518,12 +511,16 @@ static int metal_get_message_width(void *data, const char *msg,
 }
 
 static void metal_raster_font_render_msg(
-   video_frame_info_t *video_info,
-   void *data, const char *msg,
-   const struct font_params *params)
+      void *userdata,
+      void *data, const char *msg,
+      const struct font_params *params)
 {
-   MetalRaster *r = (__bridge MetalRaster *)data;
-   [r renderMessage:msg video:video_info params:params];
+   MetalRaster *r  = (__bridge MetalRaster *)data;
+   MetalDriver *d  = (__bridge MetalDriver *)userdata;
+   video_viewport_t *vp = [d viewport];
+   unsigned width  = vp->full_width;
+   unsigned height = vp->full_height;
+   [r renderMessage:msg width:width height:height params:params];
 }
 
 static const struct font_glyph *metal_raster_font_get_glyph(
@@ -533,24 +530,14 @@ static const struct font_glyph *metal_raster_font_get_glyph(
    return [r getGlyph:code];
 }
 
-static void metal_raster_font_flush_block(unsigned width, unsigned height,
-      void *data, video_frame_info_t *video_info)
-{
-   (void)data;
-}
-
-static void metal_raster_font_bind_block(void *data, void *userdata)
-{
-   (void)data;
-}
-
 font_renderer_t metal_raster_font = {
    .init              = metal_raster_font_init_font,
    .free              = metal_raster_font_free_font,
    .render_msg        = metal_raster_font_render_msg,
    .ident             = "Metal raster",
    .get_glyph         = metal_raster_font_get_glyph,
-   .bind_block        = metal_raster_font_bind_block,
-   .flush             = metal_raster_font_flush_block,
-   .get_message_width = metal_get_message_width
+   NULL, /* bind_block  */
+   NULL, /* flush_block */
+   .get_message_width = metal_get_message_width,
+   NULL  /* get_line_metrics */
 };

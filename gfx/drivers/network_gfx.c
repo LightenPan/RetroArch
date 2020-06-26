@@ -67,13 +67,14 @@ static unsigned *network_video_temp_buf  = NULL;
 static void *network_gfx_init(const video_info_t *video,
       input_driver_t **input, void **input_data)
 {
+   int fd;
    gfx_ctx_input_t inp;
    void *ctx_data                       = NULL;
-   settings_t *settings                 = config_get_ptr();
-   network_video_t *network             = (network_video_t*)calloc(1, sizeof(*network));
    const gfx_ctx_driver_t *ctx_driver   = NULL;
    struct addrinfo *addr = NULL, *next_addr = NULL;
-   int fd;
+   settings_t *settings                 = config_get_ptr();
+   network_video_t *network             = (network_video_t*)calloc(1, sizeof(*network));
+   bool video_font_enable               = settings->bools.video_font_enable;
 
    *input                               = NULL;
    *input_data                          = NULL;
@@ -106,8 +107,10 @@ static void *network_gfx_init(const video_info_t *video,
 
    video_context_driver_input_driver(&inp);
 
-   if (settings->bools.video_font_enable)
-      font_driver_init_osd(network, false,
+   if (font_enable)
+      font_driver_init_osd(network,
+            video,
+            false,
             video->is_threaded,
             FONT_DRIVER_RENDER_NETWORK_VIDEO);
 
@@ -175,26 +178,30 @@ static bool network_gfx_frame(void *data, const void *frame,
    unsigned pixfmt           = NETWORK_VIDEO_PIXELFORMAT_RGB565;
    bool draw                 = true;
    network_video_t *network  = (network_video_t*)data;
+   bool menu_is_alive        = video_info->menu_is_alive;
 
    if (!frame || !frame_width || !frame_height)
       return true;
 
 #ifdef HAVE_MENU
-   menu_driver_frame(video_info);
+   menu_driver_frame(menu_is_alive, video_info);
 #endif
 
-   if (network_video_width != frame_width || network_video_height != frame_height || network_video_pitch != pitch)
+   if (  network_video_width  != frame_width  || 
+         network_video_height != frame_height || 
+         network_video_pitch  != pitch)
    {
       if (frame_width > 4 && frame_height > 4)
       {
-         network_video_width = frame_width;
-         network_video_height = frame_height;
-         network_video_pitch = pitch;
-         network->screen_width = network_video_width;
+         network_video_width    = frame_width;
+         network_video_height   = frame_height;
+         network_video_pitch    = pitch;
+         network->screen_width  = network_video_width;
          network->screen_height = network_video_height;
       }
    }
 
+#ifdef HAVE_MENU
    if (network_menu_frame && video_info->menu_is_alive)
    {
       frame_to_copy = network_menu_frame;
@@ -204,16 +211,21 @@ static bool network_gfx_frame(void *data, const void *frame,
       bits          = network_menu_bits;
    }
    else
+#endif
    {
       width         = network_video_width;
       height        = network_video_height;
       pitch         = network_video_pitch;
 
-      if (frame_width == 4 && frame_height == 4 && (frame_width < width && frame_height < height))
+      if (  frame_width  == 4 && 
+            frame_height == 4 && 
+            (frame_width < width && frame_height < height))
          draw = false;
 
+#ifdef HAVE_MENU
       if (video_info->menu_is_alive)
          draw = false;
+#endif
    }
 
    if (network->video_width != width || network->video_height != height)
@@ -222,9 +234,7 @@ static bool network_gfx_frame(void *data, const void *frame,
       network->video_height = height;
 
       if (network_video_temp_buf)
-      {
          free(network_video_temp_buf);
-      }
 
       network_video_temp_buf = (unsigned*)malloc(network->screen_width * network->screen_height * sizeof(unsigned));
    }
@@ -243,8 +253,8 @@ static bool network_gfx_frame(void *data, const void *frame,
                for (x = 0; x < network->screen_width; x++)
                {
                   /* scale incoming frame to fit the screen */
-                  unsigned scaled_x = (width * x) / network->screen_width;
-                  unsigned scaled_y = (height * y) / network->screen_height;
+                  unsigned    scaled_x = (width * x) / network->screen_width;
+                  unsigned    scaled_y = (height * y) / network->screen_height;
                   unsigned short pixel = ((unsigned short*)frame_to_copy)[width * scaled_y + scaled_x];
 
                   /* convert RGBX4444 to RGBX8888 */
@@ -269,8 +279,8 @@ static bool network_gfx_frame(void *data, const void *frame,
                for (x = 0; x < network->screen_width; x++)
                {
                   /* scale incoming frame to fit the screen */
-                  unsigned scaled_x = (width * x) / network->screen_width;
-                  unsigned scaled_y = (height * y) / network->screen_height;
+                  unsigned    scaled_x = (width * x) / network->screen_width;
+                  unsigned    scaled_y = (height * y) / network->screen_height;
                   unsigned short pixel = ((unsigned short*)frame_to_copy)[(pitch / (bits / 8)) * scaled_y + scaled_x];
 
                   /* convert RGB565 to RGBX8888 */
@@ -303,7 +313,7 @@ static bool network_gfx_frame(void *data, const void *frame,
             /* scale incoming frame to fit the screen */
             unsigned scaled_x = (width * x) / network->screen_width;
             unsigned scaled_y = (height * y) / network->screen_height;
-            unsigned pixel = ((unsigned*)frame_to_copy)[(pitch / (bits / 8)) * scaled_y + scaled_x];
+            unsigned    pixel = ((unsigned*)frame_to_copy)[(pitch / (bits / 8)) * scaled_y + scaled_x];
 
             network_video_temp_buf[network->screen_width * y + x] = pixel;
          }
@@ -320,16 +330,12 @@ static bool network_gfx_frame(void *data, const void *frame,
    }
 
    if (msg)
-      font_driver_render_msg(network, video_info, msg, NULL, NULL);
+      font_driver_render_msg(network, msg, NULL, NULL);
 
    return true;
 }
 
-static void network_gfx_set_nonblock_state(void *data, bool toggle)
-{
-   (void)data;
-   (void)toggle;
-}
+static void network_gfx_set_nonblock_state(void *a, bool b, bool c, unsigned d) { }
 
 static bool network_gfx_alive(void *data)
 {
@@ -338,17 +344,16 @@ static bool network_gfx_alive(void *data)
    unsigned temp_height = 0;
    bool quit            = false;
    bool resize          = false;
-   bool is_shutdown     = rarch_ctl(RARCH_CTL_IS_SHUTDOWN, NULL);
    network_video_t *network       = (network_video_t*)data;
 
    /* Needed because some context drivers don't track their sizes */
    video_driver_get_size(&temp_width, &temp_height);
 
    network->ctx_driver->check_window(network->ctx_data,
-            &quit, &resize, &temp_width, &temp_height, is_shutdown);
+            &quit, &resize, &temp_width, &temp_height);
 
    if (temp_width != 0 && temp_height != 0)
-      video_driver_set_size(&temp_width, &temp_height);
+      video_driver_set_size(temp_width, temp_height);
 
    return true;
 }

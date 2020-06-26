@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2018 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (file_list.c).
@@ -84,7 +84,16 @@ bool file_list_insert(file_list_t *list,
    for (i = (unsigned)list->size; i > (int)idx; i--)
    {
       struct item_file *copy = (struct item_file*)
-         calloc(1, sizeof(struct item_file));
+         malloc(sizeof(struct item_file));
+
+      copy->path             = NULL;
+      copy->label            = NULL;
+      copy->alt              = NULL;
+      copy->type             = 0;
+      copy->directory_ptr    = 0;
+      copy->entry_idx        = 0;
+      copy->userdata         = NULL;
+      copy->actiondata       = NULL;
 
       memcpy(copy, &list->list[i-1], sizeof(struct item_file));
 

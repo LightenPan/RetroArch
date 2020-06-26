@@ -26,18 +26,17 @@
 
 #include <boolean.h>
 #include <retro_common_api.h>
-#include <gfx/math/matrix_4x4.h>
+#include <formats/image.h>
 #include <formats/image.h>
 #include <queues/task_queue.h>
 
 #include "menu_defines.h"
 #include "menu_input.h"
 #include "menu_entries.h"
+#include "menu_shader.h"
+#include "../gfx/gfx_display.h"
 
-#include "../retroarch.h"
-#include "../file_path_special.h"
 #include "../gfx/font_driver.h"
-#include "../gfx/video_coord_array.h"
 
 RETRO_BEGIN_DECLS
 
@@ -56,21 +55,6 @@ RETRO_BEGIN_DECLS
 #define MENU_SETTINGS_CORE_OPTION_START          0x10000
 #define MENU_SETTINGS_CHEEVOS_START              0x40000
 #define MENU_SETTINGS_NETPLAY_ROOMS_START        0x80000
-
-#define COLOR_TEXT_ALPHA(color, alpha) (color & 0xFFFFFF00) | alpha
-
-#define HEX_R(hex) ((hex >> 16) & 0xFF) * (1.0f / 255.0f)
-#define HEX_G(hex) ((hex >> 8 ) & 0xFF) * (1.0f / 255.0f)
-#define HEX_B(hex) ((hex >> 0 ) & 0xFF) * (1.0f / 255.0f)
-
-#define COLOR_HEX_TO_FLOAT(hex, alpha) { \
-   HEX_R(hex), HEX_G(hex), HEX_B(hex), alpha, \
-   HEX_R(hex), HEX_G(hex), HEX_B(hex), alpha, \
-   HEX_R(hex), HEX_G(hex), HEX_B(hex), alpha, \
-   HEX_R(hex), HEX_G(hex), HEX_B(hex), alpha  \
-}
-
-extern float osk_dark[16];
 
 enum menu_settings_type
 {
@@ -94,6 +78,7 @@ enum menu_settings_type
    MENU_SETTING_DROPDOWN_ITEM_PLAYLIST_LABEL_DISPLAY_MODE,
    MENU_SETTING_DROPDOWN_ITEM_PLAYLIST_RIGHT_THUMBNAIL_MODE,
    MENU_SETTING_DROPDOWN_ITEM_PLAYLIST_LEFT_THUMBNAIL_MODE,
+   MENU_SETTING_DROPDOWN_ITEM_PLAYLIST_SORT_MODE,
    MENU_SETTING_DROPDOWN_ITEM_MANUAL_CONTENT_SCAN_SYSTEM_NAME,
    MENU_SETTING_DROPDOWN_ITEM_MANUAL_CONTENT_SCAN_CORE_NAME,
    MENU_SETTING_DROPDOWN_ITEM_DISK_INDEX,
@@ -112,10 +97,11 @@ enum menu_settings_type
    MENU_SETTING_ACTION,
    MENU_SETTING_ACTION_RUN,
    MENU_SETTING_ACTION_CLOSE,
+   MENU_SETTING_ACTION_CLOSE_HORIZONTAL,
    MENU_SETTING_ACTION_CORE_OPTIONS,
    MENU_SETTING_ACTION_CORE_INPUT_REMAPPING_OPTIONS,
    MENU_SETTING_ACTION_CORE_CHEAT_OPTIONS,
-   MENU_SETTING_ACTION_CORE_INFORMATION,
+   MENU_SETTING_ACTION_CORE_MANAGER_OPTIONS,
    MENU_SETTING_ACTION_CORE_DISK_OPTIONS,
    MENU_SETTING_ACTION_CORE_SHADER_OPTIONS,
    MENU_SETTING_ACTION_SAVESTATE,
@@ -124,6 +110,7 @@ enum menu_settings_type
    MENU_SETTING_ACTION_SCREENSHOT,
    MENU_SETTING_ACTION_DELETE_ENTRY,
    MENU_SETTING_ACTION_RESET,
+   MENU_SETTING_ACTION_CORE_LOCK,
    MENU_SETTING_ACTION_CORE_DELETE,
    MENU_SETTING_STRING_OPTIONS,
    MENU_SETTING_GROUP,
@@ -135,6 +122,7 @@ enum menu_settings_type
    MENU_SETTING_PLAYLIST_MANAGER_LABEL_DISPLAY_MODE,
    MENU_SETTING_PLAYLIST_MANAGER_RIGHT_THUMBNAIL_MODE,
    MENU_SETTING_PLAYLIST_MANAGER_LEFT_THUMBNAIL_MODE,
+   MENU_SETTING_PLAYLIST_MANAGER_SORT_MODE,
    MENU_WIFI,
    MENU_ROOM,
    MENU_ROOM_LAN,
@@ -222,45 +210,14 @@ enum menu_settings_type
    MENU_SETTING_MANUAL_CONTENT_SCAN_CORE_NAME,
    MENU_SETTING_ACTION_MANUAL_CONTENT_SCAN_START,
 
+   MENU_SETTING_ACTION_CORE_CREATE_BACKUP,
+   MENU_SETTING_ACTION_CORE_RESTORE_BACKUP,
+   MENU_SETTING_ITEM_CORE_RESTORE_BACKUP,
+   MENU_SETTING_ACTION_CORE_DELETE_BACKUP,
+   MENU_SETTING_ITEM_CORE_DELETE_BACKUP,
+
    MENU_SETTINGS_LAST
 };
-
-typedef struct menu_display_ctx_driver
-{
-   /* Draw graphics to the screen. */
-   void (*draw)(menu_display_ctx_draw_t *draw, video_frame_info_t *video_info);
-   /* Draw one of the menu pipeline shaders. */
-   void (*draw_pipeline)(menu_display_ctx_draw_t *draw,
-         video_frame_info_t *video_info);
-   void (*viewport)(menu_display_ctx_draw_t *draw,
-         video_frame_info_t *video_info);
-   /* Start blending operation. */
-   void (*blend_begin)(video_frame_info_t *video_info);
-   /* Finish blending operation. */
-   void (*blend_end)(video_frame_info_t *video_info);
-   /* Set the clear color back to its default values. */
-   void (*restore_clear_color)(void);
-   /* Set the color to be used when clearing the screen */
-   void (*clear_color)(menu_display_ctx_clearcolor_t *clearcolor,
-         video_frame_info_t *video_info);
-   /* Get the default Model-View-Projection matrix */
-   void *(*get_default_mvp)(video_frame_info_t *video_info);
-   /* Get the default vertices matrix */
-   const float *(*get_default_vertices)(void);
-   /* Get the default texture coordinates matrix */
-   const float *(*get_default_tex_coords)(void);
-   /* Initialize the first compatible font driver for this menu driver. */
-   bool (*font_init_first)(
-         void **font_handle, void *video_data,
-         const char *font_path, float font_size,
-         bool is_threaded);
-   enum menu_display_driver_type type;
-   const char *ident;
-   bool handles_transform;
-   /* Enables and disables scissoring */
-   void (*scissor_begin)(video_frame_info_t *video_info, int x, int y, unsigned width, unsigned height);
-   void (*scissor_end)(video_frame_info_t *video_info);
-} menu_display_ctx_driver_t;
 
 typedef struct menu_ctx_driver
 {
@@ -339,7 +296,10 @@ typedef struct menu_ctx_driver
          enum menu_input_pointer_gesture gesture,
          menu_file_list_cbs_t *cbs,
          menu_entry_t *entry, unsigned action);
-   bool (*get_load_content_animation_data)(void *userdata, menu_texture_item *icon, char **playlist_name);
+   bool (*get_load_content_animation_data)(void *userdata, uintptr_t *icon, char **playlist_name);
+   /* This will be invoked whenever a menu entry action
+    * (menu_entry_action()) is performed */
+   int (*entry_action)(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
    /* This will be invoked whenever a menu entry action
     * (menu_entry_action()) is performed */
    int (*entry_action)(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
@@ -347,7 +307,6 @@ typedef struct menu_ctx_driver
        void *userdata, const char *path, const char *title,
        const char *logoname, const char *content_logoname);
 } menu_ctx_driver_t;
-
 
 typedef struct
 {
@@ -380,61 +339,15 @@ typedef struct
    void *userdata;
 } menu_handle_t;
 
-struct menu_display_ctx_draw
+typedef struct menu_content_ctx_defer_info
 {
-   float x;
-   float y;
-   float *color;
-   const float *vertex;
-   const float *tex_coord;
-   unsigned width;
-   unsigned height;
-   uintptr_t texture;
-   size_t vertex_count;
-   struct video_coords *coords;
-   void *matrix_data;
-   enum menu_display_prim_type prim_type;
-   struct
-   {
-      unsigned id;
-      const void *backend_data;
-      size_t backend_data_size;
-      bool active;
-   } pipeline;
-   float rotation;
-   float scale_factor;
-};
-
-typedef struct menu_display_ctx_rotate_draw
-{
-   bool scale_enable;
-   float rotation;
-   float scale_x;
-   float scale_y;
-   float scale_z;
-   math_matrix_4x4 *matrix;
-} menu_display_ctx_rotate_draw_t;
-
-typedef struct menu_display_ctx_coord_draw
-{
-   const float *ptr;
-} menu_display_ctx_coord_draw_t;
-
-typedef struct menu_display_ctx_datetime
-{
+   void *data;
+   const char *dir;
+   const char *path;
+   const char *menu_label;
    char *s;
    size_t len;
-   unsigned time_mode;
-} menu_display_ctx_datetime_t;
-
-typedef struct menu_display_ctx_powerstate
-{
-   char *s;
-   size_t len;
-   unsigned percent;
-   bool battery_enabled;
-   bool charging;
-} menu_display_ctx_powerstate_t;
+} menu_content_ctx_defer_info_t;
 
 typedef struct menu_ctx_displaylist
 {
@@ -493,29 +406,10 @@ typedef struct menu_ctx_bind
    const char *path;
    const char *label;
    unsigned type;
-   uint32_t label_hash;
    size_t idx;
    int retcode;
    menu_file_list_cbs_t *cbs;
 } menu_ctx_bind_t;
-
-/**
- * menu_driver_find_handle:
- * @index              : index of driver to get handle to.
- *
- * Returns: handle to menu driver at index. Can be NULL
- * if nothing found.
- **/
-const void *menu_driver_find_handle(int index);
-
-/**
- * menu_driver_find_ident:
- * @index              : index of driver to get handle to.
- *
- * Returns: Human-readable identifier of menu driver at index. Can be NULL
- * if nothing found.
- **/
-const char *menu_driver_find_ident(int index);
 
 /**
  * config_get_menu_driver_options:
@@ -532,13 +426,13 @@ const char *menu_driver_ident(void);
 
 bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data);
 
-void menu_driver_frame(video_frame_info_t *video_info);
+void menu_driver_frame(bool menu_is_alive, video_frame_info_t *video_info);
 
-bool menu_driver_get_load_content_animation_data(menu_texture_item *icon, char **playlist_name);
+bool menu_driver_get_load_content_animation_data(
+      uintptr_t *icon, char **playlist_name);
 
-bool menu_driver_iterate(menu_ctx_iterate_t *iterate);
-
-bool menu_driver_list_clear(file_list_t *list);
+bool menu_driver_iterate(menu_ctx_iterate_t *iterate,
+      retro_time_t current_time);
 
 bool menu_driver_list_cache(menu_ctx_list_t *list);
 
@@ -556,116 +450,17 @@ void menu_driver_get_thumbnail_system(char *s, size_t len);
 
 void menu_driver_set_thumbnail_content(char *s, size_t len);
 
-bool menu_driver_list_insert(menu_ctx_list_t *list);
-
-bool menu_driver_list_set_selection(file_list_t *list);
-
 bool menu_driver_list_get_selection(menu_ctx_list_t *list);
 
 bool menu_driver_list_get_entry(menu_ctx_list_t *list);
 
 bool menu_driver_list_get_size(menu_ctx_list_t *list);
 
-void menu_driver_set_horizontal_uiinfo(const char *path, const char *title, const char *logoname, const char *conent_logoname);
+retro_time_t menu_driver_get_current_time(void);
 
 size_t menu_navigation_get_selection(void);
 
 void menu_navigation_set_selection(size_t val);
-
-void menu_display_blend_begin(video_frame_info_t *video_info);
-void menu_display_blend_end(video_frame_info_t *video_info);
-
-void menu_display_scissor_begin(video_frame_info_t *video_info, int x, int y, unsigned width, unsigned height);
-void menu_display_scissor_end(video_frame_info_t *video_info);
-
-void menu_display_font_free(font_data_t *font);
-
-void menu_display_coords_array_reset(void);
-video_coord_array_t *menu_display_get_coords_array(void);
-
-void menu_display_set_width(unsigned width);
-void menu_display_get_fb_size(unsigned *fb_width, unsigned *fb_height,
-      size_t *fb_pitch);
-void menu_display_set_height(unsigned height);
-void menu_display_set_header_height(unsigned height);
-unsigned menu_display_get_header_height(void);
-size_t menu_display_get_framebuffer_pitch(void);
-void menu_display_set_framebuffer_pitch(size_t pitch);
-
-bool menu_display_get_msg_force(void);
-void menu_display_set_msg_force(bool state);
-bool menu_display_get_update_pending(void);
-void menu_display_set_viewport(unsigned width, unsigned height);
-void menu_display_unset_viewport(unsigned width, unsigned height);
-bool menu_display_get_framebuffer_dirty_flag(void);
-void menu_display_set_framebuffer_dirty_flag(void);
-void menu_display_unset_framebuffer_dirty_flag(void);
-float menu_display_get_pixel_scale(unsigned width, unsigned height);
-float menu_display_get_dpi_scale(unsigned width, unsigned height);
-bool menu_display_init_first_driver(bool video_is_threaded);
-bool menu_display_restore_clear_color(void);
-void menu_display_clear_color(menu_display_ctx_clearcolor_t *color,
-      video_frame_info_t *video_info);
-void menu_display_draw(menu_display_ctx_draw_t *draw,
-      video_frame_info_t *video_info);
-void menu_display_draw_blend(menu_display_ctx_draw_t *draw,
-      video_frame_info_t *video_info);
-void menu_display_draw_keyboard(
-      uintptr_t hover_texture,
-      const font_data_t *font,
-      video_frame_info_t *video_info,
-      char *grid[], unsigned id,
-		unsigned text_color);
-// ¾Å¹¬¸ñ¼üÅÌ
-void menu_display_draw_keyboard_ninenum(
-		uintptr_t hover_texture,
-		const font_data_t *font,
-		video_frame_info_t *video_info,
-		char *grid[], unsigned id,
-		unsigned text_color);
-
-void menu_display_draw_pipeline(menu_display_ctx_draw_t *draw,
-      video_frame_info_t *video_info);
-void menu_display_draw_bg(
-      menu_display_ctx_draw_t *draw,
-      video_frame_info_t *video_info,
-      bool add_opacity, float opacity_override);
-void menu_display_draw_gradient(
-      menu_display_ctx_draw_t *draw,
-      video_frame_info_t *video_info);
-void menu_display_draw_quad(
-      video_frame_info_t *video_info,
-      int x, int y, unsigned w, unsigned h,
-      unsigned width, unsigned height,
-      float *color);
-void menu_display_draw_polygon(
-      video_frame_info_t *video_info,
-      int x1, int y1,
-      int x2, int y2,
-      int x3, int y3,
-      int x4, int y4,
-      unsigned width, unsigned height,
-      float *color);
-void menu_display_draw_texture(
-      video_frame_info_t *video_info,
-      int x, int y, unsigned w, unsigned h,
-      unsigned width, unsigned height,
-      float *color, uintptr_t texture);
-void menu_display_draw_texture_slice(
-      video_frame_info_t *video_info,
-      int x, int y, unsigned w, unsigned h,
-      unsigned new_w, unsigned new_h, unsigned width, unsigned height,
-      float *color, unsigned offset, float scale_factor, uintptr_t texture);
-
-void menu_display_rotate_z(menu_display_ctx_rotate_draw_t *draw,
-      video_frame_info_t *video_info);
-
-void menu_display_timedate(menu_display_ctx_datetime_t *datetime);
-void menu_display_powerstate(menu_display_ctx_powerstate_t *powerstate);
-
-void menu_display_handle_wallpaper_upload(retro_task_t *task,
-      void *task_data,
-      void *user_data, const char *err);
 
 void menu_display_handle_thumbnail_upload(retro_task_t *task,
       void *task_data,
@@ -679,79 +474,25 @@ void menu_display_handle_savestate_thumbnail_upload(retro_task_t *task,
       void *task_data,
       void *user_data, const char *err);
 
-void menu_display_push_quad(
-      unsigned width, unsigned height,
-      const float *colors, int x1, int y1,
-      int x2, int y2);
+void menu_display_timedate(gfx_display_ctx_datetime_t *datetime);
 
-void menu_display_snow(int width, int height);
+void menu_display_powerstate(gfx_display_ctx_powerstate_t *powerstate);
 
-void menu_display_allocate_white_texture(void);
-
-void menu_display_draw_cursor(
-      video_frame_info_t *video_info,
-      float *color, float cursor_size, uintptr_t texture,
-      float x, float y, unsigned width, unsigned height);
-
-void menu_display_draw_text(
-      const font_data_t *font, const char *text,
-      float x, float y, int width, int height,
-      uint32_t color, enum text_alignment text_align,
-      float scale_factor, bool shadows_enable, float shadow_offset,
-      bool draw_outside);
-
-#define menu_display_set_alpha(color, alpha_value) (color[3] = color[7] = color[11] = color[15] = (alpha_value))
-
-font_data_t *menu_display_font(
-      enum application_special_type type,
-      float font_size,
-      bool video_is_threaded);
-
-font_data_t *menu_display_font_file(char* fontpath, float font_size, bool is_threaded);
-
-bool menu_display_reset_textures_list(
-      const char *texture_path, const char *iconpath,
-      uintptr_t *item, enum texture_filter_type filter_type,
-      unsigned *width, unsigned *height);
-
-bool menu_display_reset_textures_list_buffer(
-        uintptr_t *item, enum texture_filter_type filter_type,
-        void* buffer, unsigned buffer_len, enum image_type_enum image_type,
-        unsigned *width, unsigned *height);
-
-/* Returns the OSK key at a given position */
-int menu_display_osk_ptr_at_pos(void *data, int x, int y,
-      unsigned width, unsigned height);
-
-bool menu_display_driver_exists(const char *s);
-
-void menu_driver_destroy(void);
-
-void hex32_to_rgba_normalized(uint32_t hex, float* rgba, float alpha);
+void menu_display_handle_wallpaper_upload(retro_task_t *task,
+      void *task_data,
+      void *user_data, const char *err);
 
 menu_handle_t *menu_driver_get_ptr(void);
 
-extern uintptr_t menu_display_white_texture;
+enum action_iterate_type
+{
+   ITERATE_TYPE_DEFAULT = 0,
+   ITERATE_TYPE_HELP,
+   ITERATE_TYPE_INFO,
+   ITERATE_TYPE_BIND
+};
 
-extern menu_display_ctx_driver_t menu_display_ctx_gl;
-extern menu_display_ctx_driver_t menu_display_ctx_gl_core;
-extern menu_display_ctx_driver_t menu_display_ctx_gl1;
-extern menu_display_ctx_driver_t menu_display_ctx_vulkan;
-extern menu_display_ctx_driver_t menu_display_ctx_metal;
-extern menu_display_ctx_driver_t menu_display_ctx_d3d8;
-extern menu_display_ctx_driver_t menu_display_ctx_d3d9;
-extern menu_display_ctx_driver_t menu_display_ctx_d3d10;
-extern menu_display_ctx_driver_t menu_display_ctx_d3d11;
-extern menu_display_ctx_driver_t menu_display_ctx_d3d12;
-extern menu_display_ctx_driver_t menu_display_ctx_vita2d;
-extern menu_display_ctx_driver_t menu_display_ctx_ctr;
-extern menu_display_ctx_driver_t menu_display_ctx_wiiu;
-extern menu_display_ctx_driver_t menu_display_ctx_caca;
-extern menu_display_ctx_driver_t menu_display_ctx_gdi;
-extern menu_display_ctx_driver_t menu_display_ctx_vga;
-extern menu_display_ctx_driver_t menu_display_ctx_fpga;
-extern menu_display_ctx_driver_t menu_display_ctx_switch;
-extern menu_display_ctx_driver_t menu_display_ctx_sixel;
+int generic_menu_entry_action(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
 
 extern menu_ctx_driver_t menu_ctx_ozone;
 extern menu_ctx_driver_t menu_ctx_xui;

@@ -39,7 +39,7 @@
 #include "../../retroarch.h"
 #include "../../tasks/task_content.h"
 #include "../../tasks/tasks_internal.h"
-#include ".././verbosity.h"
+#include "../../verbosity.h"
 
 static void app_terminate(void)
 {
@@ -120,36 +120,39 @@ static void app_terminate(void)
         case NSEventTypeMouseMoved:
         case NSEventTypeLeftMouseDragged:
         case NSEventTypeRightMouseDragged:
-	    case NSEventTypeOtherMouseDragged:
+        case NSEventTypeOtherMouseDragged:
          {
             NSPoint pos;
-            NSPoint mouse_pos;
-            apple                        = (cocoa_input_data_t*)input_driver_get_data();
+            apple              = (cocoa_input_data_t*)input_driver_get_data();
             if (!apple)
                return;
 
-			pos.x              = 0;
-			pos.y              = 0;
+            pos.x              = 0;
+            pos.y              = 0;
 
-            /* Relative */
-            apple->mouse_rel_x = (int16_t)event.deltaX;
-            apple->mouse_rel_y = (int16_t)event.deltaY;
-
-            /* Absolute */
 #if defined(HAVE_COCOA_METAL)
             pos = [apple_platform.renderView convertPoint:[event locationInWindow] fromView:nil];
 #elif defined(HAVE_COCOA)
+            pos = [[CocoaView get] convertPoint:[event locationInWindow] fromView:nil];
 #endif
+
+            /* FIXME: Disable clipping until graphical offset issues 
+             * are fixed */
+#if 0
+            NSInteger window_number = [[[NSApplication sharedApplication] keyWindow] windowNumber];
+            if ([NSWindow windowNumberAtPoint:pos belowWindowWithWindowNumber:0] != window_number)
+               return;
+#endif
+
+            /* Relative */
+            apple->mouse_rel_x += (int16_t)event.deltaX;
+            apple->mouse_rel_y += (int16_t)event.deltaY;
+
+            /* Absolute */
             apple->touches[0].screen_x = (int16_t)pos.x;
             apple->touches[0].screen_y = (int16_t)pos.y;
-
-#if defined(HAVE_COCOA_METAL)
-            mouse_pos = [apple_platform.renderView convertPoint:[event locationInWindow]  fromView:nil];
-#elif defined(HAVE_COCOA)
-            mouse_pos = [[CocoaView get] convertPoint:[event locationInWindow]  fromView:nil];
-#endif
-            apple->window_pos_x = (int16_t)mouse_pos.x;
-            apple->window_pos_y = (int16_t)mouse_pos.y;
+            apple->window_pos_x = (int16_t)pos.x;
+            apple->window_pos_y = (int16_t)pos.y;
          }
          break;
 #if defined(HAVE_COCOA_METAL)
@@ -172,6 +175,7 @@ static void app_terminate(void)
            if (!apple || pos.y < 0)
                return;
            apple->mouse_buttons |= (1 << event.buttonNumber);
+           apple->touch_count = 1;
        }
            break;
       case NSEventTypeLeftMouseUp:
@@ -197,8 +201,9 @@ static void app_terminate(void)
 
 @end
 
+/* TODO/FIXME - static global variables */
 static int waiting_argc;
-static char** waiting_argv;
+static char **waiting_argv;
 
 @implementation RetroArch_OSX
 
@@ -275,9 +280,8 @@ static char** waiting_argv;
 
 #ifdef HAVE_COCOA_METAL
 - (void)setViewType:(apple_view_type_t)vt {
-   if (vt == _vt) {
+   if (vt == _vt)
       return;
-   }
 
    RARCH_LOG("[Cocoa]: change view type: %d ? %d\n", _vt, vt);
 
@@ -347,7 +351,7 @@ static char** waiting_argv;
 
    if (mode.width > 0)
    {
-      // HACK(sgc): ensure MTKView posts a drawable resize event
+      /* HACK(sgc): ensure MTKView posts a drawable resize event */
       [self.window setContentSize:NSMakeSize(mode.width-1, mode.height)];
    }
    [self.window setContentSize:NSMakeSize(mode.width, mode.height)];
@@ -377,7 +381,7 @@ static char** waiting_argv;
 
 - (void) rarch_main
 {
-    do
+    for (;;)
     {
        int ret;
 #ifdef HAVE_QT
@@ -400,7 +404,7 @@ static char** waiting_argv;
 #endif
           break;
        }
-    }while(1);
+    }
 
     main_exit(NULL);
 }
@@ -432,10 +436,10 @@ static char** waiting_argv;
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray *)filenames
 {
-	if ((filenames.count == 1) && [filenames objectAtIndex:0])
+  if ((filenames.count == 1) && [filenames objectAtIndex:0])
    {
       struct retro_system_info *system = runloop_get_libretro_system_info();
-	  NSString *__core                 = [filenames objectAtIndex:0];
+    NSString *__core                 = [filenames objectAtIndex:0];
       const char *core_name            = system->library_name;
 
       if (core_name)
@@ -471,55 +475,57 @@ static char** waiting_argv;
 
 static void open_core_handler(ui_browser_window_state_t *state, bool result)
 {
-   rarch_system_info_t *info      = runloop_get_system_info();
-    if (!state)
-        return;
-    if (string_is_empty(state->result))
-        return;
-    if (!result)
-        return;
+   rarch_system_info_t *info        = runloop_get_system_info();
+   settings_t           *settings   = config_get_ptr();
+   bool set_supports_no_game_enable = settings->bools.set_supports_no_game_enable;
+   if (!state)
+      return;
+   if (string_is_empty(state->result))
+      return;
+   if (!result)
+      return;
 
-    settings_t *settings = config_get_ptr();
+   path_set(RARCH_PATH_CORE, state->result);
+   ui_companion_event_command(CMD_EVENT_LOAD_CORE);
 
-    path_set(RARCH_PATH_CORE, state->result);
-    ui_companion_event_command(CMD_EVENT_LOAD_CORE);
-
-    if (info && info->load_no_content
-          && settings->bools.set_supports_no_game_enable)
-    {
-        content_ctx_info_t content_info = {0};
-        path_clear(RARCH_PATH_CONTENT);
-        task_push_load_content_with_current_core_from_companion_ui(
-                NULL,
-                &content_info,
-                CORE_TYPE_PLAIN,
-                NULL, NULL);
-    }
+   if (info
+         && info->load_no_content
+         && set_supports_no_game_enable)
+   {
+      content_ctx_info_t content_info = {0};
+      path_clear(RARCH_PATH_CONTENT);
+      task_push_load_content_with_current_core_from_companion_ui(
+            NULL,
+            &content_info,
+            CORE_TYPE_PLAIN,
+            NULL, NULL);
+   }
 }
 
-static void open_document_handler(ui_browser_window_state_t *state, bool result)
+static void open_document_handler(
+      ui_browser_window_state_t *state, bool result)
 {
-    if (!state)
-        return;
-    if (string_is_empty(state->result))
-        return;
-    if (!result)
-        return;
+   struct retro_system_info *system = runloop_get_libretro_system_info();
+   const char            *core_name = system ? system->library_name : NULL;
 
-    struct retro_system_info *system = runloop_get_libretro_system_info();
-    const char            *core_name = system ? system->library_name : NULL;
+   if (!state)
+      return;
+   if (string_is_empty(state->result))
+      return;
+   if (!result)
+      return;
 
-    path_set(RARCH_PATH_CONTENT, state->result);
+   path_set(RARCH_PATH_CONTENT, state->result);
 
-    if (core_name)
-    {
-        content_ctx_info_t content_info = {0};
-        task_push_load_content_with_current_core_from_companion_ui(
-                NULL,
-                &content_info,
-                CORE_TYPE_PLAIN,
-                NULL, NULL);
-    }
+   if (core_name)
+   {
+      content_ctx_info_t content_info = {0};
+      task_push_load_content_with_current_core_from_companion_ui(
+            NULL,
+            &content_info,
+            CORE_TYPE_PLAIN,
+            NULL, NULL);
+   }
 }
 
 - (IBAction)openCore:(id)sender {
@@ -528,14 +534,16 @@ static void open_document_handler(ui_browser_window_state_t *state, bool result)
     if (browser)
     {
         ui_browser_window_state_t browser_state;
-        settings_t *settings        = config_get_ptr();
+        bool result                   = false;
+        settings_t *settings          = config_get_ptr();
+        const char *path_dir_libretro = settings->paths.directory_libretro;
 
-        browser_state.filters       = strdup("dylib");
-        browser_state.filters_title = strdup(msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CORE_SETTINGS));
-        browser_state.title         = strdup(msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CORE_LIST));
-        browser_state.startdir      = strdup(settings->paths.directory_libretro);
+        browser_state.filters         = strdup("dylib");
+        browser_state.filters_title   = strdup(msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CORE_SETTINGS));
+        browser_state.title           = strdup(msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CORE_LIST));
+        browser_state.startdir        = strdup(path_dir_libretro);
 
-        bool result = browser->open(&browser_state);
+        result                        = browser->open(&browser_state);
         open_core_handler(&browser_state, result);
 
         free(browser_state.filters);
@@ -551,21 +559,25 @@ static void open_document_handler(ui_browser_window_state_t *state, bool result)
 
     if (browser)
     {
-        ui_browser_window_state_t browser_state = {{0}};
-        settings_t *settings  = config_get_ptr();
-        NSString *startdir    = BOXSTRING(settings->paths.directory_menu_content);
+       ui_browser_window_state_t
+          browser_state                  = {{0}};
+       bool result                       = false;
+       settings_t *settings              = config_get_ptr();
+       const char *path_dir_menu_content = settings->paths.directory_menu_content;
+       NSString *startdir                = BOXSTRING(path_dir_menu_content);
 
-        if (!startdir.length)
-            startdir           = BOXSTRING("/");
+       if (!startdir.length)
+          startdir                      = BOXSTRING("/");
 
-        browser_state.title    = strdup(msg_hash_to_str(MENU_ENUM_LABEL_VALUE_LOAD_CONTENT_LIST));
-        browser_state.startdir = strdup([startdir UTF8String]);
+       browser_state.title               = strdup(msg_hash_to_str(
+                MENU_ENUM_LABEL_VALUE_LOAD_CONTENT_LIST));
+       browser_state.startdir            = strdup([startdir UTF8String]);
 
-        bool result = browser->open(&browser_state);
-        open_document_handler(&browser_state, result);
+       result                            = browser->open(&browser_state);
+       open_document_handler(&browser_state, result);
 
-        free(browser_state.startdir);
-        free(browser_state.title);
+       free(browser_state.startdir);
+       free(browser_state.title);
     }
 }
 
@@ -575,8 +587,9 @@ static void open_document_handler(ui_browser_window_state_t *state, bool result)
 
 - (IBAction)showCoresDirectory:(id)sender
 {
-   settings_t *settings = config_get_ptr();
-   [[NSWorkspace sharedWorkspace] openFile:BOXSTRING(settings->paths.directory_libretro)];
+   settings_t          *settings = config_get_ptr();
+   const char *path_dir_libretro = settings->paths.directory_libretro;
+   [[NSWorkspace sharedWorkspace] openFile:BOXSTRING(path_dir_libretro)];
 }
 
 - (IBAction)showPreferences:(id)sender
@@ -662,17 +675,6 @@ typedef struct ui_companion_cocoa
    void *empty;
 } ui_companion_cocoa_t;
 
-static void ui_companion_cocoa_notify_content_loaded(void *data)
-{
-    (void)data;
-}
-
-static void ui_companion_cocoa_toggle(void *data, bool force)
-{
-   (void)data;
-   (void)force;
-}
-
 static void ui_companion_cocoa_deinit(void *data)
 {
    ui_companion_cocoa_t *handle = (ui_companion_cocoa_t*)data;
@@ -685,7 +687,8 @@ static void ui_companion_cocoa_deinit(void *data)
 
 static void *ui_companion_cocoa_init(void)
 {
-   ui_companion_cocoa_t *handle = (ui_companion_cocoa_t*)calloc(1, sizeof(*handle));
+   ui_companion_cocoa_t *handle = (ui_companion_cocoa_t*)
+      calloc(1, sizeof(*handle));
 
    if (!handle)
       return NULL;
@@ -693,19 +696,12 @@ static void *ui_companion_cocoa_init(void)
    return handle;
 }
 
+static void ui_companion_cocoa_notify_content_loaded(void *data) { }
+static void ui_companion_cocoa_toggle(void *data, bool force) { }
 static void ui_companion_cocoa_event_command(void *data, enum event_command cmd)
-{
-   (void)data;
-   (void)cmd;
-}
-
+{ }
 static void ui_companion_cocoa_notify_list_pushed(void *data,
-    file_list_t *list, file_list_t *menu_list)
-{
-    (void)data;
-    (void)list;
-    (void)menu_list;
-}
+    file_list_t *list, file_list_t *menu_list) { }
 
 static void *ui_companion_cocoa_get_main_window(void *data)
 {

@@ -48,32 +48,33 @@ enum menu_dialog_type
    MENU_DIALOG_LAST
 };
 
+struct menu_dialog
+{
+   bool                  pending_push;
+   unsigned              current_id;
+   enum menu_dialog_type current_type;
+};
+
+typedef struct menu_dialog menu_dialog_t;
+
 RETRO_BEGIN_DECLS
 
-void menu_dialog_push_pending(
+menu_dialog_t *dialog_get_ptr(void);
+
+bool menu_dialog_push_pending(
       bool push, enum menu_dialog_type type);
 
 int menu_dialog_iterate(
-      char *s, size_t len, const char *label);
+      char *s, size_t len,
+      retro_time_t current_time);
 
 void menu_dialog_unset_pending_push(void);
-
-bool menu_dialog_is_push_pending(void);
 
 void menu_dialog_push(void);
 
 void menu_dialog_reset(void);
 
-void menu_dialog_show_message(
-      enum menu_dialog_type type, enum msg_hash_enums msg);
-
-bool menu_dialog_is_active(void);
-
 void menu_dialog_set_current_id(unsigned id);
-
-void menu_dialog_set_active(bool on);
-
-enum menu_dialog_type menu_dialog_get_current_type(void);
 
 RETRO_END_DECLS
 

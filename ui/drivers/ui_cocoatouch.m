@@ -37,7 +37,8 @@
 #include "../../menu/menu_setting.h"
 #endif
 
-static char msg_old[PATH_MAX_LENGTH];
+#import <AVFoundation/AVFoundation.h>
+
 #ifdef HAVE_COCOA_METAL
 id<ApplePlatform> apple_platform;
 #else
@@ -45,7 +46,7 @@ static id apple_platform;
 #endif
 static CFRunLoopObserverRef iterate_observer;
 
-/* forward declaration */
+/* Forward declaration */
 static void apple_rarch_exited(void);
 
 static void rarch_enable_ui(void)
@@ -71,10 +72,7 @@ static void rarch_disable_ui(void)
 }
 
 static void ui_companion_cocoatouch_event_command(
-      void *data, enum event_command cmd)
-{
-    (void)data;
-}
+      void *data, enum event_command cmd) { }
 
 static void rarch_draw_observer(CFRunLoopObserverRef observer,
     CFRunLoopActivity activity, void *info)
@@ -325,14 +323,15 @@ enum
 }
 
 -(NSString*)documentsDirectory {
-    if ( _documentsDirectory == nil ) {
+    if (_documentsDirectory == nil)
+    {
 #if TARGET_OS_IOS
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+       NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 #elif TARGET_OS_TV
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+       NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
 #endif
 
-        _documentsDirectory = paths.firstObject;
+       _documentsDirectory = paths.firstObject;
     }
     return _documentsDirectory;
 }
@@ -355,6 +354,12 @@ enum
    self.mainmenu.last_menu = self.mainmenu;
    [self pushViewController:self.mainmenu animated:NO];
 #endif
+
+   NSError *error;
+   [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:&error];
+   if (error) {
+       NSLog(@"Could not set audio session category: %@",error.localizedDescription);
+   }
 
    [self refreshSystemConfig];
    [self showGameView];
@@ -386,20 +391,13 @@ enum
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-   settings_t *settings = config_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   bool ui_companion_start_on_boot = settings->bools.ui_companion_start_on_boot;
 
-   if (settings->bools.ui_companion_start_on_boot)
+   if (ui_companion_start_on_boot)
       return;
 
   [self showGameView];
-}
-
-- (void)applicationWillResignActive:(UIApplication *)application
-{
-   dispatch_async(dispatch_get_main_queue(),
-                  ^{
-                  ui_companion_cocoatouch_event_command(NULL, CMD_EVENT_MENU_SAVE_CURRENT_CONFIG);
-                  });
 }
 
 -(BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
@@ -435,7 +433,9 @@ enum
     [[UIApplication sharedApplication] setIdleTimerDisabled:true];
    [self.window setRootViewController:[CocoaView get]];
 
-   ui_companion_cocoatouch_event_command(NULL, CMD_EVENT_AUDIO_START);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        command_event(CMD_EVENT_AUDIO_START, NULL);
+    });
    rarch_disable_ui();
 }
 
@@ -487,7 +487,7 @@ enum
 - (void)mainMenuPushPop: (bool)pushp
 {
 #if TARGET_OS_IOS
-  if ( pushp )
+  if (pushp)
   {
      self.menu_count++;
      RAMenuBase* next_menu = [RAMainMenu new];
@@ -497,7 +497,7 @@ enum
   }
   else
   {
-     if ( self.menu_count == 0 )
+     if (self.menu_count == 0)
         [self.mainmenu reloadData];
      else
      {
@@ -529,18 +529,6 @@ int main(int argc, char *argv[])
       return UIApplicationMain(argc, argv, NSStringFromClass([RApplication class]), NSStringFromClass([RetroArch_iOS class]));
    }
 }
-
-#if 0
-static void apple_display_alert(const char *message, const char *title)
-{
-   UIAlertView* alert = [[UIAlertView alloc] initWithTitle:BOXSTRING(title)
-                                             message:BOXSTRING(message)
-                                             delegate:nil
-                                             cancelButtonTitle:BOXSTRING("OK")
-                                             otherButtonTitles:nil];
-   [alert show];
-}
-#endif
 
 static void apple_rarch_exited(void)
 {
@@ -599,33 +587,32 @@ static void *ui_companion_cocoatouch_init(void)
    return handle;
 }
 
-static size_t old_size = 0;
-
 static void ui_companion_cocoatouch_notify_list_pushed(void *data,
    file_list_t *list, file_list_t *menu_list)
 {
-   RetroArch_iOS *ap   = (RetroArch_iOS *)apple_platform;
-   bool pushp          = false;
-   size_t new_size     = file_list_get_size( menu_list );
+   static size_t old_size = 0;
+   RetroArch_iOS *ap      = (RetroArch_iOS *)apple_platform;
+   bool pushp             = false;
+   size_t new_size        = file_list_get_size(menu_list);
 
    /* FIXME workaround for the double call */
-   if ( old_size == 0 )
+   if (old_size == 0)
    {
       old_size = new_size;
       return;
    }
 
-   if ( old_size == new_size )
-     pushp = false;
-   else if ( old_size < new_size )
-     pushp = true;
-   else if ( old_size > new_size )
-     printf( "notify_list_pushed: old size should not be larger\n" );
+   if (old_size == new_size)
+      pushp = false;
+   else if (old_size < new_size)
+      pushp = true;
+   else if (old_size > new_size)
+      printf("notify_list_pushed: old size should not be larger\n" );
 
    old_size = new_size;
 
    if (ap)
-     [ap mainMenuPushPop: pushp];
+      [ap mainMenuPushPop: pushp];
 }
 
 static void ui_companion_cocoatouch_notify_refresh(void *data)
@@ -638,6 +625,7 @@ static void ui_companion_cocoatouch_notify_refresh(void *data)
 
 static void ui_companion_cocoatouch_render_messagebox(const char *msg)
 {
+   static char msg_old[PATH_MAX_LENGTH];
    RetroArch_iOS *ap   = (RetroArch_iOS *)apple_platform;
 
    if (ap && !string_is_equal(msg, msg_old))

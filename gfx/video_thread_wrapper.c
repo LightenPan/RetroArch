@@ -54,9 +54,11 @@ enum thread_cmd
    CMD_POKE_GET_FBO_STATE,
 
    CMD_POKE_SET_ASPECT_RATIO,
-   CMD_POKE_SET_OSD_MSG,
    CMD_FONT_INIT,
    CMD_CUSTOM_COMMAND,
+
+   CMD_POKE_SHOW_MOUSE,
+   CMD_POKE_GRAB_MOUSE_TOGGLE,
 
    CMD_DUMMY = INT_MAX
 };
@@ -115,6 +117,7 @@ struct thread_packet
       {
          unsigned index;
          bool smooth;
+         bool ctx_scaling;
       } filtering;
 
       struct
@@ -497,7 +500,8 @@ static bool video_thread_handle_packet(
          if (thr->poke && thr->poke->set_filtering)
             thr->poke->set_filtering(thr->driver_data,
                   pkt.data.filtering.index,
-                  pkt.data.filtering.smooth);
+                  pkt.data.filtering.smooth,
+                  pkt.data.filtering.ctx_scaling);
          video_thread_reply(thr, &pkt);
          break;
 
@@ -505,19 +509,6 @@ static bool video_thread_handle_packet(
          if (thr->poke && thr->poke->set_aspect_ratio)
             thr->poke->set_aspect_ratio(thr->driver_data,
                   pkt.data.i);
-         video_thread_reply(thr, &pkt);
-         break;
-
-      case CMD_POKE_SET_OSD_MSG:
-         {
-            video_frame_info_t video_info;
-            video_driver_build_info(&video_info);
-            if (thr->poke && thr->poke->set_osd_msg)
-               thr->poke->set_osd_msg(thr->driver_data,
-                     &video_info,
-                     pkt.data.osd_message.msg,
-                     &pkt.data.osd_message.params, NULL);
-         }
          video_thread_reply(thr, &pkt);
          break;
 
@@ -540,6 +531,19 @@ static bool video_thread_handle_packet(
             pkt.data.custom_command.return_value =
                   pkt.data.custom_command.method
                   (pkt.data.custom_command.data);
+         video_thread_reply(thr, &pkt);
+         break;
+
+      case CMD_POKE_SHOW_MOUSE:
+         if (thr->poke && thr->poke->show_mouse)
+            thr->poke->show_mouse(thr->driver_data,
+                  pkt.data.b);
+         video_thread_reply(thr, &pkt);
+         break;
+
+      case CMD_POKE_GRAB_MOUSE_TOGGLE:
+         if (thr->poke && thr->poke->grab_mouse_toggle)
+            thr->poke->grab_mouse_toggle(thr->driver_data);
          video_thread_reply(thr, &pkt);
          break;
 
@@ -601,6 +605,8 @@ static void video_thread_loop(void *data)
          if (thr->driver && thr->driver->frame)
          {
             video_frame_info_t video_info;
+            /* TODO/FIXME - not thread-safe - should get 
+             * rid of this */
             video_driver_build_info(&video_info);
 
             ret = thr->driver->frame(thr->driver_data,
@@ -784,7 +790,9 @@ static bool video_thread_frame(void *data, const void *frame_,
    return true;
 }
 
-static void video_thread_set_nonblock_state(void *data, bool state)
+static void video_thread_set_nonblock_state(void *data, bool state,
+      bool adaptive_vsync_enabled,
+      unsigned swap_interval)
 {
    thread_video_t *thr = (thread_video_t*)data;
    if (thr)
@@ -1072,7 +1080,7 @@ static void thread_set_video_mode(void *data, unsigned width, unsigned height,
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
 
-static void thread_set_filtering(void *data, unsigned idx, bool smooth)
+static void thread_set_filtering(void *data, unsigned idx, bool smooth, bool ctx_scaling)
 {
    thread_video_t *thr = (thread_video_t*)data;
    thread_packet_t pkt = { CMD_POKE_SET_FILTERING };
@@ -1173,7 +1181,6 @@ static void thread_set_texture_enable(void *data, bool state, bool full_screen)
 }
 
 static void thread_set_osd_msg(void *data,
-      video_frame_info_t *video_info,
       const char *msg,
       const void *params, void *font)
 {
@@ -1185,7 +1192,30 @@ static void thread_set_osd_msg(void *data,
    /* TODO : find a way to determine if the calling
     * thread is the driver thread or not. */
    if (thr->poke && thr->poke->set_osd_msg)
-      thr->poke->set_osd_msg(thr->driver_data, video_info, msg, params, font);
+      thr->poke->set_osd_msg(thr->driver_data, msg, params, font);
+}
+
+static void thread_show_mouse(void *data, bool state)
+{
+   thread_video_t *thr = (thread_video_t*)data;
+   thread_packet_t pkt = { CMD_POKE_SHOW_MOUSE };
+
+   if (!thr)
+      return;
+   pkt.data.b = state;
+
+   video_thread_send_and_wait_user_to_thread(thr, &pkt);
+}
+
+static void thread_grab_mouse_toggle(void *data)
+{
+   thread_video_t *thr = (thread_video_t*)data;
+   thread_packet_t pkt = { CMD_POKE_GRAB_MOUSE_TOGGLE };
+
+   if (!thr)
+      return;
+
+   video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
 
 static uintptr_t thread_load_texture(void *video_data, void *data,
@@ -1227,7 +1257,7 @@ static void thread_apply_state_changes(void *data)
 static struct video_shader *thread_get_current_shader(void *data)
 {
    thread_video_t *thr = (thread_video_t*)data;
-   if (!thr || !thr->poke)
+   if (!thr || !thr->poke || !thr->poke->get_current_shader)
       return NULL;
    return thr->poke->get_current_shader(thr->driver_data);
 }
@@ -1258,8 +1288,8 @@ static const video_poke_interface_t thread_poke = {
    thread_set_texture_enable,
    thread_set_osd_msg,
 
-   NULL,
-   NULL,
+   thread_show_mouse,
+   thread_grab_mouse_toggle,
 
    thread_get_current_shader,
    NULL,                      /* get_current_software_framebuffer */
@@ -1281,13 +1311,13 @@ static void video_thread_get_poke_interface(
       *iface = NULL;
 }
 
-#if defined(HAVE_MENU) && defined(HAVE_MENU_WIDGETS)
-static bool video_thread_wrapper_menu_widgets_enabled(void *data)
+#ifdef HAVE_GFX_WIDGETS
+static bool video_thread_wrapper_gfx_widgets_enabled(void *data)
 {
    thread_video_t *thr = (thread_video_t*)data;
 
-   if (thr && thr->driver && thr->driver->menu_widgets_enabled)
-      return thr->driver->menu_widgets_enabled(thr->driver_data);
+   if (thr && thr->driver && thr->driver->gfx_widgets_enabled)
+      return thr->driver->gfx_widgets_enabled(thr->driver_data);
 
    return false;
 }
@@ -1317,8 +1347,8 @@ static const video_driver_t video_thread = {
 #endif
    video_thread_get_poke_interface,
    NULL,
-#if defined(HAVE_MENU) && defined(HAVE_MENU_WIDGETS)
-   video_thread_wrapper_menu_widgets_enabled
+#ifdef HAVE_GFX_WIDGETS
+   video_thread_wrapper_gfx_widgets_enabled
 #endif
 };
 

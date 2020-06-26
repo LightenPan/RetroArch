@@ -27,11 +27,13 @@
 #include "../../ui_companion_driver.h"
 #include "../../configuration.h"
 
-static bool ui_browser_window_win32_core(ui_browser_window_state_t *state, bool save)
+static bool ui_browser_window_win32_core(
+      ui_browser_window_state_t *state, bool save)
 {
-   bool okay = false;
-   settings_t *settings = config_get_ptr();
    OPENFILENAME ofn;
+   bool            okay  = false;
+   settings_t *settings  = config_get_ptr();
+   bool video_fullscreen = settings->bools.video_fullscreen;
 
    ofn.lStructSize       = sizeof(OPENFILENAME);
    ofn.hwndOwner         = (HWND)state->window;
@@ -60,10 +62,8 @@ static bool ui_browser_window_win32_core(ui_browser_window_state_t *state, bool 
 #endif
 
    /* Full Screen: Show mouse for the file dialog */
-   if (settings->bools.video_fullscreen)
-   {
+   if (video_fullscreen)
       video_driver_show_mouse();
-   }
 
    okay = true;
    if (!save && !GetOpenFileName(&ofn))
@@ -72,10 +72,8 @@ static bool ui_browser_window_win32_core(ui_browser_window_state_t *state, bool 
       okay = false;
 
    /* Full screen: Hide mouse after the file dialog */
-   if (settings->bools.video_fullscreen)
-   {
+   if (video_fullscreen)
       video_driver_hide_mouse();
-   }
 
    return okay;
 }

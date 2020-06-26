@@ -6,8 +6,8 @@
 # /* - pkg/snap/snapcraft.yaml (including the github url) */
 
 #if 0
-RARCH_VERSION="1.8.4 é­”æ”¹(124)"
+RARCH_VERSION="1.8.9 Ä§¸Ä(125)"
 #endif
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.8.4 é­”æ”¹(124)"
+#define PACKAGE_VERSION "1.8.9 Ä§¸Ä(125)"
 #endif

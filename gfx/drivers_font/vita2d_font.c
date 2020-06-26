@@ -22,6 +22,7 @@
 
 #include "../font_driver.h"
 
+#include "../../configuration.h"
 #include "../../verbosity.h"
 
 typedef struct
@@ -142,14 +143,12 @@ static int vita2d_font_get_message_width(void *data, const char *msg,
 }
 
 static void vita2d_font_render_line(
-      video_frame_info_t *video_info,
       vita_font_t *font, const char *msg, unsigned msg_len,
       float scale, const unsigned int color, float pos_x,
-      float pos_y, unsigned text_align)
+      float pos_y,
+      unsigned width, unsigned height, unsigned text_align)
 {
    unsigned i;
-   unsigned width  = video_info->width;
-   unsigned height = video_info->height;
    int x           = roundf(pos_x * width);
    int y           = roundf((1.0f - pos_y) * height);
    int delta_x     = 0;
@@ -222,38 +221,39 @@ static void vita2d_font_render_line(
 }
 
 static void vita2d_font_render_message(
-      video_frame_info_t *video_info,
       vita_font_t *font, const char *msg, float scale,
       const unsigned int color, float pos_x, float pos_y,
-      unsigned text_align)
+      unsigned width, unsigned height, unsigned text_align)
 {
+   struct font_line_metrics *line_metrics = NULL;
+   int lines                              = 0;
    float line_height;
-   int lines = 0;
 
    if (!msg || !*msg)
       return;
 
-   /* If the font height is not supported just draw as usual */
-   if (!font->font_driver->get_line_height)
+   /* If font line metrics are not supported just draw as usual */
+   if (!font->font_driver->get_line_metrics ||
+       !font->font_driver->get_line_metrics(font->font_data, &line_metrics))
    {
-      vita2d_font_render_line(video_info, font, msg, strlen(msg),
-            scale, color, pos_x, pos_y, text_align);
+      vita2d_font_render_line(font, msg, strlen(msg),
+            scale, color, pos_x, pos_y, width, height, text_align);
       return;
    }
 
-   line_height = font->font_driver->get_line_height(font->font_data) *
-                     scale / font->vita->vp.height;
+   line_height = line_metrics->height * scale / font->vita->vp.height;
 
    for (;;)
    {
       const char *delim = strchr(msg, '\n');
-      unsigned msg_len  = (delim) ? (delim - msg) : strlen(msg);
-
-      vita2d_font_render_line(video_info, font, msg, msg_len,
-            scale, color, pos_x, pos_y - (float)lines * line_height,
-            text_align);
+      unsigned msg_len  = (delim) ? 
+         (unsigned)(delim - msg) : strlen(msg);
 
       /* Draw the line */
+      vita2d_font_render_line(font, msg, msg_len,
+            scale, color, pos_x, pos_y - (float)lines * line_height,
+            width, height, text_align);
+
       if (!delim)
          break;
 
@@ -263,8 +263,9 @@ static void vita2d_font_render_message(
 }
 
 static void vita2d_font_render_msg(
-      video_frame_info_t *video_info,
-      void *data, const char *msg,
+      void *userdata,
+      void *data,
+      const char *msg,
       const struct font_params *params)
 {
    float x, y, scale, drop_mod, drop_alpha;
@@ -274,9 +275,16 @@ static void vita2d_font_render_msg(
    bool full_screen                 = false ;
    unsigned color, color_dark, r, g, b,
             alpha, r_dark, g_dark, b_dark, alpha_dark;
+   vita_video_t             *vita   = (vita_video_t *)userdata;
    vita_font_t                *font = (vita_font_t *)data;
-   unsigned width                   = video_info->width;
-   unsigned height                  = video_info->height;
+   unsigned width                   = vita->video_width;
+   unsigned height                  = vita->video_height;
+   settings_t *settings             = config_get_ptr();
+   float video_msg_pos_x            = settings->floats.video_msg_pos_x;
+   float video_msg_pos_y            = settings->floats.video_msg_pos_y;
+   float video_msg_color_r          = settings->floats.video_msg_color_r;
+   float video_msg_color_g          = settings->floats.video_msg_color_g;
+   float video_msg_color_b          = settings->floats.video_msg_color_b;
 
    if (!font || !msg || !*msg)
       return;
@@ -300,15 +308,15 @@ static void vita2d_font_render_msg(
    }
    else
    {
-      x              = video_info->font_msg_pos_x;
-      y              = video_info->font_msg_pos_y;
+      x              = video_msg_pos_x;
+      y              = video_msg_pos_y;
       scale          = 1.0f;
       full_screen    = true;
       text_align     = TEXT_ALIGN_LEFT;
 
-      r              = (video_info->font_msg_color_r * 255);
-      g              = (video_info->font_msg_color_g * 255);
-      b              = (video_info->font_msg_color_b * 255);
+      r              = (video_msg_color_r * 255);
+      g              = (video_msg_color_g * 255);
+      b              = (video_msg_color_b * 255);
       alpha			   = 255;
       color 		   = RGBA8(r,g,b,alpha);
 
@@ -333,13 +341,13 @@ static void vita2d_font_render_msg(
       alpha_dark		= alpha * drop_alpha;
       color_dark     = RGBA8(r_dark,g_dark,b_dark,alpha_dark);
 
-      vita2d_font_render_message(video_info, font, msg, scale, color_dark,
+      vita2d_font_render_message(font, msg, scale, color_dark,
             x + scale * drop_x / width, y +
-            scale * drop_y / height, text_align);
+            scale * drop_y / height, width, height, text_align);
    }
 
-   vita2d_font_render_message(video_info, font, msg, scale,
-         color, x, y, text_align);
+   vita2d_font_render_message(font, msg, scale,
+         color, x, y, width, height, text_align);
 }
 
 static const struct font_glyph *vita2d_font_get_glyph(
@@ -352,14 +360,14 @@ static const struct font_glyph *vita2d_font_get_glyph(
    return font->font_driver->get_glyph((void*)font->font_driver, code);
 }
 
-static int vita2d_font_get_line_height(void *data)
+static bool vita2d_font_get_line_metrics(void* data, struct font_line_metrics **metrics)
 {
    vita_font_t *font = (vita_font_t*)data;
 
    if (!font || !font->font_driver || !font->font_data)
       return -1;
 
-   return font->font_driver->get_line_height(font->font_data);
+   return font->font_driver->get_line_metrics(font->font_data, metrics);
 }
 
 font_renderer_t vita2d_vita_font = {
@@ -367,9 +375,9 @@ font_renderer_t vita2d_vita_font = {
    vita2d_font_free_font,
    vita2d_font_render_msg,
    "vita2dfont",
-	 vita2d_font_get_glyph,
+   vita2d_font_get_glyph,
    NULL,                      /* bind_block */
    NULL,                      /* flush */
    vita2d_font_get_message_width,
-   vita2d_font_get_line_height
+   vita2d_font_get_line_metrics
 };

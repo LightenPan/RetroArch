@@ -25,8 +25,8 @@
 #include <boolean.h>
 #include <rthreads/rthreads.h>
 
-#include "../../retroarch.h"
 #include "../../configuration.h"
+#include "../../retroarch.h"
 #include "../../verbosity.h"
 
 #define FRAMES(x) (x / (sizeof(float) * 2))
@@ -146,7 +146,8 @@ static size_t find_buffersize(jack_t *jd, int latency, unsigned out_rate)
    return buffer_frames * sizeof(jack_default_audio_sample_t);
 }
 
-static void *ja_init(const char *device, unsigned rate, unsigned latency,
+static void *ja_init(const char *device,
+      unsigned rate, unsigned latency,
       unsigned block_frames,
       unsigned *new_rate)
 {

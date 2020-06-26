@@ -39,6 +39,14 @@
  * with a manual content scan */
 typedef struct
 {
+   bool search_recursively;
+   bool search_archives;
+   bool filter_dat_content;
+   bool overwrite_playlist;
+
+   enum manual_content_scan_system_name_type system_name_type;
+   enum manual_content_scan_core_type core_type;
+
    char content_dir[PATH_MAX_LENGTH];
    char system_name_content_dir[PATH_MAX_LENGTH];
    char system_name_database[PATH_MAX_LENGTH];
@@ -48,12 +56,9 @@ typedef struct
    char file_exts_core[PATH_MAX_LENGTH];
    char file_exts_custom[PATH_MAX_LENGTH];
    char dat_file_path[PATH_MAX_LENGTH];
-   enum manual_content_scan_system_name_type system_name_type;
-   enum manual_content_scan_core_type core_type;
-   bool search_archives;
-   bool overwrite_playlist;
 } scan_settings_t;
 
+/* TODO/FIXME - static public global variables */
 /* Static settings object
  * > Provides easy access to settings parameters
  *   when creating associated menu entries
@@ -64,6 +69,12 @@ typedef struct
  *   are not thread safe, but we only access them when pushing a
  *   task, not in the task thread itself, so all is well) */
 static scan_settings_t scan_settings = {
+   true,                                        /* search_recursively */
+   false,                                       /* search_archives */
+   false,                                       /* filter_dat_content */
+   false,                                       /* overwrite_playlist */
+   MANUAL_CONTENT_SCAN_SYSTEM_NAME_CONTENT_DIR, /* system_name_type */
+   MANUAL_CONTENT_SCAN_CORE_DETECT,             /* core_type */
    "",                                          /* content_dir */
    "",                                          /* system_name_content_dir */
    "",                                          /* system_name_database */
@@ -73,10 +84,6 @@ static scan_settings_t scan_settings = {
    "",                                          /* file_exts_core */
    "",                                          /* file_exts_custom */
    "",                                          /* dat_file_path */
-   MANUAL_CONTENT_SCAN_SYSTEM_NAME_CONTENT_DIR, /* system_name_type */
-   MANUAL_CONTENT_SCAN_CORE_DETECT,             /* core_type */
-   false,                                       /* search_archives */
-   false                                        /* overwrite_playlist */
 };
 
 /*****************/
@@ -128,10 +135,24 @@ size_t manual_content_scan_get_dat_file_path_size(void)
 }
 
 /* Returns a pointer to the internal
+ * 'search_recursively' bool */
+bool *manual_content_scan_get_search_recursively_ptr(void)
+{
+   return &scan_settings.search_recursively;
+}
+
+/* Returns a pointer to the internal
  * 'search_archives' bool */
 bool *manual_content_scan_get_search_archives_ptr(void)
 {
    return &scan_settings.search_archives;
+}
+
+/* Returns a pointer to the internal
+ * 'filter_dat_content' bool */
+bool *manual_content_scan_get_filter_dat_content_ptr(void)
+{
+   return &scan_settings.filter_dat_content;
 }
 
 /* Returns a pointer to the internal
@@ -244,8 +265,8 @@ enum manual_content_scan_dat_file_path_status
  * Returns true if content directory is valid. */
 bool manual_content_scan_set_menu_content_dir(const char *content_dir)
 {
-   const char *dir_name = NULL;
    size_t len;
+   const char *dir_name = NULL;
 
    /* Sanity check */
    if (string_is_empty(content_dir))
@@ -262,13 +283,11 @@ bool manual_content_scan_set_menu_content_dir(const char *content_dir)
 
    /* Remove trailing slash, if required */
    len = strlen(scan_settings.content_dir);
-   if (len > 0)
-   {
-      if (scan_settings.content_dir[len - 1] == path_default_slash_c())
-         scan_settings.content_dir[len - 1] = '\0';
-   }
-   else
+   if (len <= 0)
       goto error;
+
+   if (scan_settings.content_dir[len - 1] == PATH_DEFAULT_SLASH_C())
+      scan_settings.content_dir[len - 1] = '\0';
 
    /* Handle case where path was a single slash... */
    if (string_is_empty(scan_settings.content_dir))
@@ -548,7 +567,7 @@ bool manual_content_scan_get_menu_core_name(const char **core_name)
  * > Returns NULL in the event of failure
  * > Returned string list must be free()'d */
 struct string_list *manual_content_scan_get_menu_system_name_list(
-      const char *path_content_database)
+      const char *path_content_database, bool show_hidden_files)
 {
    union string_list_elem_attr attr;
    struct string_list *name_list = string_list_new();
@@ -579,7 +598,7 @@ struct string_list *manual_content_scan_get_menu_system_name_list(
        * or verify file extensions) */
       struct string_list *rdb_list = dir_list_new_special(
             path_content_database,
-            DIR_LIST_DATABASES, NULL);
+            DIR_LIST_DATABASES, NULL, show_hidden_files);
 
       if (rdb_list && rdb_list->size)
       {
@@ -854,8 +873,14 @@ bool manual_content_scan_get_task_config(
             sizeof(task_config->dat_file_path));
    }
 
+   /* Copy 'search recursively' setting */
+   task_config->search_recursively = scan_settings.search_recursively;
+
    /* Copy 'search inside archives' setting */
    task_config->search_archives = scan_settings.search_archives;
+
+   /* Copy 'DAT file filter' setting */
+   task_config->filter_dat_content = scan_settings.filter_dat_content;
 
    /* Copy 'overwrite playlist' setting */
    task_config->overwrite_playlist = scan_settings.overwrite_playlist;
@@ -896,15 +921,14 @@ struct string_list *manual_content_scan_get_content_list(manual_content_scan_tas
    include_compressed = (!filter_exts || task_config->search_archives);
 
    /* Get directory listing
-    * > Exclude directories and hidden files
-    * > Scan recursively */
+    * > Exclude directories and hidden files */
    dir_list = dir_list_new(
          task_config->content_dir,
          filter_exts ? task_config->file_exts : NULL,
          false, /* include_dirs */
          false, /* include_hidden */
          include_compressed,
-         true   /* recursive */
+         task_config->search_recursively
    );
 
    /* Sanity check */
@@ -1017,12 +1041,13 @@ error:
 }
 
 /* Extracts content 'label' (name) from content path
- * > If a DAT file is specified and content is an
- *   archive, performs a lookup of content file name
- *   in an attempt to find a valid 'description' string.
+ * > If a DAT file is specified, performs a lookup
+ *   of content file name in an attempt to find a
+ *   valid 'description' string.
  * Returns false if specified content is invalid. */
 static bool manual_content_scan_get_playlist_content_label(
       const char *content_path, logiqx_dat_t *dat_file,
+      bool filter_dat_content,
       char *content_label, size_t len)
 {
    /* Sanity check */
@@ -1040,33 +1065,34 @@ static bool manual_content_scan_get_playlist_content_label(
    /* Check if a DAT file has been specified */
    if (dat_file)
    {
-      /* DAT files are only relevant for arcade
-       * content. We have no idea what kind of
-       * content we are dealing with here, but
-       * since arcade ROMs are always archives
-       * we can at least filter by file type... */
-      if (path_is_compressed_file(content_path))
+      bool content_found = false;
+      logiqx_dat_game_info_t game_info;
+
+      /* Search for current content
+       * > If content is not listed in DAT file,
+       *   use existing filename without extension */
+      if (logiqx_dat_search(dat_file, content_label, &game_info))
       {
-         logiqx_dat_game_info_t game_info;
+         /* BIOS files should always be skipped */
+         if (game_info.is_bios)
+            return false;
 
-         /* Search for current content
-          * > If content is not listed in DAT file,
-          *   use existing filename without extension */
-         if (logiqx_dat_search(dat_file, content_label, &game_info))
+         /* Only include 'runnable' content */
+         if (!game_info.is_runnable)
+            return false;
+
+         /* Copy game description */
+         if (!string_is_empty(game_info.description))
          {
-            /* BIOS files should always be skipped */
-            if (game_info.is_bios)
-               return false;
-
-            /* Only include 'runnable' content */
-            if (!game_info.is_runnable)
-               return false;
-
-            /* Copy game description */
-            if (!string_is_empty(game_info.description))
-               strlcpy(content_label, game_info.description, len);
+            strlcpy(content_label, game_info.description, len);
+            content_found = true;
          }
       }
+
+      /* If we are applying a DAT file filter,
+       * unlisted content should be skipped */
+      if (!content_found && filter_dat_content)
+         return false;
    }
 
    return true;
@@ -1106,6 +1132,7 @@ void manual_content_scan_add_content_to_playlist(
       /* Get entry label */
       if (!manual_content_scan_get_playlist_content_label(
             playlist_content_path, dat_file,
+            task_config->filter_dat_content,
             label, sizeof(label)))
          return;
 

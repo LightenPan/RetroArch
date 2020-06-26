@@ -105,16 +105,16 @@ extern "C" {
 
 static ui_window_qt_t ui_window = {0};
 
-enum CoreSelection
+enum core_selection
 {
-   CORE_SELECTION_CURRENT,
+   CORE_SELECTION_CURRENT = 0,
    CORE_SELECTION_PLAYLIST_SAVED,
    CORE_SELECTION_PLAYLIST_DEFAULT,
    CORE_SELECTION_ASK,
    CORE_SELECTION_LOAD_CORE
 };
 
-static const QPixmap getInvader()
+static const QPixmap getInvader(void)
 {
    QPixmap pix;
    pix.loadFromData(invader_png, invader_png_len, "PNG");
@@ -151,13 +151,11 @@ static void scan_finished_handler(retro_task_t *task,
 /* https://stackoverflow.com/questions/7246622/how-to-create-a-slider-with-a-non-linear-scale */
 static double expScale(double inputValue, double midValue, double maxValue)
 {
-   double returnValue = 0;
-   double M = maxValue / midValue;
-   double C = log(pow(M - 1, 2));
-   double B = maxValue / (exp(C) - 1);
-   double A = -1 * B;
-
-   returnValue = A + B * exp(C * inputValue);
+   double           M = maxValue / midValue;
+   double           C = log(pow(M - 1, 2));
+   double           B = maxValue / (exp(C) - 1);
+   double           A = -1 * B;
+   double returnValue = A + B * exp(C * inputValue);
 
    return returnValue;
 }
@@ -359,7 +357,10 @@ MainWindow::MainWindow(QWidget *parent) :
    ,m_itemsCountLabel(new QLabel(this))
 {
    settings_t                   *settings = config_get_ptr();
-   QDir playlistDir(settings->paths.directory_playlist);
+   const char *path_dir_playlist          = settings->paths.directory_playlist;
+   const char *path_dir_assets            = settings->paths.directory_assets;
+   const char *path_dir_menu_content      = settings->paths.directory_menu_content;
+   QDir playlistDir(path_dir_playlist);
    QString                      configDir = QFileInfo(path_get(RARCH_PATH_CONFIG)).dir().absolutePath();
    QToolButton   *searchResetButton       = NULL;
    QHBoxLayout   *zoomLayout              = new QHBoxLayout();
@@ -502,9 +503,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
    m_logWidget->setObjectName("logWidget");
 
-   m_folderIcon = QIcon(QString(settings->paths.directory_assets) + GENERIC_FOLDER_ICON);
-   m_imageFormats = QVector<QByteArray>::fromList(QImageReader::supportedImageFormats());
-   m_defaultStyle = QApplication::style();
+   m_folderIcon     = QIcon(QString(path_dir_assets) + GENERIC_FOLDER_ICON);
+   m_imageFormats   = QVector<QByteArray>::fromList(QImageReader::supportedImageFormats());
+   m_defaultStyle   = QApplication::style();
    m_defaultPalette = QApplication::palette();
 
    /* ViewOptionsDialog needs m_settings set before it's constructed */
@@ -634,7 +635,7 @@ MainWindow::MainWindow(QWidget *parent) :
    connect(m_dirModel, SIGNAL(directoryLoaded(const QString&)), this, SLOT(onFileSystemDirLoaded(const QString&)));
    connect(m_fileModel, SIGNAL(directoryLoaded(const QString&)), this, SLOT(onFileBrowserTableDirLoaded(const QString&)));
 
-   m_dirTree->setCurrentIndex(m_dirModel->index(settings->paths.directory_menu_content));
+   m_dirTree->setCurrentIndex(m_dirModel->index(path_dir_menu_content));
    m_dirTree->scrollTo(m_dirTree->currentIndex(), QAbstractItemView::PositionAtTop);
    m_dirTree->expand(m_dirTree->currentIndex());
 
@@ -1036,14 +1037,17 @@ bool MainWindow::showMessageBox(QString msg, MessageBoxType msgType, Qt::WindowM
 void MainWindow::onFileBrowserTreeContextMenuRequested(const QPoint&)
 {
 #ifdef HAVE_LIBRETRODB
+   QDir dir;
+   QByteArray dirArray;
    QPointer<QAction> action;
    QList<QAction*> actions;
    QScopedPointer<QAction> scanAction;
-   QDir dir;
-   QString currentDirString = QDir::toNativeSeparators(m_dirModel->filePath(m_dirTree->currentIndex()));
-   settings_t *settings = config_get_ptr();
-   QByteArray dirArray;
-   const char *fullpath = NULL;
+   QString currentDirString      = QDir::toNativeSeparators(
+         m_dirModel->filePath(m_dirTree->currentIndex()));
+   settings_t *settings          = config_get_ptr();
+   const char *fullpath          = NULL;
+   const char *path_dir_playlist = settings->paths.directory_playlist;
+   const char *path_content_db   = settings->paths.path_content_database;
 
    if (currentDirString.isEmpty())
       return;
@@ -1067,15 +1071,16 @@ void MainWindow::onFileBrowserTreeContextMenuRequested(const QPoint&)
    fullpath = dirArray.constData();
 
    task_push_dbscan(
-         settings->paths.directory_playlist,
-         settings->paths.path_content_database,
+         path_dir_playlist,
+         path_content_db,
          fullpath, true,
          m_settings->value("show_hidden_files", true).toBool(),
          scan_finished_handler);
 #endif
 }
 
-void MainWindow::showStatusMessage(QString msg, unsigned priority, unsigned duration, bool flush)
+void MainWindow::showStatusMessage(QString msg,
+      unsigned priority, unsigned duration, bool flush)
 {
    emit gotStatusMessage(msg, priority, duration, flush);
 }
@@ -1174,7 +1179,7 @@ void MainWindow::onLaunchWithComboBoxIndexChanged(int)
    QVector<QHash<QString, QString> > infoList = getCoreInfo();
    QString coreInfoText;
    QVariantMap coreMap = m_launchWithComboBox->currentData(Qt::UserRole).value<QVariantMap>();
-   CoreSelection coreSelection = static_cast<CoreSelection>(coreMap.value("core_selection").toInt());
+   core_selection coreSelection = static_cast<core_selection>(coreMap.value("core_selection").toInt());
    int i = 0;
 
    if (infoList.count() == 0)
@@ -1309,9 +1314,9 @@ QString MainWindow::changeThumbnail(const QImage &image, QString type)
 
    if (m_settings->contains("thumbnail_max_size"))
    {
-      int size = m_settings->value("thumbnail_max_size", 512).toInt();
+      int size = m_settings->value("thumbnail_max_size", 0).toInt();
 
-      if (size != 0)
+      if (size != 0 && (image.height() > size ||  image.width() > size))
          scaledImage = image.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
    }
 
@@ -1390,25 +1395,21 @@ QVector<QHash<QString, QString> > MainWindow::getCoreInfo()
 {
    unsigned i;
    QVector<QHash<QString, QString> > infoList;
+   QByteArray currentCorePathArray;
+   core_info_ctx_find_t core_info_finder;
    QHash<QString, QString> currentCore = getSelectedCore();
-   core_info_list_t    *core_info_list = NULL;
+   const char  *current_core_path_data = NULL;
    const core_info_t        *core_info = NULL;
 
-   core_info_get_list(&core_info_list);
+   currentCorePathArray   = currentCore["core_path"].toUtf8();
+   current_core_path_data = currentCorePathArray.constData();
 
-   if (!core_info_list || core_info_list->count == 0)
-      return infoList;
+   /* Search for current core */
+   core_info_finder.inf  = NULL;
+   core_info_finder.path = current_core_path_data;
 
-   for (i = 0; i < core_info_list->count; i++)
-   {
-      const core_info_t *core = &core_info_list->list[i];
-
-      if (currentCore["core_path"] == core->path)
-      {
-         core_info = core;
-         break;
-      }
-   }
+   if (core_info_find(&core_info_finder))
+      core_info = core_info_finder.inf;
 
    if (currentCore["core_path"].isEmpty() || !core_info || !core_info->config_data)
    {
@@ -1790,7 +1791,7 @@ void MainWindow::onStartCoreClicked()
 QHash<QString, QString> MainWindow::getSelectedCore()
 {
    QVariantMap coreMap = m_launchWithComboBox->currentData(Qt::UserRole).value<QVariantMap>();
-   CoreSelection coreSelection = static_cast<CoreSelection>(coreMap.value("core_selection").toInt());
+   core_selection coreSelection = static_cast<core_selection>(coreMap.value("core_selection").toInt());
    QHash<QString, QString> coreHash;
    QHash<QString, QString> contentHash;
    ViewType viewType = getCurrentViewType();
@@ -1850,11 +1851,19 @@ void MainWindow::loadContent(const QHash<QString, QString> &contentHash)
    QByteArray corePathArray;
    QByteArray contentPathArray;
    QByteArray contentLabelArray;
-   const char *corePath     = NULL;
-   const char *contentPath  = NULL;
-   const char *contentLabel = NULL;
-   QVariantMap coreMap      = m_launchWithComboBox->currentData(Qt::UserRole).value<QVariantMap>();
-   CoreSelection coreSelection = static_cast<CoreSelection>(coreMap.value("core_selection").toInt());
+   QByteArray contentDbNameArray;
+   QByteArray contentCrc32Array;
+   char contentDbNameFull[PATH_MAX_LENGTH];
+   const char *corePath        = NULL;
+   const char *contentPath     = NULL;
+   const char *contentLabel    = NULL;
+   const char *contentDbName   = NULL;
+   const char *contentCrc32    = NULL;
+   QVariantMap coreMap         = m_launchWithComboBox->currentData(Qt::UserRole).value<QVariantMap>();
+   core_selection coreSelection = static_cast<core_selection>(coreMap.value("core_selection").toInt());
+   core_info_ctx_find_t core_info;
+
+   contentDbNameFull[0] = '\0';
 
    if (m_pendingRun)
       coreSelection = CORE_SELECTION_CURRENT;
@@ -1937,9 +1946,38 @@ void MainWindow::loadContent(const QHash<QString, QString> &contentHash)
          return;
    }
 
+   contentDbNameArray = contentHash["db_name"].toUtf8();
+   contentCrc32Array  = contentHash["crc32"].toUtf8();
+
    corePath                            = corePathArray.constData();
    contentPath                         = contentPathArray.constData();
    contentLabel                        = contentLabelArray.constData();
+   contentDbName                       = contentDbNameArray.constData();
+   contentCrc32                        = contentCrc32Array.constData();
+
+   /* Search for specified core - ensures path
+    * is 'sanitised' */
+   core_info.inf  = NULL;
+   core_info.path = corePath;
+
+   if (core_info_find(&core_info) &&
+       !string_is_empty(core_info.inf->path))
+      corePath = core_info.inf->path;
+
+   /* Add lpl extension to db_name, if required */
+   if (!string_is_empty(contentDbName))
+   {
+      const char *extension = NULL;
+
+      strlcpy(contentDbNameFull, contentDbName, sizeof(contentDbNameFull));
+      extension = path_get_extension(contentDbNameFull);
+
+      if (string_is_empty(extension) || !string_is_equal_noncase(
+            extension, file_path_str(FILE_PATH_LPL_EXTENSION_NO_DOT)))
+         strlcat(
+               contentDbNameFull, file_path_str(FILE_PATH_LPL_EXTENSION),
+                     sizeof(contentDbNameFull));
+   }
 
    content_info.argc                   = 0;
    content_info.argv                   = NULL;
@@ -1953,8 +1991,8 @@ void MainWindow::loadContent(const QHash<QString, QString> &contentHash)
    command_event(CMD_EVENT_UNLOAD_CORE, NULL);
 
    if (!task_push_load_content_with_new_core_from_companion_ui(
-         corePath, contentPath, contentLabel, &content_info,
-         NULL, NULL))
+         corePath, contentPath, contentLabel, contentDbNameFull, contentCrc32,
+         &content_info, NULL, NULL))
    {
       QMessageBox::critical(this, msg_hash_to_str(MSG_ERROR),
             msg_hash_to_str(MSG_FAILED_TO_LOAD_CONTENT));
@@ -1995,7 +2033,7 @@ bool MainWindow::isContentLessCore()
 
 bool MainWindow::isCoreLoaded()
 {
-   if (  m_currentCore.isEmpty() || 
+   if (  m_currentCore.isEmpty() ||
          m_currentCore == msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NO_CORE))
       return false;
 
@@ -2095,11 +2133,15 @@ void MainWindow::setCoreActions()
 
       if (!defaultCorePath.isEmpty())
       {
+         QByteArray defaultCorePathArray;
          QString currentPlaylistItemDataString;
-         bool allPlaylists              = false;
-         int row                        = 0;
-         core_info_list_t *coreInfoList = NULL;
-         unsigned j                     = 0;
+         core_info_ctx_find_t core_info_finder;
+         const char *default_core_path_data = NULL;
+         bool allPlaylists                  = false;
+         int row                            = 0;
+
+         defaultCorePathArray   = defaultCorePath.toUtf8();
+         default_core_path_data = defaultCorePathArray.constData();
 
          if (currentPlaylistItem)
          {
@@ -2121,41 +2163,45 @@ void MainWindow::setCoreActions()
                   continue;
             }
 
-            core_info_get_list(&coreInfoList);
+            /* Search for default core */
+            core_info_finder.inf  = NULL;
+            core_info_finder.path = default_core_path_data;
 
-            if (coreInfoList)
+            if (core_info_find(&core_info_finder))
             {
-               for (j = 0; j < coreInfoList->count; j++)
+               const core_info_t *info = core_info_finder.inf;
+
+               if (m_launchWithComboBox->findText(info->core_name) == -1)
                {
-                  const core_info_t *info = &coreInfoList->list[j];
+                  int i               = 0;
+                  bool found_existing = false;
 
-                  if (defaultCorePath == info->path)
+                  for (i = 0; i < m_launchWithComboBox->count(); i++)
                   {
-                     if (m_launchWithComboBox->findText(info->core_name) == -1)
+                     QVariantMap map            = 
+                        m_launchWithComboBox->itemData(
+                              i, Qt::UserRole).toMap();
+                     QByteArray CorePathArray   = 
+                        map.value("core_path").toString().toUtf8();
+                     const char *core_path_data = CorePathArray.constData();
+
+                     if (string_starts_with(path_basename(core_path_data),
+                              info->core_file_id.str) ||
+                           map.value("core_name").toString() == info->core_name ||
+                           map.value("core_name").toString() == info->display_name)
                      {
-                        int i = 0;
-                        bool found_existing = false;
-
-                        for (i = 0; i < m_launchWithComboBox->count(); i++)
-                        {
-                           QVariantMap map = m_launchWithComboBox->itemData(i, Qt::UserRole).toMap();
-
-                           if (map.value("core_path").toString() == info->path || map.value("core_name").toString() == info->core_name)
-                           {
-                              found_existing = true;
-                              break;
-                           }
-                        }
-
-                        if (!found_existing)
-                        {
-                           QVariantMap comboBoxMap;
-                           comboBoxMap["core_name"] = info->core_name;
-                           comboBoxMap["core_path"] = info->path;
-                           comboBoxMap["core_selection"] = CORE_SELECTION_PLAYLIST_DEFAULT;
-                           m_launchWithComboBox->addItem(info->core_name, QVariant::fromValue(comboBoxMap));
-                        }
+                        found_existing = true;
+                        break;
                      }
+                  }
+
+                  if (!found_existing)
+                  {
+                     QVariantMap comboBoxMap;
+                     comboBoxMap["core_name"] = info->core_name;
+                     comboBoxMap["core_path"] = info->path;
+                     comboBoxMap["core_selection"] = CORE_SELECTION_PLAYLIST_DEFAULT;
+                     m_launchWithComboBox->addItem(info->core_name, QVariant::fromValue(comboBoxMap));
                   }
                }
             }
@@ -2384,9 +2430,10 @@ void MainWindow::renamePlaylistItem(QListWidgetItem *item, QString newName)
    QFileInfo info;
    QFileInfo playlistInfo;
    QString playlistPath;
-   settings_t *settings = config_get_ptr();
-   bool specialPlaylist = false;
-   QDir playlistDir(settings->paths.directory_playlist);
+   bool specialPlaylist          = false;
+   settings_t *settings          = config_get_ptr();
+   const char *path_dir_playlist = settings->paths.directory_playlist;
+   QDir playlistDir(path_dir_playlist);
 
    if (!item)
       return;
@@ -2395,7 +2442,7 @@ void MainWindow::renamePlaylistItem(QListWidgetItem *item, QString newName)
    playlistInfo = playlistPath;
    oldName      = playlistInfo.completeBaseName();
 
-   /* Don't just compare strings in case there are 
+   /* Don't just compare strings in case there are
     * case differences on Windows that should be ignored. */
    if (QDir(playlistInfo.absoluteDir()) != QDir(playlistDir))
    {
@@ -2405,12 +2452,15 @@ void MainWindow::renamePlaylistItem(QListWidgetItem *item, QString newName)
 
    if (specialPlaylist)
    {
-      /* special playlists shouldn't be editable already, but just in case, set the old name back and early return if they rename it */
+      /* special playlists shouldn't be editable already,
+       * but just in case, set the old name back and
+       * early return if they rename it */
       item->setText(oldName);
       return;
    }
 
-   /* block this signal because setData() would trigger an infinite loop here */
+   /* block this signal because setData() would trigger
+    * an infinite loop here */
    disconnect(m_listWidget, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(onCurrentListItemDataChanged(QListWidgetItem*)));
 
    oldPath = item->data(Qt::UserRole).toString();
@@ -2424,10 +2474,8 @@ void MainWindow::renamePlaylistItem(QListWidgetItem *item, QString newName)
 
    /* absolutePath() will always use / even on Windows */
    if (newPath.at(newPath.count() - 1) != '/')
-   {
       /* add trailing slash if the path doesn't have one */
       newPath += '/';
-   }
 
    newPath += newName + "." + extension;
 
@@ -2855,15 +2903,6 @@ void MainWindow::updateItemsCount()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-#if 0
-   if (event->key() == Qt::Key_F5)
-   {
-      event->accept();
-      hide();
-
-      return;
-   }
-#endif
    QMainWindow::keyPressEvent(event);
 }
 
@@ -2961,8 +3000,8 @@ void MainWindow::showAbout()
    QScopedPointer<QDialog> dialog(new QDialog());
    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
    QString text = QString("RetroArch ") + PACKAGE_VERSION +
-         "<br><br>" + "<a href=\"http://www.libretro.com/\">www.libretro.com</a>"
-         "<br><br>" + "<a href=\"http://www.retroarch.com/\">www.retroarch.com</a>"
+         "<br><br>" + "<a href=\"https://www.libretro.com/\">www.libretro.com</a>"
+         "<br><br>" + "<a href=\"https://www.retroarch.com/\">www.retroarch.com</a>"
 #ifdef HAVE_GIT_VERSION
          "<br><br>" + msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SYSTEM_INFO_GIT_VERSION) + ": " + retroarch_git_version +
 #endif

@@ -22,6 +22,8 @@
 
 #include "../font_driver.h"
 
+#include "../../configuration.h"
+
 typedef struct
 {
    vk_t *vk;
@@ -231,48 +233,40 @@ static void vulkan_raster_font_render_message(
       const float color[4], float pos_x, float pos_y,
       unsigned text_align)
 {
-   int lines = 0;
+   struct font_line_metrics *line_metrics = NULL;
+   int lines                              = 0;
    float line_height;
 
    if (!msg || !*msg || !font->vk)
       return;
 
-   /* If the font height is not supported just draw as usual */
-   if (!font->font_driver->get_line_height)
+   /* If font line metrics are not supported just draw as usual */
+   if (!font->font_driver->get_line_metrics ||
+       !font->font_driver->get_line_metrics(font->font_data, &line_metrics))
    {
-      if (font->vk)
-         vulkan_raster_font_render_line(font, msg, strlen(msg),
-               scale, color, pos_x, pos_y, text_align);
+      vulkan_raster_font_render_line(font, msg, strlen(msg),
+            scale, color, pos_x, pos_y, text_align);
       return;
    }
 
-   line_height = (float) font->font_driver->get_line_height(font->font_data) *
-                     scale / font->vk->vp.height;
+   line_height = line_metrics->height * scale / font->vk->vp.height;
 
    for (;;)
    {
       const char *delim = strchr(msg, '\n');
+      unsigned msg_len  = delim
+         ? (unsigned)(delim - msg) : (unsigned)strlen(msg);
 
       /* Draw the line */
-      if (delim)
-      {
-         unsigned msg_len = delim - msg;
-         if (font->vk)
-            vulkan_raster_font_render_line(font, msg, msg_len,
-                  scale, color, pos_x, pos_y - (float)lines * line_height,
-                  text_align);
-         msg += msg_len + 1;
-         lines++;
-      }
-      else
-      {
-         unsigned msg_len = strlen(msg);
-         if (font->vk)
-            vulkan_raster_font_render_line(font, msg, msg_len,
-                  scale, color, pos_x, pos_y - (float)lines * line_height,
-                  text_align);
+      vulkan_raster_font_render_line(font, msg, msg_len,
+            scale, color, pos_x, pos_y - (float)lines * line_height,
+            text_align);
+
+      if (!delim)
          break;
-      }
+
+      msg += msg_len + 1;
+      lines++;
    }
 }
 
@@ -333,25 +327,34 @@ static void vulkan_raster_font_flush(vulkan_raster_t *font)
 }
 
 static void vulkan_raster_font_render_msg(
-      video_frame_info_t *video_info,
-      void *data, const char *msg,
+      void *userdata,
+      void *data,
+      const char *msg,
       const struct font_params *params)
 {
    float color[4], color_dark[4];
    int drop_x, drop_y;
    bool full_screen;
    unsigned max_glyphs;
+   unsigned width, height;
    enum text_alignment text_align;
    float x, y, scale, drop_mod, drop_alpha;
    vk_t *vk                         = NULL;
    vulkan_raster_t *font            = (vulkan_raster_t*)data;
-   unsigned width                   = video_info->width;
-   unsigned height                  = video_info->height;
+   settings_t *settings             = config_get_ptr();
+   float video_msg_pos_x            = settings->floats.video_msg_pos_x;
+   float video_msg_pos_y            = settings->floats.video_msg_pos_y;
+   float video_msg_color_r          = settings->floats.video_msg_color_r;
+   float video_msg_color_g          = settings->floats.video_msg_color_g;
+   float video_msg_color_b          = settings->floats.video_msg_color_b;
 
    if (!font || !msg || !*msg)
       return;
 
    vk             = font->vk;
+
+   width          = vk->video_width;
+   height         = vk->video_height;
 
    if (params)
    {
@@ -376,8 +379,8 @@ static void vulkan_raster_font_render_msg(
    }
    else
    {
-      x           = video_info->font_msg_pos_x;
-      y           = video_info->font_msg_pos_y;
+      x           = video_msg_pos_x;
+      y           = video_msg_pos_y;
       scale       = 1.0f;
       full_screen = true;
       text_align  = TEXT_ALIGN_LEFT;
@@ -386,9 +389,9 @@ static void vulkan_raster_font_render_msg(
       drop_mod    = 0.3f;
       drop_alpha  = 1.0f;
 
-      color[0]    = video_info->font_msg_color_r;
-      color[1]    = video_info->font_msg_color_g;
-      color[2]    = video_info->font_msg_color_b;
+      color[0]    = video_msg_color_r;
+      color[1]    = video_msg_color_g;
+      color[2]    = video_msg_color_b;
       color[3]    = 1.0f;
    }
 
@@ -441,14 +444,14 @@ static const struct font_glyph *vulkan_raster_font_get_glyph(
    return glyph;
 }
 
-static int vulkan_get_line_height(void *data)
+static bool vulkan_get_line_metrics(void* data, struct font_line_metrics **metrics)
 {
    vulkan_raster_t *font = (vulkan_raster_t*)data;
 
    if (!font || !font->font_driver || !font->font_data)
       return -1;
 
-   return font->font_driver->get_line_height(font->font_data);
+   return font->font_driver->get_line_metrics(font->font_data, metrics);
 }
 
 font_renderer_t vulkan_raster_font = {
@@ -460,5 +463,5 @@ font_renderer_t vulkan_raster_font = {
    NULL,                            /* bind_block */
    NULL,                            /* flush_block */
    vulkan_get_message_width,
-   vulkan_get_line_height
+   vulkan_get_line_metrics
 };

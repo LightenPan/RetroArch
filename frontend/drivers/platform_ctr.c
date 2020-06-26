@@ -60,32 +60,33 @@
 static enum frontend_fork ctr_fork_mode = FRONTEND_FORK_NONE;
 static const char* elf_path_cst         = "sdmc:/retroarch/retroarch.3dsx";
 
-static void get_first_valid_core(char* path_return)
+#ifdef IS_SALAMANDER
+static void get_first_valid_core(char* path_return, size_t len)
 {
-   DIR* dir;
    struct dirent* ent;
    const char* extension = envIsHomebrew() ? ".3dsx" : ".cia";
+   DIR              *dir = opendir("sdmc:/retroarch/cores");
 
-   path_return[0] = '\0';
+   path_return[0]        = '\0';
 
-   dir = opendir("sdmc:/retroarch/cores");
-   if (dir != NULL)
+   if (dir)
    {
       while (ent = readdir(dir))
       {
-         if (ent == NULL)
+         if (!ent)
             break;
-         if (strlen(ent->d_name) > strlen(extension) && !strcmp(ent->d_name + strlen(ent->d_name) - strlen(extension), extension))
+         if (strlen(ent->d_name) > strlen(extension) 
+               && !strcmp(ent->d_name + strlen(ent->d_name) - strlen(extension), extension))
          {
-            strcpy(path_return, "sdmc:/retroarch/cores");
-            strcat(path_return, "/");
-            strcat(path_return, ent->d_name);
+            strlcpy(path_return, "sdmc:/retroarch/cores/", len);
+            strlcat(path_return, ent->d_name, len);
             break;
          }
       }
       closedir(dir);
    }
 }
+#endif
 
 static void frontend_ctr_get_environment_settings(int* argc, char* argv[],
       void* args, void* params_data)
@@ -170,7 +171,7 @@ static void frontend_ctr_deinit(void* data)
    /* Only O3DS and O3DSXL support running in 'dual-framebuffer'
     * mode with the parallax barrier disabled
     * (i.e. these are the only platforms that can use
-    * CTR_VIDEO_MODE_2D_400x240 and CTR_VIDEO_MODE_2D_800x240) */
+    * CTR_VIDEO_MODE_2D_400X240 and CTR_VIDEO_MODE_2D_800X240) */
    CFGU_GetSystemModel(&device_model); /* (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL, 5 = N2DSXL) */
    if ((device_model == 0) || (device_model == 1))
    {
@@ -212,7 +213,7 @@ static void frontend_ctr_exec(const char* path, bool should_load_game)
 #ifndef IS_SALAMANDER
    if (should_load_game && !path_is_empty(RARCH_PATH_CONTENT))
    {
-      strcpy(game_path, path_get(RARCH_PATH_CONTENT));
+      strlcpy(game_path, path_get(RARCH_PATH_CONTENT), sizeof(game_path));
       arg_data[args] = game_path;
       arg_data[args + 1] = NULL;
       args++;
@@ -233,7 +234,7 @@ static void frontend_ctr_exec(const char* path, bool should_load_game)
          core_path[0] = '\0';
 
          /* find first valid core and load it if the target core doesnt exist */
-         get_first_valid_core(&core_path[0]);
+         get_first_valid_core(&core_path[0], sizeof(core_path));
 
          if (core_path[0] == '\0')
          {
@@ -299,7 +300,7 @@ static bool frontend_ctr_set_fork(enum frontend_fork fork_mode)
 }
 #endif
 
-static void frontend_ctr_exitspawn(char* s, size_t len)
+static void frontend_ctr_exitspawn(char* s, size_t len, char *args)
 {
    bool should_load_game = false;
 #ifndef IS_SALAMANDER
@@ -623,5 +624,7 @@ frontend_ctx_driver_t frontend_ctx_ctr =
    NULL,                         /* set_sustained_performance_mode */
    NULL,                         /* get_cpu_model_name */
    NULL,                         /* get_user_language */
+   NULL,                         /* is_narrator_running */
+   NULL,                         /* accessibility_speak */
    "ctr",
 };

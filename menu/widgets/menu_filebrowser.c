@@ -33,15 +33,12 @@
 #include "../menu_driver.h"
 #include "../menu_displaylist.h"
 
-#include "../../configuration.h"
 #include "../../paths.h"
 
-#include "../../retroarch.h"
-#include "../../core.h"
 #include "../../content.h"
-#include "../../verbosity.h"
 #include "../../dynamic.h"
 
+/* TODO/FIXME - static public global variables */
 static enum filebrowser_enums filebrowser_types = FILEBROWSER_NONE;
 
 enum filebrowser_enums filebrowser_get_type(void)
@@ -59,24 +56,27 @@ void filebrowser_set_type(enum filebrowser_enums type)
    filebrowser_types = type;
 }
 
-void filebrowser_parse(menu_displaylist_info_t *info, unsigned type_data)
+void filebrowser_parse(
+      menu_displaylist_info_t *info,
+      unsigned type_data,
+      bool show_hidden_files,
+      bool builtin_mediaplayer_enable,
+      bool builtin_imageviewer_enable,
+      bool filter_ext
+      )
 {
    size_t i, list_size;
+   const struct retro_subsystem_info *subsystem;
    struct string_list *str_list         = NULL;
    unsigned items_found                 = 0;
    unsigned files_count                 = 0;
    unsigned dirs_count                  = 0;
-   settings_t *settings                 = config_get_ptr();
    enum menu_displaylist_ctl_state type = (enum menu_displaylist_ctl_state)
                                           type_data;
    const char *path                     = info ? info->path : NULL;
    bool path_is_compressed              = !string_is_empty(path)
       ? path_is_compressed_file(path) : false;
-   bool filter_ext                      =
-      settings->bools.menu_navigation_browser_filter_supported_extensions_enable;
-
-   rarch_system_info_t *system = runloop_get_system_info();
-   const struct retro_subsystem_info *subsystem;
+   rarch_system_info_t *system          = runloop_get_system_info();
 
    /* Core fully loaded, use the subsystem data */
    if (system->subsystem.data)
@@ -85,20 +85,25 @@ void filebrowser_parse(menu_displaylist_info_t *info, unsigned type_data)
    else
       subsystem = subsystem_data + content_get_subsystem();
 
-   if (info && (info->type_default == FILE_TYPE_SHADER_PRESET ||
-                info->type_default == FILE_TYPE_SHADER))
-      filter_ext = true;
+   if (info)
+   {
+      if (info->type_default == FILE_TYPE_SHADER_PRESET ||
+               info->type_default == FILE_TYPE_SHADER)
+         filter_ext = true;
 
-   if (info && string_is_equal(info->label,
-            msg_hash_to_str(MENU_ENUM_LABEL_SCAN_FILE)))
-      filter_ext = false;
+      if (string_is_equal(info->label,
+               msg_hash_to_str(MENU_ENUM_LABEL_SCAN_FILE)))
+         filter_ext = false;
+   }
 
    if (info && path_is_compressed)
    {
       if (filebrowser_types != FILEBROWSER_SELECT_FILE_SUBSYSTEM)
          str_list = file_archive_get_file_list(path, info->exts);
       else if (subsystem && subsystem_current_count > 0)
-         str_list  = file_archive_get_file_list(path, subsystem->roms[content_get_subsystem_rom_id()].valid_extensions);
+         str_list  = file_archive_get_file_list(path,
+               subsystem->roms[
+               content_get_subsystem_rom_id()].valid_extensions);
    }
    else if (!string_is_empty(path))
    {
@@ -107,15 +112,15 @@ void filebrowser_parse(menu_displaylist_info_t *info, unsigned type_data)
          if (subsystem && subsystem_current_count > 0 && content_get_subsystem_rom_id() < subsystem->num_roms)
             str_list = dir_list_new(path,
                   (filter_ext && info) ? subsystem->roms[content_get_subsystem_rom_id()].valid_extensions : NULL,
-                  true, settings->bools.show_hidden_files, true, false);
+                  true, show_hidden_files, true, false);
       }
       else if (info && ((info->type_default == FILE_TYPE_MANUAL_SCAN_DAT) || (info->type_default == FILE_TYPE_SIDELOAD_CORE)))
          str_list = dir_list_new(path,
-               info->exts, true, settings->bools.show_hidden_files, false, false);
+               info->exts, true, show_hidden_files, false, false);
       else
          str_list = dir_list_new(path,
                (filter_ext && info) ? info->exts : NULL,
-               true, settings->bools.show_hidden_files, true, false);
+               true, show_hidden_files, true, false);
    }
 
    switch (filebrowser_types)
@@ -218,64 +223,64 @@ void filebrowser_parse(menu_displaylist_info_t *info, unsigned type_data)
          is_dir = (file_type == FILE_TYPE_DIRECTORY);
 
          if (!is_dir)
-         {
-            if (filebrowser_types == FILEBROWSER_SELECT_DIR)
+            if (
+                  (filebrowser_types == FILEBROWSER_SELECT_DIR) ||
+                  (filebrowser_types == FILEBROWSER_SCAN_DIR)   ||
+                  (filebrowser_types == FILEBROWSER_MANUAL_SCAN_DIR)
+               )
                continue;
-            if (filebrowser_types == FILEBROWSER_SCAN_DIR)
-               continue;
-            if (filebrowser_types == FILEBROWSER_MANUAL_SCAN_DIR)
-               continue;
-         }
 
          /* Need to preserve slash first time. */
 
          if (!string_is_empty(path) && !path_is_compressed)
             path = path_basename(path);
 
-         if (filebrowser_types == FILEBROWSER_SELECT_COLLECTION)
+         if (is_dir)
          {
-            if (is_dir)
+            if (filebrowser_types == FILEBROWSER_SELECT_COLLECTION)
                file_type = FILE_TYPE_DIRECTORY;
-            else
-               file_type = FILE_TYPE_PLAYLIST_COLLECTION;
          }
-
-         if (!is_dir && path_is_media_type(path) == RARCH_CONTENT_MUSIC)
-            file_type = FILE_TYPE_MUSIC;
-         else if (!is_dir &&
-               (settings->bools.multimedia_builtin_mediaplayer_enable ||
-                settings->bools.multimedia_builtin_imageviewer_enable))
+         else
          {
-            switch (path_is_media_type(path))
+            enum rarch_content_type path_type = path_is_media_type(path);
+
+            if (filebrowser_types == FILEBROWSER_SELECT_COLLECTION)
+               file_type = FILE_TYPE_PLAYLIST_COLLECTION;
+
+            if (path_type == RARCH_CONTENT_MUSIC)
+               file_type = FILE_TYPE_MUSIC;
+            else if (
+                  builtin_mediaplayer_enable ||
+                  builtin_imageviewer_enable)
             {
-               case RARCH_CONTENT_MOVIE:
+               switch (path_type)
+               {
+                  case RARCH_CONTENT_MOVIE:
 #if defined(HAVE_FFMPEG) || defined(HAVE_MPV)
-                  if (settings->bools.multimedia_builtin_mediaplayer_enable)
-                     file_type = FILE_TYPE_MOVIE;
+                     if (builtin_mediaplayer_enable)
+                        file_type = FILE_TYPE_MOVIE;
 #endif
-                  break;
-               case RARCH_CONTENT_IMAGE:
+                     break;
+                  case RARCH_CONTENT_IMAGE:
 #ifdef HAVE_IMAGEVIEWER
-                  if (settings->bools.multimedia_builtin_imageviewer_enable
-                        && type != DISPLAYLIST_IMAGES)
-                     file_type = FILE_TYPE_IMAGEVIEWER;
-                  else
-                     file_type = FILE_TYPE_IMAGE;
+                     if (builtin_imageviewer_enable
+                           && type != DISPLAYLIST_IMAGES)
+                        file_type = FILE_TYPE_IMAGEVIEWER;
+                     else
+                        file_type = FILE_TYPE_IMAGE;
 #endif
-                  if (filebrowser_types == FILEBROWSER_SELECT_IMAGE)
-                     file_type = FILE_TYPE_IMAGE;
-                  break;
-               default:
-                  break;
+                     if (filebrowser_types == FILEBROWSER_SELECT_IMAGE)
+                        file_type = FILE_TYPE_IMAGE;
+                     break;
+                  default:
+                     break;
+               }
             }
          }
 
          switch (file_type)
          {
             case FILE_TYPE_PLAIN:
-#if 0
-               enum_idx = MENU_ENUM_LABEL_FILE_BROWSER_PLAIN_FILE;
-#endif
                files_count++;
                break;
             case FILE_TYPE_MOVIE:

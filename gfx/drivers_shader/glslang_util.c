@@ -13,7 +13,6 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
 #include <string.h>
 
 #include <retro_miscellaneous.h>
@@ -46,6 +45,56 @@ static void get_include_file(
 
    *end = '\0';
    strlcpy(include_file, start, len);
+}
+
+bool slang_texture_semantic_is_array(enum slang_texture_semantic sem)
+{
+   switch (sem)
+   {
+      case SLANG_TEXTURE_SEMANTIC_ORIGINAL_HISTORY:
+      case SLANG_TEXTURE_SEMANTIC_PASS_OUTPUT:
+      case SLANG_TEXTURE_SEMANTIC_PASS_FEEDBACK:
+      case SLANG_TEXTURE_SEMANTIC_USER:
+         return true;
+
+      default:
+         break;
+   }
+
+   return false;
+}
+
+enum slang_texture_semantic slang_name_to_texture_semantic_array(
+      const char *name, const char **names,
+      unsigned *index)
+{
+   unsigned i = 0;
+   while (*names)
+   {
+      const char                        *n = *names;
+      enum slang_texture_semantic semantic = (enum slang_texture_semantic)(i);
+
+      if (slang_texture_semantic_is_array(semantic))
+      {
+         size_t baselen = strlen(n);
+         int        cmp = strncmp(n, name, baselen);
+
+         if (cmp == 0)
+         {
+            *index = (unsigned)strtoul(name + baselen, NULL, 0);
+            return semantic;
+         }
+      }
+      else if (string_is_equal(name, n))
+      {
+         *index = 0;
+         return semantic;
+      }
+
+      i++;
+      names++;
+   }
+   return SLANG_INVALID_TEXTURE_SEMANTIC;
 }
 
 bool glslang_read_shader_file(const char *path,
