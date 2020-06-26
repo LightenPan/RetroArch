@@ -35,7 +35,7 @@
 
 #ifdef RARCH_INTERNAL
 #ifdef HAVE_MENU
-#include "../menu/menu_thumbnail_path.h"
+#include "../gfx/gfx_thumbnail_path.h"
 #include "../menu/menu_cbs.h"
 #include "../menu/menu_driver.h"
 #endif
@@ -55,7 +55,7 @@ typedef struct pl_rom_handle
    char *playlist_path;
    char *dir_thumbnails;
    playlist_t *playlist;
-   menu_thumbnail_path_data_t *thumbnail_path_data;
+   gfx_thumbnail_path_data_t *thumbnail_path_data;
    retro_task_t *http_task;
    size_t list_size;
    size_t list_index;
@@ -188,7 +188,7 @@ char *genYunSaveStateUrl(const char *newsavename, const char *save_buf_md5)
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
       "%s/api/UserGameData/SaveState?%s&savename=%s&save_buf_md5=%s",
-      network_wiki_api_url, acc_query_str, savename, save_buf_md5);
+      DEFAULT_NETWORK_WIKI_API_URL, acc_query_str, savename, save_buf_md5);
    return strdup(save_state_url);
 }
 
@@ -208,7 +208,7 @@ char *genYunSaveStateFragmentUrl(const char *newsavename, const char *save_buf_m
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
       "%s/api/UserGameData/SaveStateFragment?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
-      network_wiki_api_url, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+      DEFAULT_NETWORK_WIKI_API_URL, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
    return strdup(save_state_url);
 }
 
@@ -228,7 +228,7 @@ void cpyYunSaveStateFragmentUrl(const char *newsavename, const char *save_buf_md
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(save_state_url, sizeof(save_state_url),
       "%s/api/UserGameData/SaveStateFragment?%s&savename=%s&save_buf_md5=%s&seq=%u&save_buf_md5_fragment=%s",
-      network_wiki_api_url, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
+      DEFAULT_NETWORK_WIKI_API_URL, acc_query_str, savename, save_buf_md5, seq, fragment_save_buf_md5);
    strlcpy(outurl, save_state_url, outlen);
 }
 
@@ -247,7 +247,7 @@ char *genYunLoadStateUrl(char *newloadname)
    clac_retrogame_allinone_sign(acc_query_str, sizeof(acc_query_str));
    snprintf(load_state_url, sizeof(load_state_url),
       "%s/api/UserGameData/LoadState?%s&loadname=%s",
-      network_wiki_api_url, acc_query_str, loadname);
+      DEFAULT_NETWORK_WIKI_API_URL, acc_query_str, loadname);
    return strdup(load_state_url);
 }
 
@@ -280,9 +280,8 @@ static bool get_rom_paths(
       return false;
 
    /* Extract required strings */
-   menu_thumbnail_get_system(pl_thumb->thumbnail_path_data, &system);
-   menu_thumbnail_get_db_name(pl_thumb->thumbnail_path_data, &db_name);
-   if (!menu_thumbnail_get_basename(pl_thumb->thumbnail_path_data, &img_name))
+   gfx_thumbnail_get_db_name(pl_thumb->thumbnail_path_data, &db_name);
+   if (!gfx_thumbnail_get_basename(pl_thumb->thumbnail_path_data, &img_name))
       return false;
 
    /* Dermine system name */
@@ -1296,7 +1295,7 @@ static void task_push_yun_save_rom_state_handler(retro_task_t *task)
       NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_SUCCESS);
    goto task_finished;
 
-task_finished:   
+task_finished:
    if (task)
       task_set_finished(task, true);
 
@@ -1509,7 +1508,7 @@ void task_push_pl_entry_get_ext_game_info_cb(retro_task_t *task, void *task_data
 
    if (strcmp(status, "SUCCESS") != 0)
       goto finish;
-   
+
    RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result1. "
       "status: %s, message: %s, has_achievements: %s\n",
       status, message, has_achievements);
@@ -1517,13 +1516,13 @@ void task_push_pl_entry_get_ext_game_info_cb(retro_task_t *task, void *task_data
    get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t *)file_transfer->user_data;
    if (!handle)
       goto finish;
-   
+
    RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result2. "
       "selected: %u, playlist_size: %u\n",
       handle->selected, playlist_size(handle->playlist));
    if (handle->selected >= playlist_size(handle->playlist))
       goto finish;
-   
+
    RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result3. "
       "status: %s, message: %s, has_achievements: %s\n",
       status, message, has_achievements);
@@ -1653,15 +1652,15 @@ bool task_push_pl_entry_get_ext_game_info(
    settings_t *settings = config_get_ptr();
    if (!settings)
       return false;
-   
+
    bool cheevos_enable = settings->bools.cheevos_enable;
    RARCH_LOG("task_push_pl_entry_get_ext_game_info begin. "
       "system: %s, cheevos_enable: %d, mute: %d\n",
       system, cheevos_enable, mute);
-   
+
    if (!cheevos_enable)
       return true;
-   
+
    if (!settings)
       return false;
 
@@ -1687,10 +1686,10 @@ bool task_push_pl_entry_get_ext_game_info(
    playlist_get_index(playlist, idx, &entry);
    if (!entry)
       return false;
-   
+
    char crc32[1024] = {0};
    fill_pathname_base_noext(crc32, entry->path, sizeof(crc32));
-   
+
    char system_name[1024] = {0};
    fill_pathname_base_noext(system_name, entry->db_name, sizeof(system_name));
 
@@ -1718,7 +1717,7 @@ bool task_push_pl_entry_get_ext_game_info(
    snprintf(handle->crc32, sizeof(handle->crc32), "%s", crc32);
    handle->playlist = playlist;
    handle->selected = idx;
-   
+
    /* Configure task */
    task->handler                 = task_push_pl_entry_get_ext_game_info_handler;
    task->state                   = handle;

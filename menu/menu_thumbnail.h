@@ -28,8 +28,6 @@
 
 #include <boolean.h>
 
-#include "menu_thumbnail_path.h"
-
 RETRO_BEGIN_DECLS
 
 /* Defines the current status of an entry
@@ -131,7 +129,7 @@ void menu_thumbnail_cancel_pending_requests(void);
  *         and menu_thumbnail_set_content*()
  * NOTE 2: 'playlist' and 'idx' are only required here for
  *         on-demand thumbnail download support
- *         (an annoyance...) */ 
+ *         (an annoyance...) */
 void menu_thumbnail_request(
       menu_thumbnail_path_data_t *path_data, enum menu_thumbnail_id thumbnail_id,
       playlist_t *playlist, size_t idx, menu_thumbnail_t *thumbnail,

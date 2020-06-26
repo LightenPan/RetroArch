@@ -287,6 +287,7 @@ typedef struct settings
       bool network_buildbot_show_experimental_cores;
       bool network_on_demand_thumbnails;
       bool core_updater_auto_backup;
+      bool network_on_demand_yunsavestate; // 存档时自动保存云存档
 
       /* UI */
       bool ui_menubar_enable;

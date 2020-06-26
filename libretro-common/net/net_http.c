@@ -53,27 +53,29 @@ enum
    T_CHUNK
 };
 
-struct http_socket_state_t
-{
-   int fd;
-   bool ssl;
-   void *ssl_ctx;
-};
+// 迁移到头文件中
+// struct http_socket_state_t
+// {
+//    int fd;
+//    bool ssl;
+//    void *ssl_ctx;
+// };
 
-struct http_t
-{
-   int status;
-
-   char part;
-   char bodytype;
-   bool error;
-
-   size_t pos;
-   size_t len;
-   size_t buflen;
-   char *data;
-   struct http_socket_state_t sock_state;
-};
+// 将定义从C文件提取到H文件，方便其他地方调用
+// struct http_t
+// {
+//    int status;
+//
+//    char part;
+//    char bodytype;
+//    bool error;
+//
+//    size_t pos;
+//    size_t len;
+//    size_t buflen;
+//    char *data;
+//    struct http_socket_state_t sock_state;
+// };
 
 struct http_connection_t
 {
@@ -641,7 +643,7 @@ bool net_http_update(struct http_t *state, size_t* progress, size_t* total)
          {
             if (strncmp(state->data, "HTTP/1.", STRLEN_CONST("HTTP/1."))!=0)
                goto fail;
-            state->status = (int)strtoul(state->data 
+            state->status = (int)strtoul(state->data
                   + STRLEN_CONST("HTTP/1.1 "), NULL, 10);
             state->part   = P_HEADER;
          }

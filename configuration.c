@@ -2259,14 +2259,21 @@ void config_set_defaults(void *data)
    }
 
    // 服务器默认地址
-   strlcpy(settings->paths.network_buildbot_base_url, network_buildbot_base_url,
-         sizeof(settings->paths.network_buildbot_base_url));
-   strlcpy(settings->paths.network_buildbot_url, buildbot_server_url,
-         sizeof(settings->paths.network_buildbot_url));
-   strlcpy(settings->paths.network_buildbot_assets_url, buildbot_assets_server_url,
-         sizeof(settings->paths.network_buildbot_assets_url));
-   strlcpy(settings->paths.network_wiki_api_url, network_wiki_api_url,
-         sizeof(settings->paths.network_wiki_api_url)); // 初始化wiki api地址
+   configuration_set_string(settings,
+         settings->paths.network_buildbot_base_url,
+         DEFAULT_NETWORK_BUILDBOT_URL);
+   // 核心地址
+   configuration_set_string(settings,
+         settings->paths.network_buildbot_url,
+         DEFAULT_BUILDBOT_SERVER_URL);
+   // 资源地址
+   configuration_set_string(settings,
+         settings->paths.network_buildbot_assets_url,
+         DEFAULT_BUILDBOT_ASSETS_SERVER_URL);
+   // 初始化wiki api地址
+   configuration_set_string(settings,
+         settings->paths.network_wiki_api_url,
+         DEFAULT_NETWORK_WIKI_API_URL);
 
    *settings->arrays.input_keyboard_layout                = '\0';
 
@@ -3753,7 +3760,6 @@ success:
  */
 static void config_parse_file(global_t *global)
 {
-   global_t *global = (global_t*)data;
    if (path_is_empty(RARCH_PATH_CONFIG))
    {
       RARCH_LOG("[config] Loading default config.\n");

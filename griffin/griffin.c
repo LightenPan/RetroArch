@@ -1229,6 +1229,7 @@ NETPLAY
 #include "../tasks/task_wifi.c"
 #include "../tasks/task_netplay_find_content.c"
 #include "../tasks/task_pl_thumbnail_download.c"
+#include "../tasks/task_pl_rom_download.c" // 添加下载功能
 #endif
 
 /*============================================================

@@ -41,7 +41,6 @@
 
 #include "../menu_driver.h"
 #include "../menu_entries.h"
-#include "../menu_thumbnail.h"
 
 #include "../../gfx/gfx_animation.h"
 #include "../../gfx/gfx_thumbnail_path.h"
@@ -369,24 +368,6 @@ typedef struct xmb_handle
    /* Keeps track of the last time tabs were switched
     * via a MENU_ACTION_LEFT/MENU_ACTION_RIGHT event */
    retro_time_t last_tab_switch_time;
-
-   struct {
-      menu_thumbnail_t right;
-      menu_thumbnail_t left;
-      menu_thumbnail_t savestate;
-   } thumbnails;
-   /* These have to be huge, because global->name.savestate
-    * has a hard-coded size of 8192...
-    * (the extra space here is required to silence compiler
-    * warnings...) */
-   char savestate_thumbnail_file_path[8204];
-   char prev_savestate_thumbnail_file_path[8204];
-   bool fullscreen_thumbnails_available;
-   bool show_fullscreen_thumbnails;
-   float fullscreen_thumbnail_alpha;
-   size_t fullscreen_thumbnail_selection;
-   char fullscreen_thumbnail_label[255];
-
 } xmb_handle_t;
 
 float scale_mod[8] = {
@@ -698,15 +679,15 @@ static float *xmb_gradient_ident(unsigned xmb_color_theme)
 	  case XMB_THEME_MIDGAR:
          return &gradient_midgar[0];
 	  case XMB_THEME_PIKACHU_YELLOW:
-         return &gradient_pikachu_yellow[0];    
+         return &gradient_pikachu_yellow[0];
 	  case XMB_THEME_GAMECUBE_PURPLE:
-         return &gradient_gamecube_purple[0];  
+         return &gradient_gamecube_purple[0];
 	  case XMB_THEME_FAMICOM_RED:
-         return &gradient_famicom_red[0];  
+         return &gradient_famicom_red[0];
 	  case XMB_THEME_FLAMING_HOT:
-         return &gradient_flaming_hot[0];  
+         return &gradient_flaming_hot[0];
 	  case XMB_THEME_ICE_COLD:
-         return &gradient_ice_cold[0];    		 
+         return &gradient_ice_cold[0];
       case XMB_THEME_LEGACY_RED:
       default:
          break;
@@ -980,25 +961,26 @@ static void xmb_render_messagebox_internal(
    gfx_display_blend_begin(userdata);
 
 
-   // vita 背景显示不正常，先去掉   gfx_display_draw_texture_slice(
-         userdata,
-         video_width,
-         video_height,
-         x - longest_width/2 - xmb->margins_dialog,
-         y + xmb->margins_slice - xmb->margins_dialog,
-         256, 256,
-         longest_width + xmb->margins_dialog * 2,
-         line_height * list->size + xmb->margins_dialog * 2,
-         video_width, video_height,
-         NULL,
-         xmb->margins_slice, xmb->last_scale_factor,
-         xmb->textures.list[XMB_TEXTURE_DIALOG_SLICE]);
+   // todo vita 背景显示不正常，先去掉
+   gfx_display_draw_texture_slice(
+      userdata,
+      video_width,
+      video_height,
+      x - longest_width/2 - xmb->margins_dialog,
+      y + xmb->margins_slice - xmb->margins_dialog,
+      256, 256,
+      longest_width + xmb->margins_dialog * 2,
+      line_height * list->size + xmb->margins_dialog * 2,
+      video_width, video_height,
+      NULL,
+      xmb->margins_slice, xmb->last_scale_factor,
+      xmb->textures.list[XMB_TEXTURE_DIALOG_SLICE]);
 
    for (i = 0; i < list->size; i++)
    {
       const char *msg = list->elems[i].data;
 
-		// 显示红色字体，避免键盘字符显示不清楚
+      // 显示红色字体，避免键盘字符显示不清楚
       if (msg)
          gfx_display_draw_text(xmb->font, msg,
                x - longest_width/2.0,
@@ -1010,21 +992,25 @@ static void xmb_render_messagebox_internal(
    // 如果是九宫键盘，要显示九宫格键盘
    if (menu_input_dialog_get_display_kb())
    {
-      if (menu_event_get_osk_idx() == OSK_NINENUM) {
-         menu_display_draw_keyboard_ninenum(
+      if (input_event_get_osk_idx() == OSK_NINENUM) {
+         gfx_display_draw_keyboard_ninenum(
+            userdata,
+            video_width,
+            video_height,
             xmb->textures.list[XMB_TEXTURE_KEY_HOVER],
             xmb->font,
-            video_info,
-            menu_event_get_osk_grid(),
-            menu_event_get_osk_ptr(),
+            input_event_get_osk_grid(),
+            input_event_get_osk_ptr(),
             0xffffffff);
       } else {
-         menu_display_draw_keyboard(
+         gfx_display_draw_keyboard(
+            userdata,
+            video_width,
+            video_height,
             xmb->textures.list[XMB_TEXTURE_KEY_HOVER],
             xmb->font,
-            video_info,
-            menu_event_get_osk_grid(),
-            menu_event_get_osk_ptr(),
+            input_event_get_osk_grid(),
+            input_event_get_osk_ptr(),
             0xffffffff);
       }
    }
@@ -1039,7 +1025,7 @@ static void xmb_update_savestate_thumbnail_path(void *data, unsigned i)
    settings_t *settings = config_get_ptr();
    xmb_handle_t *xmb    = (xmb_handle_t*)data;
    int state_slot       = settings->ints.state_slot;
-   bool savestate_thumbnail_enable 
+   bool savestate_thumbnail_enable
                         = settings->bools.savestate_thumbnail_enable;
    if (!xmb)
       return;
@@ -1177,6 +1163,7 @@ static void xmb_update_ext_game_info(void *data)
    xmb_handle_t *xmb     = (xmb_handle_t*)data;
    size_t selection      = menu_navigation_get_selection();
    playlist_t *playlist  = playlist_get_cached();
+   settings_t *settings  = config_get_ptr();
 
    if (!xmb)
       return;
@@ -1185,22 +1172,21 @@ static void xmb_update_ext_game_info(void *data)
       return;
 
    /* Trigger thumbnail download */
-   
+
    char *system = NULL;
-   if (menu_thumbnail_get_system(xmb->thumbnail_path_data, &system))
+   if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
    {
       if (settings->bools.network_on_demand_thumbnails)
       {
          const char *system = NULL;
 
-         if (menu_thumbnail_get_system(xmb->thumbnail_path_data, &system))
+         if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
             task_push_pl_entry_thumbnail_download(system,
                   playlist_get_cached(), (unsigned)menu_navigation_get_selection(),
                   false, true);
       }
       task_push_pl_entry_get_ext_game_info(system, playlist, selection, true);
    }
-#endif
 }
 
 static unsigned xmb_get_system_tab(xmb_handle_t *xmb, unsigned i)
@@ -1218,7 +1204,7 @@ static void xmb_refresh_thumbnail_image(void *data, unsigned i)
       return;
 
    /* Only refresh thumbnails if thumbnails are enabled */
-   if (  gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) || 
+   if (  gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) ||
          gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_LEFT))
    {
       unsigned depth          = (unsigned)xmb_list_get_size(xmb, MENU_LIST_PLAIN);
@@ -1441,8 +1427,6 @@ static void xmb_set_thumbnail_content(void *data, const char *s)
             gfx_thumbnail_set_content(xmb->thumbnail_path_data, entry.path);
             xmb->fullscreen_thumbnails_available = true;
          }
-            xmb->fullscreen_thumbnails_available = true;
-         }
       }
    }
    else if (string_is_equal(s, "imageviewer"))
@@ -1462,14 +1446,11 @@ static void xmb_set_thumbnail_content(void *data, const char *s)
          entry.value_enabled      = false;
          entry.sublabel_enabled   = false;
          menu_entry_get(&entry, 0, selection, NULL, true);
-         if (  !string_is_empty(entry.path) && 
+         if (  !string_is_empty(entry.path) &&
                !string_is_empty(node->fullpath))
          {
             gfx_thumbnail_set_content_image(xmb->thumbnail_path_data,
                   node->fullpath, entry.path);
-            xmb->fullscreen_thumbnails_available = true;
-         }
-      }
             xmb->fullscreen_thumbnails_available = true;
          }
       }
@@ -1483,7 +1464,6 @@ static void xmb_set_thumbnail_content(void *data, const char *s)
        * Showing thumbnails on database entries is a
        * pointless nuisance and a waste of CPU cycles, IMHO... */
       gfx_thumbnail_set_content(xmb->thumbnail_path_data, s);
-      xmb->fullscreen_thumbnails_available = true;
       xmb->fullscreen_thumbnails_available = true;
    }
 }
@@ -1564,7 +1544,7 @@ static void xmb_selection_pointer_changed(
          ia                      = xmb->items_active_alpha;
          iz                      = xmb->items_active_zoom;
          if (
-               gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) || 
+               gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) ||
                gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_LEFT)
             )
          {
@@ -1618,7 +1598,7 @@ static void xmb_selection_pointer_changed(
                   gfx_thumbnail_reset(&xmb->thumbnails.left);
                }
             }
-            
+
             // 如果是游戏列表，从服务器获取当前游戏列表的额外信息
             if (xmb->is_playlist)
             {
@@ -1829,7 +1809,7 @@ static void xmb_list_open_new(xmb_handle_t *xmb,
 
    if (xmb_system_tab <= XMB_SYSTEM_TAB_SETTINGS)
    {
-      if (  gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) || 
+      if (  gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_RIGHT) ||
             gfx_thumbnail_is_enabled(xmb->thumbnail_path_data, GFX_THUMBNAIL_LEFT))
       {
          /* This code is horrible, full of hacks...
@@ -2496,8 +2476,8 @@ static void xmb_list_open(xmb_handle_t *xmb)
    gfx_animation_ctx_entry_t entry;
 
    settings_t *settings       = config_get_ptr();
-   unsigned 
-      menu_xmb_animation_opening_main_menu = 
+   unsigned
+      menu_xmb_animation_opening_main_menu =
       settings->uints.menu_xmb_animation_opening_main_menu;
    int                    dir = 0;
    file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
@@ -2588,9 +2568,9 @@ static void xmb_populate_entries(void *data,
    xmb->is_playlist = xmb->is_playlist && !string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_DEFERRED_RDB_ENTRY_DETAIL));
 
    if (xmb->is_playlist) {
-      menu_event_set_osk_idx(OSK_NINENUM); // 设置键盘为九宫格键盘
+      input_event_set_osk_idx(OSK_NINENUM); // 设置键盘为九宫格键盘
    } else {
-      menu_event_set_osk_idx(OSK_LOWERCASE_LATIN); // 设置为默认键盘
+      input_event_set_osk_idx(OSK_LOWERCASE_LATIN); // 设置为默认键盘
    }
 
    /* Determine whether this is a database manager list */
@@ -3236,7 +3216,7 @@ static int xmb_draw_item(
    bool use_smooth_ticker              = settings->bools.menu_ticker_smooth;
    enum gfx_animation_ticker_type
       menu_ticker_type                 = (enum gfx_animation_ticker_type)settings->uints.menu_ticker_type;
-   unsigned xmb_thumbnail_scale_factor = 
+   unsigned xmb_thumbnail_scale_factor =
       settings->uints.menu_xmb_thumbnail_scale_factor;
    bool menu_xmb_vertical_thumbnails   = settings->bools.menu_xmb_vertical_thumbnails;
    bool menu_show_sublabels            = settings->bools.menu_show_sublabels;
@@ -3344,7 +3324,7 @@ static int xmb_draw_item(
                )
                found = true;
          }
-         
+
          if (!found)
             do_draw_text = true;
       }
@@ -3756,7 +3736,7 @@ static INLINE float xmb_get_scale_factor(
 static void xmb_context_reset_internal(xmb_handle_t *xmb,
       bool is_threaded, bool reinit_textures);
 
-static void xmb_render(void *data, 
+static void xmb_render(void *data,
       unsigned width, unsigned height, bool is_idle)
 {
    size_t i;
@@ -3944,7 +3924,7 @@ static bool xmb_shader_pipeline_active(unsigned menu_shader_pipeline)
       return false;
    return true;
 }
- 
+
 static void xmb_draw_bg(
       xmb_handle_t *xmb,
       void *userdata,
@@ -4066,6 +4046,47 @@ static void xmb_draw_bg(
    gfx_display_blend_end(userdata);
 }
 
+// 九宫格背景绘制
+static void xmb_draw_ninenum_dark_layer(
+      xmb_handle_t *xmb,
+      void *userdata,
+      unsigned width,
+      unsigned height)
+{
+   gfx_display_ctx_draw_t draw;
+   struct video_coords coords;
+   float black[16]               = {
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+      0, 0, 0, 1,
+   };
+
+   // 透明度降低，实现浅色背景
+   gfx_display_set_alpha(black, MIN(xmb->alpha, 0.20));
+
+   coords.vertices      = 4;
+   coords.vertex        = NULL;
+   coords.tex_coord     = NULL;
+   coords.lut_tex_coord = NULL;
+   coords.color         = &black[0];
+
+   draw.x           = 0;
+   draw.y           = 0;
+   draw.width       = width;
+   draw.height      = height;
+   draw.coords      = &coords;
+   draw.matrix_data = NULL;
+   draw.texture     = gfx_display_white_texture;
+   draw.prim_type   = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
+   draw.pipeline.id = 0;
+
+   gfx_display_blend_begin(userdata);
+   gfx_display_draw(&draw, userdata,
+         width, height);
+   gfx_display_blend_end(userdata);
+}
+
 static void xmb_draw_dark_layer(
       xmb_handle_t *xmb,
       void *userdata,
@@ -4139,46 +4160,6 @@ static void xmb_hide_fullscreen_thumbnails(
    /* Disable fullscreen thumbnails */
    xmb->show_fullscreen_thumbnails = false;
 }
-
-// 九宫格肩膀背景绘制
-static void xmb_draw_ninenum_dark_layer(
-                                xmb_handle_t *xmb,
-                                video_frame_info_t *video_info,
-                                unsigned width,
-                                unsigned height)
-{
-   menu_display_ctx_draw_t draw;
-   struct video_coords coords;
-   float black[16] = {
-      0, 0, 0, 1,
-      0, 0, 0, 1,
-      0, 0, 0, 1,
-      0, 0, 0, 1,
-   };
-
-   menu_display_set_alpha(black, MIN(xmb->alpha, 0.20));
-
-   coords.vertices      = 4;
-   coords.vertex        = NULL;
-   coords.tex_coord     = NULL;
-   coords.lut_tex_coord = NULL;
-   coords.color         = &black[0];
-
-   draw.x           = 0;
-   draw.y           = 0;
-   draw.width       = width;
-   draw.height      = height;
-   draw.coords      = &coords;
-   draw.matrix_data = NULL;
-   draw.texture     = menu_display_white_texture;
-   draw.prim_type   = MENU_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id = 0;
-
-   menu_display_blend_begin(video_info);
-   menu_display_draw(&draw, video_info);
-   menu_display_blend_end(video_info);
-}
-
 
 /* Enables (and triggers a fade in of) the fullscreen
  * thumbnail view */
@@ -4341,7 +4322,7 @@ static void xmb_draw_fullscreen_thumbnails(
       int header_height                 = show_header ? (int)((float)xmb->font_size * 1.2f) + (frame_width * 2) : 0;
       bool xmb_vertical_thumbnails      = settings->bools.menu_xmb_vertical_thumbnails;
       bool menu_ticker_smooth           = settings->bools.menu_ticker_smooth;
-      enum gfx_animation_ticker_type 
+      enum gfx_animation_ticker_type
          menu_ticker_type               = (enum gfx_animation_ticker_type)settings->uints.menu_ticker_type;
 
       /* Sanity check: Return immediately if this is
@@ -4707,12 +4688,6 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
    float thumbnail_margin_height_full      = 0.0f;
    float left_thumbnail_margin_x           = 0.0f;
    float right_thumbnail_margin_x          = 0.0f;
-   float left_thumbnail_margin_width       = 0.0f;
-   float right_thumbnail_margin_width      = 0.0f;
-   float thumbnail_margin_height_under     = 0.0f;
-   float thumbnail_margin_height_full      = 0.0f;
-   float left_thumbnail_margin_x           = 0.0f;
-   float right_thumbnail_margin_x          = 0.0f;
    float pseudo_font_length                = 0.0f;
    xmb_handle_t *xmb                       = (xmb_handle_t*)data;
    settings_t *settings                    = config_get_ptr();
@@ -4761,8 +4736,8 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
        * than for text/icons, and also needs to scale
        * with screen dimensions */
       float shadow_offset = xmb->shadow_offset * 1.5f * xmb->last_scale_factor;
-      shadow_offset       = (shadow_offset > xmb->shadow_offset) 
-         ? shadow_offset 
+      shadow_offset       = (shadow_offset > xmb->shadow_offset)
+         ? shadow_offset
          : xmb->shadow_offset;
 
       thumbnail_shadow.type          = GFX_THUMBNAIL_SHADOW_DROP;
@@ -5339,16 +5314,20 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
 
    if (render_background)
    {
-      xmb_draw_dark_layer(xmb, userdata, video_width, video_height);
-      xmb_render_messagebox_internal(userdata, video_width, video_height,
-            xmb, msg);
+      // 九宫格显示浅色背景
+      if (input_event_get_osk_idx() == OSK_NINENUM) {
+         xmb_draw_ninenum_dark_layer(xmb, userdata, video_width, video_height);
+      } else {
+         xmb_draw_dark_layer(xmb, userdata, video_width, video_height);
+      }
+      xmb_render_messagebox_internal(userdata, video_width, video_height, xmb, msg);
    }
 
    /* Cursor image */
    if (xmb->mouse_show)
    {
       menu_input_pointer_t pointer;
-      bool cursor_visible   = video_fullscreen 
+      bool cursor_visible   = video_fullscreen
          && menu_mouse_enable;
 
       menu_input_get_pointer_state(&pointer);
@@ -5707,7 +5686,7 @@ static void *xmb_init(void **userdata, bool video_is_threaded)
       xmb->tabs[++xmb->system_tab_end] = XMB_SYSTEM_TAB_NETPLAY;
 #endif
 
-   if (      settings->bools.menu_content_show_add 
+   if (      settings->bools.menu_content_show_add
          && !settings->bools.kiosk_mode_enable)
       xmb->tabs[++xmb->system_tab_end] = XMB_SYSTEM_TAB_ADD;
 
@@ -6753,7 +6732,7 @@ static int xmb_list_push(void *data, void *userdata,
    bool kiosk_mode_enable          = settings->bools.kiosk_mode_enable;
 #ifdef HAVE_QT
    bool desktop_menu_enable        = settings->bools.desktop_menu_enable;
-#endif	
+#endif
 #if defined(HAVE_NETWORKING) && defined(HAVE_ONLINE_UPDATER)
    bool menu_show_online_updater   = settings->bools.menu_show_online_updater;
 #endif
@@ -6885,7 +6864,7 @@ static int xmb_list_push(void *data, void *userdata,
             }
 #endif
 #endif
-            if (  !menu_content_show_settings && 
+            if (  !menu_content_show_settings &&
                   !string_is_empty(menu_content_show_settings_password))
             {
                entry.enum_idx      = MENU_ENUM_LABEL_XMB_MAIN_MENU_ENABLE_SETTINGS;

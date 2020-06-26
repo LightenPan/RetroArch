@@ -154,7 +154,8 @@ bool gfx_thumbnail_get_img_name(gfx_thumbnail_path_data_t *path_data, const char
  * Returns true if content directory is valid. */
 bool gfx_thumbnail_get_content_dir(gfx_thumbnail_path_data_t *path_data, char *content_dir, size_t len);
 
-bool menu_thumbnail_get_basename(menu_thumbnail_path_data_t *path_data, const char **img_name);
+bool gfx_thumbnail_get_basename(gfx_thumbnail_path_data_t *path_data, const char **img_name);
+
 RETRO_END_DECLS
 
 #endif

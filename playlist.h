@@ -66,35 +66,40 @@ enum playlist_thumbnail_mode
    PLAYLIST_THUMBNAIL_MODE_BOXARTS
 };
 
-
-// 定义提取到头文件，方便其他地方调用
-struct content_playlist
-{
-   bool modified;
-   size_t size;
-   size_t cap;
-
-   enum playlist_label_display_mode label_display_mode;
-   enum playlist_thumbnail_mode right_thumbnail_mode;
-   enum playlist_thumbnail_mode left_thumbnail_mode;
-
-   char *conf_path;
-   char *default_core_path;
-   char *default_core_name;
-   struct playlist_entry *entries;
-   size_t last_select_ptr;
-   char *label;
-   char *logo;
-   char *logo_content;
-};
-typedef struct content_playlist playlist_t;
-
 enum playlist_sort_mode
 {
    PLAYLIST_SORT_MODE_DEFAULT = 0,
    PLAYLIST_SORT_MODE_ALPHABETICAL,
    PLAYLIST_SORT_MODE_OFF
 };
+
+// 定义提取到头文件，方便其他地方调用
+struct content_playlist
+{
+   bool modified;
+   bool old_format;
+   bool compressed;
+
+   enum playlist_label_display_mode label_display_mode;
+   enum playlist_thumbnail_mode right_thumbnail_mode;
+   enum playlist_thumbnail_mode left_thumbnail_mode;
+   enum playlist_sort_mode sort_mode;
+
+   size_t size;
+   size_t cap;
+
+   char *conf_path;
+   char *default_core_path;
+   char *default_core_name;
+   struct playlist_entry *entries;
+
+   // 魔改功能
+   size_t last_select_ptr; // 记录列表当前列表项
+   char *label; // 标签信息
+   char *logo; // 游戏列表图标
+   char *logo_content; // 游戏列表项图标
+};
+typedef struct content_playlist playlist_t;
 
 /* TODO/FIXME - since gfx_thumbnail_path.h has now
  * been divorced from the menu code, perhaps jdgleaver

@@ -502,9 +502,6 @@ DEFAULT_TITLE_MACRO(action_get_audio_settings_list,             MENU_ENUM_LABEL_
 DEFAULT_TITLE_MACRO(action_get_audio_resampler_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_RESAMPLER_SETTINGS)
 DEFAULT_TITLE_MACRO(action_get_audio_output_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_OUTPUT_SETTINGS)
 DEFAULT_TITLE_MACRO(action_get_audio_synchronization_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_SYNCHRONIZATION_SETTINGS)
-default_title_macro(action_get_audio_resampler_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_RESAMPLER_SETTINGS)
-default_title_macro(action_get_audio_output_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_OUTPUT_SETTINGS)
-default_title_macro(action_get_audio_synchronization_settings_list,             MENU_ENUM_LABEL_VALUE_AUDIO_SYNCHRONIZATION_SETTINGS)
 #ifdef HAVE_AUDIOMIXER
 DEFAULT_TITLE_MACRO(action_get_audio_mixer_settings_list,       MENU_ENUM_LABEL_VALUE_AUDIO_MIXER_SETTINGS)
 #endif
@@ -538,17 +535,6 @@ DEFAULT_TITLE_MACRO(action_get_title_manual_content_scan_list,  MENU_ENUM_LABEL_
 DEFAULT_TITLE_MACRO(action_get_title_dropdown_manual_content_scan_system_name_item, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME)
 DEFAULT_TITLE_MACRO(action_get_title_dropdown_manual_content_scan_core_name_item, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME)
 DEFAULT_TITLE_MACRO(action_get_title_dropdown_disk_index, MENU_ENUM_LABEL_VALUE_DISK_INDEX)
-default_title_macro(action_get_title_dropdown_resolution_item,  MENU_ENUM_LABEL_VALUE_SCREEN_RESOLUTION)
-default_title_macro(action_get_title_dropdown_video_shader_num_pass_item,  MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_NUM_PASSES)
-default_title_macro(action_get_title_dropdown_video_shader_parameter_item,  MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PARAMETERS)
-default_title_macro(action_get_title_dropdown_video_shader_preset_parameter_item,  MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PARAMETERS)
-default_title_macro(action_get_title_dropdown_playlist_default_core_item, MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_DEFAULT_CORE)
-default_title_macro(action_get_title_dropdown_playlist_label_display_mode_item, MENU_ENUM_LABEL_VALUE_PLAYLIST_MANAGER_LABEL_DISPLAY_MODE)
-default_title_macro(action_get_title_manual_content_scan_list,  MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_LIST)
-default_title_macro(action_get_title_dropdown_manual_content_scan_system_name_item, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_SYSTEM_NAME)
-default_title_macro(action_get_title_dropdown_manual_content_scan_core_name_item, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME)
-default_title_macro(action_get_title_dropdown_disk_index, MENU_ENUM_LABEL_VALUE_DISK_INDEX)
-
 DEFAULT_FILL_TITLE_MACRO(action_get_title_disk_image_append,    MENU_ENUM_LABEL_VALUE_DISK_IMAGE_APPEND)
 DEFAULT_FILL_TITLE_MACRO(action_get_title_cheat_file_load,      MENU_ENUM_LABEL_VALUE_CHEAT_FILE)
 DEFAULT_FILL_TITLE_MACRO(action_get_title_cheat_file_load_append, MENU_ENUM_LABEL_VALUE_CHEAT_FILE_APPEND)
@@ -593,8 +579,6 @@ DEFAULT_FILL_TITLE_MACRO(action_get_title_menu,                   MENU_ENUM_LABE
 DEFAULT_FILL_TITLE_MACRO(action_get_title_font_path,              MENU_ENUM_LABEL_VALUE_XMB_FONT)
 DEFAULT_FILL_TITLE_MACRO(action_get_title_log_dir,                MENU_ENUM_LABEL_VALUE_LOG_DIR)
 DEFAULT_FILL_TITLE_MACRO(action_get_title_manual_content_scan_dir, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DIR)
-default_fill_title_macro(action_get_title_manual_content_scan_dir, MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_DIR)
-
 DEFAULT_TITLE_COPY_MACRO(action_get_title_help,                   MENU_ENUM_LABEL_VALUE_HELP_LIST)
 DEFAULT_TITLE_COPY_MACRO(action_get_title_input_settings,         MENU_ENUM_LABEL_VALUE_INPUT_SETTINGS)
 DEFAULT_TITLE_COPY_MACRO(action_get_title_cheevos_list,           MENU_ENUM_LABEL_VALUE_ACHIEVEMENT_LIST)
@@ -672,16 +656,6 @@ static int action_get_sideload_core_list(const char *path, const char *label,
    return 0;
 }
 
-static int action_get_sideload_core_list(const char *path, const char *label,
-      unsigned menu_type, char *s, size_t len)
-{
-   strlcpy(s, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SIDELOAD_CORE_LIST), len);
-   strlcat(s, " ", len);
-   if (!string_is_empty(path))
-      strlcat(s, path, len);
-   return 0;
-}
-
 static int action_get_title_default(const char *path, const char *label,
       unsigned menu_type, char *s, size_t len)
 {
@@ -696,7 +670,7 @@ static int action_get_title_group_settings(const char *path, const char *label,
       unsigned menu_type, char *s, size_t len)
 {
    unsigned i;
-   typedef struct title_info_list 
+   typedef struct title_info_list
    {
       enum msg_hash_enums type;
       enum msg_hash_enums val;
@@ -767,7 +741,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       const char *label)
 {
    unsigned i;
-   typedef struct title_info_list 
+   typedef struct title_info_list
    {
       enum msg_hash_enums type;
       int (*cb)(const char *path, const char *label,
@@ -856,7 +830,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST, action_get_title_deferred_cursor_manager_list},
       {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_DEVELOPER, action_get_title_list_rdb_entry_developer},
       {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_PUBLISHER, action_get_title_list_rdb_entry_publisher},
-      {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ORIGIN, 
+      {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ORIGIN,
          action_get_title_list_rdb_entry_origin},
       {MENU_ENUM_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_FRANCHISE,
             action_get_title_list_rdb_entry_franchise},
@@ -1479,7 +1453,7 @@ int menu_cbs_init_bind_title(menu_file_list_cbs_t *cbs,
       const char *path, const char *label, unsigned type, size_t idx)
 {
    unsigned i;
-   typedef struct title_info_list 
+   typedef struct title_info_list
    {
       enum msg_hash_enums type;
       int (*cb)(const char *path, const char *label,

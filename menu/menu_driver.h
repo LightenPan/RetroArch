@@ -300,9 +300,6 @@ typedef struct menu_ctx_driver
    /* This will be invoked whenever a menu entry action
     * (menu_entry_action()) is performed */
    int (*entry_action)(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
-   /* This will be invoked whenever a menu entry action
-    * (menu_entry_action()) is performed */
-   int (*entry_action)(void *userdata, menu_entry_t *entry, size_t i, enum menu_action action);
    void (*set_horizontal_list_uiinfo)(
        void *userdata, const char *path, const char *title,
        const char *logoname, const char *content_logoname);

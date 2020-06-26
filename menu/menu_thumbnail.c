@@ -29,7 +29,6 @@
 #include <file/file_path.h>
 #include <string/stdstring.h>
 
-#include "menu_animation.h"
 #include "menu_driver.h"
 
 #include "menu_thumbnail.h"
@@ -209,7 +208,7 @@ void menu_thumbnail_cancel_pending_requests(void)
  *         and menu_thumbnail_set_content*()
  * NOTE 2: 'playlist' and 'idx' are only required here for
  *         on-demand thumbnail download support
- *         (an annoyance...) */ 
+ *         (an annoyance...) */
 void menu_thumbnail_request(
       menu_thumbnail_path_data_t *path_data, enum menu_thumbnail_id thumbnail_id,
       playlist_t *playlist, size_t idx, menu_thumbnail_t *thumbnail,
@@ -289,7 +288,7 @@ void menu_thumbnail_request(
          strlcpy(last_img_name, img_name, sizeof(last_img_name));
 
          /* Get system name */
-         if (!menu_thumbnail_get_system(path_data, &system))
+         if (!gfx_thumbnail_get_system(path_data, &system))
             return;
 
          /* Trigger thumbnail download */

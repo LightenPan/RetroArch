@@ -1479,7 +1479,7 @@ static int file_load_with_detect_core_wrapper(
                content_info.environ_get = NULL;
 
                if (!task_push_load_content_with_new_core_from_menu(
-                        new_core_path, def_info.s,
+                        new_core_path, def_info.s, label,
                         &content_info,
                         CORE_TYPE_PLAIN,
                         NULL, NULL))
@@ -2626,7 +2626,7 @@ static void menu_input_st_string_cb_disable_kiosk_mode(void *userdata,
    {
       const char                    *label = menu_input_dialog_get_buffer();
       settings_t                 *settings = config_get_ptr();
-      const char *path_kiosk_mode_password = 
+      const char *path_kiosk_mode_password =
          settings->paths.kiosk_mode_password;
 
       if (string_is_equal(label, path_kiosk_mode_password))
@@ -2655,7 +2655,7 @@ static void menu_input_st_string_cb_enable_settings(void *userdata,
 {
    if (str && *str)
    {
-      const char                                 *label    = 
+      const char                                 *label    =
          menu_input_dialog_get_buffer();
       settings_t                                 *settings = config_get_ptr();
       const char *menu_content_show_settings_password      = settings->paths.menu_content_show_settings_password;
@@ -3342,7 +3342,7 @@ static int action_ok_load_core_deferred(const char *path,
       return menu_cbs_exit();
 
    if (!task_push_load_content_with_new_core_from_menu(
-            path, menu->deferred_path,
+            path, menu->deferred_path, label,
             &content_info,
             CORE_TYPE_PLAIN,
             NULL, NULL))
@@ -3785,7 +3785,7 @@ static int action_ok_file_load_detect_core(const char *path,
    content_info.environ_get            = NULL;
 
    if (!task_push_load_content_with_new_core_from_menu(
-            path, menu->detect_content_path,
+            path, menu->detect_content_path, label,
             &content_info,
             CORE_TYPE_PLAIN,
             NULL, NULL))
@@ -4567,7 +4567,7 @@ static int action_ok_add_to_favorites(const char *path,
          }
 
          /* >> core_name (continued) */
-         if (   string_is_empty(core_name) && 
+         if (   string_is_empty(core_name) &&
                !string_is_empty(system->library_name))
             strlcpy(core_name, system->library_name, sizeof(core_name));
       }
@@ -4608,9 +4608,9 @@ static int action_ok_add_to_favorites(const char *path,
       string_list_append(str_list, content_label, attr);
       string_list_append(str_list, core_path, attr);
       string_list_append(str_list, core_name, attr);
-      string_list_append(str_list, !string_is_empty(crc32) 
+      string_list_append(str_list, !string_is_empty(crc32)
             ? crc32 : "", attr);
-      string_list_append(str_list, !string_is_empty(db_name) 
+      string_list_append(str_list, !string_is_empty(db_name)
             ? db_name : "", attr);
 
       /* Trigger 'ADD_TO_FAVORITES' event */
@@ -4649,7 +4649,7 @@ static int action_ok_add_to_favorites_playlist(const char *path,
    {
       union string_list_elem_attr attr;
       char core_display_name[PATH_MAX_LENGTH];
-      struct string_list 
+      struct string_list
          *str_list         = NULL;
 
       core_display_name[0] = '\0';
@@ -5924,7 +5924,7 @@ static int action_ok_load_archive_detect_core(const char *path,
             ret                                 = 0;
 
             if (!task_push_load_content_with_new_core_from_menu(
-                     new_core_path, def_info.s,
+                     new_core_path, def_info.s, label,
                      &content_info,
                      CORE_TYPE_PLAIN,
                      NULL, NULL))
@@ -6006,21 +6006,21 @@ static int action_ok_video_resolution(const char *path,
 static int action_ok_playlist_default_core(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_PLAYLIST_DEFAULT_CORE);
 }
 
 static int action_ok_playlist_label_display_mode(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_PLAYLIST_LABEL_DISPLAY_MODE);
 }
 
 static int action_ok_playlist_right_thumbnail_mode(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_PLAYLIST_RIGHT_THUMBNAIL_MODE);
 }
 
@@ -6051,35 +6051,35 @@ static int action_ok_remappings_port_list(const char *path,
 static int action_ok_shader_parameter_dropdown_box_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_SHADER_PARAMETER);
 }
 
 static int action_ok_shader_preset_parameter_dropdown_box_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_SHADER_PRESET_PARAMETER);
 }
 
 static int action_ok_manual_content_scan_system_name(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME);
 }
 
 static int action_ok_manual_content_scan_core_name(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_MANUAL_CONTENT_SCAN_CORE_NAME);
 }
 
 static int action_ok_video_shader_num_passes_dropdown_box_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   return generic_dropdown_box_list(idx, 
+   return generic_dropdown_box_list(idx,
          ACTION_OK_DL_DROPDOWN_BOX_LIST_VIDEO_SHADER_NUM_PASSES);
 }
 
@@ -6778,7 +6778,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_BROWSE_START,                        action_ok_browse_url_start},
          {MENU_ENUM_LABEL_FILE_BROWSER_CORE,                   action_ok_load_core},
          {MENU_ENUM_LABEL_FILE_BROWSER_CORE_SELECT_FROM_COLLECTION, action_ok_core_deferred_set},
-         {MENU_ENUM_LABEL_FILE_BROWSER_CORE_SELECT_FROM_COLLECTION_CURRENT_CORE,action_ok_core_deferred_set}, 
+         {MENU_ENUM_LABEL_FILE_BROWSER_CORE_SELECT_FROM_COLLECTION_CURRENT_CORE,action_ok_core_deferred_set},
          {MENU_ENUM_LABEL_START_CORE,                          action_ok_start_core},
          {MENU_ENUM_LABEL_START_NET_RETROPAD,                  action_ok_start_net_retropad_core},
          {MENU_ENUM_LABEL_START_GONG,                          action_ok_start_gong_core},
@@ -6787,7 +6787,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_OPEN_ARCHIVE,                        action_ok_open_archive},
          {MENU_ENUM_LABEL_LOAD_ARCHIVE_DETECT_CORE,            action_ok_load_archive_detect_core},
          {MENU_ENUM_LABEL_LOAD_ARCHIVE,                        action_ok_load_archive},
-         {MENU_ENUM_LABEL_CUSTOM_BIND_ALL,                     action_ok_lookup_setting}, 
+         {MENU_ENUM_LABEL_CUSTOM_BIND_ALL,                     action_ok_lookup_setting},
          {MENU_ENUM_LABEL_SAVE_STATE,                          action_ok_save_state},
          {MENU_ENUM_LABEL_LOAD_STATE,                          action_ok_load_state},
          {MENU_ENUM_LABEL_UNDO_LOAD_STATE,                     action_ok_undo_load_state},
@@ -6863,7 +6863,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_CORE_DELETE,                         action_ok_core_delete},
          {MENU_ENUM_LABEL_CORE_CREATE_BACKUP,                  action_ok_core_create_backup},
          {MENU_ENUM_LABEL_DELETE_PLAYLIST,                     action_ok_delete_playlist},
-         {MENU_ENUM_LABEL_ACHIEVEMENT_PAUSE,                   action_ok_cheevos_toggle_hardcore_mode}, 
+         {MENU_ENUM_LABEL_ACHIEVEMENT_PAUSE,                   action_ok_cheevos_toggle_hardcore_mode},
          {MENU_ENUM_LABEL_ACHIEVEMENT_RESUME,                  action_ok_cheevos_toggle_hardcore_mode},
          {MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_LIST,            action_ok_push_manual_content_scan_list},
          {MENU_ENUM_LABEL_AUDIO_OUTPUT_SETTINGS,               action_ok_push_audio_output_settings_list},

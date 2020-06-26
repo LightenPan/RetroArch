@@ -176,10 +176,10 @@ static float gfx_display_get_adjusted_scale_internal(
    if (p_disp->menu_driver_id == MENU_DRIVER_ID_OZONE)
    {
       float new_width = (float)width * 0.3333333f;
-      adjusted_scale  = 
-         (((float)OZONE_SIDEBAR_WIDTH * adjusted_scale) 
+      adjusted_scale  =
+         (((float)OZONE_SIDEBAR_WIDTH * adjusted_scale)
           > new_width
-          ? (new_width / (float)OZONE_SIDEBAR_WIDTH) 
+          ? (new_width / (float)OZONE_SIDEBAR_WIDTH)
           : adjusted_scale);
    }
 #endif
@@ -490,7 +490,7 @@ float gfx_display_get_widget_dpi_scale(
     * is ignored
     * > If we are not using a widget scale factor override,
     *   just set menu_scale_factor to 1.0 */
-   float menu_scale_factor                             = 
+   float menu_scale_factor                             =
       gfx_widget_scale_auto ?
       ((p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI) ?
        1.0f : _menu_scale_factor) :
@@ -554,7 +554,7 @@ float gfx_display_get_widget_pixel_scale(
    /* When using RGUI, _menu_scale_factor is ignored
     * > If we are not using a widget scale factor override,
     *   just set menu_scale_factor to 1.0 */
-   float menu_scale_factor                             = 
+   float menu_scale_factor                             =
       gfx_widget_scale_auto ?
             ((p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI) ?
                   1.0f : _menu_scale_factor) :
@@ -737,7 +737,7 @@ void gfx_display_clear_color(gfx_display_ctx_clearcolor_t *color, void *data)
 
 void gfx_display_draw(gfx_display_ctx_draw_t *draw,
       void *data,
-      unsigned video_width, 
+      unsigned video_width,
       unsigned video_height)
 {
    gfx_display_t            *p_disp  = disp_get_ptr();
@@ -1665,6 +1665,83 @@ void gfx_display_unset_framebuffer_dirty_flag(void)
    p_disp->framebuf_dirty = false;
 }
 
+void gfx_display_draw_keyboard_ninenum(
+      void *userdata,
+      unsigned video_width,
+      unsigned video_height,
+      uintptr_t hover_texture,
+      const font_data_t *font,
+      char *grid[], unsigned id,
+      unsigned text_color)
+{
+   unsigned i;
+   int ptr_width, ptr_height;
+
+   float white[16]=  {
+      1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00,
+   };
+
+   gfx_display_draw_quad(
+         userdata,
+         video_width,
+         video_height,
+         0,
+         video_height / 2.0,
+         video_width,
+         video_height / 2.0,
+         video_width,
+         video_height,
+         &osk_dark[0]);
+
+	int row = 3;
+	int column = 4;
+   ptr_width  = video_width  / column;
+   ptr_height = video_height / 10;
+
+   if (ptr_width >= ptr_height)
+      ptr_width = ptr_height;
+
+   for (i = 0; i < row*column; i++)
+   {
+		int line_y     = (i / column) * video_height / 10.0;
+      unsigned color = 0xffffffff;
+
+      if (i == id)
+      {
+         gfx_display_blend_begin(userdata);
+
+         gfx_display_draw_texture(
+               userdata,
+               video_width,
+               video_height,
+               video_width / 2.0 - (column * ptr_width) / 2.0 + (i % column) * ptr_width,
+               video_height / 2.0 + ptr_height * 1.5 + line_y,
+               ptr_width, ptr_height,
+               video_width,
+               video_height,
+               &white[0],
+               hover_texture);
+
+         gfx_display_blend_end(userdata);
+
+         color = text_color;
+      }
+
+      gfx_display_draw_text(font, grid[i],
+            video_width / 2.0 - (column * ptr_width) / 2.0 + (i % column) * ptr_width + ptr_width/2.0,
+            video_height / 2.0 + ptr_height + line_y + font->size / 3,
+            video_width,
+            video_height,
+            color,
+            TEXT_ALIGN_CENTER,
+            1.0f,
+            false, 0, false);
+   }
+}
+
 void gfx_display_draw_keyboard(
       void *userdata,
       unsigned video_width,
@@ -1715,7 +1792,7 @@ void gfx_display_draw_keyboard(
                userdata,
                video_width,
                video_height,
-               video_width / 2.0 - (11 * ptr_width) / 2.0 + (i % 11) 
+               video_width / 2.0 - (11 * ptr_width) / 2.0 + (i % 11)
                * ptr_width,
                video_height / 2.0 + ptr_height * 1.5 + line_y,
                ptr_width, ptr_height,
@@ -1842,7 +1919,7 @@ bool gfx_display_reset_textures_list_buffer(
    if (height)
       *height = ti.height;
 
-   /* if the poke interface doesn't support texture load then return false */  
+   /* if the poke interface doesn't support texture load then return false */
    if (!video_driver_texture_load(&ti, filter_type, item))
        return false;
    image_texture_free(&ti);

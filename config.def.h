@@ -468,9 +468,6 @@
 #define DEFAULT_QUICK_MENU_SHOW_SAVE_LOAD_STATE true
 
 #define DEFAULT_QUICK_MENU_SHOW_UNDO_SAVE_LOAD_STATE true
-#ifdef HAVE_NETWORKING
-static bool quick_menu_show_download_thumbnails         = true;
-#endif
 
 static const bool quick_menu_show_add_to_favorites            = true;
 static const bool quick_menu_show_start_recording             = true;
@@ -548,6 +545,7 @@ static const bool content_show_video        = true;
 static const bool content_show_netplay      = false;
 #else
 static const bool content_show_netplay      = true;
+#endif
 #endif
 static const bool content_show_history      = true;
 static const bool content_show_add     	    = true;
@@ -919,7 +917,7 @@ static const bool savestate_auto_index = false;
  * startup if savestate_auto_load is set. */
 static const bool savestate_auto_save = false;
 static const bool savestate_auto_load = false;
-
+static const bool network_on_demand_yunsavestate = false; // 自动下载缩略图
 static const bool savestate_thumbnail_enable = false;
 
 /* When creating save (srm) files, compress
@@ -1137,7 +1135,7 @@ static const bool ui_companion_toggle = false;
 #define DEFAULT_CONTENT_RUNTIME_LOG true
 #endif
 
-/* Keep track of how long each content has been running 
+/* Keep track of how long each content has been running
  * for over time (ignores core) */
 #define DEFAULT_CONTENT_RUNTIME_LOG_AGGREGATE false
 
@@ -1181,100 +1179,100 @@ static const bool enable_device_vibration    = false;
 #endif
 
 #if defined(HAKCHI)
-#define DEFAULT_BUILDBOT_SERVER_URL "http://hakchicloud.com/Libretro_Cores/"
+#define DEFAULT_DEFAULT_BUILDBOT_SERVER_URL "http://hakchicloud.com/Libretro_Cores/"
 #elif defined(ANDROID)
 #if defined(ANDROID_ARM_V7)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/armeabi-v7a/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/armeabi-v7a/";
 #elif defined(ANDROID_ARM)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/armeabi/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/armeabi/";
 #elif defined(ANDROID_AARCH64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/arm64-v8a/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/arm64-v8a/";
 #elif defined(ANDROID_X86)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/x86/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/x86/";
 #elif defined(ANDROID_X64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/x86_64/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/android/latest/x86_64/";
 #else
-static char buildbot_server_url[] = "";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "";
 #endif
 #elif defined(__QNX__)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/blackberry/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/blackberry/latest/";
 #elif defined(IOS)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/apple/ios/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/apple/ios/latest/";
 #elif defined(OSX)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/apple/osx/x86_64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/apple/osx/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
-static char buildbot_server_url[] = "http://bot.libretro.com/nightly/apple/osx/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://bot.libretro.com/nightly/apple/osx/x86/latest/";
 #else
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/apple/osx/ppc/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/apple/osx/ppc/latest/";
 #endif
 #elif defined(_WIN32) && !defined(_XBOX)
 #if _MSC_VER >= 1910
 #ifndef __WINRT__
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/x64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/x64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/x86/latest/";
 #elif defined(__arm__) || defined(_M_ARM)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/arm/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/arm/latest/";
 #elif defined(__aarch64__) || defined(_M_ARM64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/arm64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-desktop/arm64/latest/";
 #endif
 #else
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/x64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/x64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/x86/latest/";
 #elif defined(__arm__) || defined(_M_ARM)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/arm/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/arm/latest/";
 #elif defined(__aarch64__) || defined(_M_ARM64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/arm64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2017-uwp/arm64/latest/";
 #endif
 #endif
 #elif _MSC_VER == 1600
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2010/x86_64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2010/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2010/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2010/x86/latest/";
 #endif
 #elif _MSC_VER == 1400
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2005/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2005/x86/latest/";
 #elif _MSC_VER == 1310
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2003/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows-msvc2003/x86/latest/";
 #else
 #if defined(__x86_64__) || defined(_M_X64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows/x86_64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__) || defined(_M_IX86) || defined(_M_IA64)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/windows/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/windows/x86/latest/";
 #endif
 #endif
 #elif defined(__linux__)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/linux/x86_64/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/linux/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/linux/x86/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/linux/x86/latest/";
 #elif defined(__arm__) && __ARM_ARCH == 7 && defined(__ARM_PCS_VFP)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/linux/armhf/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/linux/armhf/latest/";
 #else
-static char buildbot_server_url[] = "";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "";
 #endif
 #elif defined(WIIU)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/nintendo/wiiu/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/nintendo/wiiu/latest/";
 #elif defined(HAVE_LIBNX)
-static char buildbot_server_url[] = "http://gindex.retrogame.workers.dev/nightly/nintendo/switch/libnx/latest/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://gindex.retrogame.workers.dev/nightly/nintendo/switch/libnx/latest/";
 #elif defined(__CELLOS_LV2__) && defined(DEX_BUILD)
-static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/dex-ps3/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/dex-ps3/";
 #elif defined(__CELLOS_LV2__) && defined(CEX_BUILD)
-static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/cex-ps3/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/cex-ps3/";
 #elif defined(__CELLOS_LV2__) && defined(ODE_BUILD)
-static char buildbot_server_url[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/ode-ps3/";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "http://libretro.xbins.org/libretro/nightly/playstation/ps3/latest/ode-ps3/";
 #else
-static char buildbot_server_url[] = "";
+static char DEFAULT_BUILDBOT_SERVER_URL[] = "";
 #endif
 
-static char network_buildbot_base_url[] = "http://gindex.retrogame.workers.dev";
-static char buildbot_assets_server_url[] = "http://gindex.retrogame.workers.dev/assets/";
-static char network_wiki_api_url[] = "http://wekafei.cn";
+static char DEFAULT_NETWORK_BUILDBOT_URL[] = "http://gindex.retrogame.workers.dev";
+static char DEFAULT_BUILDBOT_ASSETS_SERVER_URL[] = "http://gindex.retrogame.workers.dev/assets/";
+static char DEFAULT_NETWORK_WIKI_API_URL[] = "http://wekafei.cn";
 
 #define DEFAULT_DISCORD_APP_ID "475456035851599874"
 

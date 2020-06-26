@@ -180,12 +180,12 @@ const char *file_path_str(enum file_path_enum enum_idx)
          break;
       case FILE_PATH_WIKI_API_URL:
          {
-            str = network_wiki_api_url;
+            str = DEFAULT_NETWORK_WIKI_API_URL;
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_wiki_api_url))
             {
                // 替换成基础地址，方便国外用户使用
-               str = strreplace(str, network_wiki_api_url, settings->paths.network_wiki_api_url);
+               str = strreplace(str, DEFAULT_NETWORK_WIKI_API_URL, settings->paths.network_wiki_api_url);
             }
          }
          break;

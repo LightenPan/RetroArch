@@ -6908,7 +6908,7 @@ void general_write_handler(rarch_setting_t *setting)
             struct retro_game_geometry     *geom = (struct retro_game_geometry*)
                &av_info->geometry;
 
-            if (system){
+            if (system)
             {
                unsigned int rotation = retroarch_get_rotation();
 
@@ -7076,7 +7076,6 @@ void general_write_handler(rarch_setting_t *setting)
                *setting->value.target.unsigned_integer = 0;
                setting->max = (int) pow(2,pow((double) 2,cheat_manager_state.search_bit_size))-1;
             }
-
          }
          break;
       case MENU_ENUM_LABEL_CONTENT_FAVORITES_SIZE:
@@ -16671,7 +16670,7 @@ static bool setting_append_list(
                   general_write_handler,
                   general_read_handler,
                   SD_FLAG_NONE);
-			
+
 			// 云存档
             CONFIG_BOOL(
                list, list_info,

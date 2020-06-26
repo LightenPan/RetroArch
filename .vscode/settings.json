@@ -11,6 +11,7 @@
    "editor.insertSpaces": true,
    "editor.formatOnSave": false,
    "files.associations": {
+      "*.vue": "vue",
       "frontend_driver.h": "c",
       "*.in": "c",
       "*.rh": "c",
@@ -66,7 +67,8 @@
       "menu_filebrowser.h": "c",
       "ozone_sidebar.h": "c",
       "menu_thumbnail_path.h": "c",
-      "badges.h": "c"
+      "badges.h": "c",
+      "menu_thumbnail.h": "c"
    },
    "C_Cpp.dimInactiveRegions": false,
 }

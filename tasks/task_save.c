@@ -65,9 +65,6 @@
 extern bool task_push_yun_save_rom_state(char *path);
 
 
-static bool save_state_in_background = false;
-static struct string_list *task_save_files = NULL;
-
 struct ram_type
 {
    const char *path;
@@ -968,7 +965,7 @@ static void content_load_state_cb(retro_task_t *task,
          (unsigned)size,
          msg_hash_to_str(MSG_BYTES));
 
-   /* This means we're backing up the file in memory, 
+   /* This means we're backing up the file in memory,
     * so content_undo_save_state()
     * can restore it */
    if (load_data->load_to_backup_buffer)
@@ -1100,7 +1097,7 @@ static void save_state_cb(retro_task_t *task,
    save_task_state_t *state   = (save_task_state_t*)task_data;
    char               *path   = strdup(state->path);
    settings_t     *settings   = config_get_ptr();
-   const char *dir_screenshot = settings->paths.directory_screenshot; 
+   const char *dir_screenshot = settings->paths.directory_screenshot;
 
    RARCH_LOG("save_state_cb begin. path: %s\n", path);
 
@@ -1247,12 +1244,12 @@ static void task_push_load_and_save_state(const char *path, void *data,
    state->undo_size  = size;
    state->undo_data  = data;
    state->autosave   = autosave;
-   state->mute       = autosave; /* don't show OSD messages if we 
+   state->mute       = autosave; /* don't show OSD messages if we
                                     are auto-saving */
    if (load_to_backup_buffer)
       state->mute                = true;
    state->state_slot             = state_slot;
-   state->has_valid_framebuffer  = 
+   state->has_valid_framebuffer  =
       video_driver_cached_frame_has_valid_framebuffer();
    state->compress_files         = compress_files;
 
@@ -1423,7 +1420,7 @@ bool content_load_state(const char *path,
    state->load_to_backup_buffer = load_to_backup_buffer;
    state->autoload              = autoload;
    state->state_slot            = state_slot;
-   state->has_valid_framebuffer = 
+   state->has_valid_framebuffer =
       video_driver_cached_frame_has_valid_framebuffer();
    state->compress_files        = compress_files;
 
@@ -1463,7 +1460,7 @@ bool content_rename_state(const char *origin, const char *dest)
 /*
 *
 * TODO/FIXME: Figure out when and where this should be called.
-* As it is, when e.g. closing Gambatte, we get the 
+* As it is, when e.g. closing Gambatte, we get the
 * same printf message 4 times.
 */
 bool content_reset_savestate_backups(void)

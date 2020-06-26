@@ -114,7 +114,7 @@ static void core_info_list_resolve_all_firmware(
          char path_key[64];
          char desc_key[64];
          char opt_key[64];
-         struct config_entry_list 
+         struct config_entry_list
             *entry         = NULL;
          bool tmp_bool     = false;
          path_key[0]       = desc_key[0] = opt_key[0] = '\0';
@@ -331,7 +331,7 @@ static core_info_list_t *core_info_list_new(const char *path,
       {
          bool tmp_bool      = false;
          unsigned tmp_uint  = 0;
-         struct config_entry_list 
+         struct config_entry_list
             *entry = config_get_entry(conf, "display_name", NULL);
 
          if (entry && !string_is_empty(entry->value))
@@ -603,7 +603,6 @@ static core_info_t *core_info_find_internal(
 {
    size_t i;
    const char *core_filename = NULL;
-   RARCH_LOG("core_info_find_internal log core_path_basename: %s\n", core_path_basename);
 
    if (!list || string_is_empty(core))
       return NULL;
@@ -857,7 +856,7 @@ void core_info_get_name(const char *path, char *s, size_t len,
 
    for (i = 0; i < contents->size; i++)
    {
-      struct config_entry_list 
+      struct config_entry_list
          *entry                       = NULL;
       config_file_t *conf             = NULL;
       const char *current_path        = contents->elems[i].data;
@@ -1023,7 +1022,7 @@ bool core_info_list_get_display_name(core_info_list_t *core_info_list,
 
 bool core_info_get_display_name(const char *path, char *s, size_t len)
 {
-   struct config_entry_list 
+   struct config_entry_list
       *entry           = NULL;
    config_file_t *conf = config_file_new_from_path_to_string(path);
 
@@ -1046,7 +1045,7 @@ bool core_info_get_display_name(const char *path, char *s, size_t len)
  * Returns NULL if 'path' is invalid. */
 core_updater_info_t *core_info_get_core_updater_info(const char *path)
 {
-   struct config_entry_list 
+   struct config_entry_list
       *entry                 = NULL;
    bool tmp_bool             = false;
    core_updater_info_t *info = NULL;
@@ -1389,7 +1388,7 @@ bool core_info_hw_api_supported(core_info_t *info)
             (string_is_equal_noncase(api_str, "openglcompatibility") && sys_api == GFX_CTX_OPENGL_API))
       {
          /* system is running a core context while compat is requested */
-         if (sys_flags.flags & (1 << GFX_CTX_FLAGS_GL_CORE_CONTEXT))   
+         if (sys_flags.flags & (1 << GFX_CTX_FLAGS_GL_CORE_CONTEXT))
             return false;
 
          sscanf(sys_api_version_str, "%d.%d", &sys_api_version_major, &sys_api_version_minor);

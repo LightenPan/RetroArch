@@ -404,24 +404,6 @@ int64_t intfstream_get_ptr(intfstream_internal_t* intf)
    return 0;
 }
 
-int64_t intfstream_get_ptr(intfstream_internal_t* intf)
-{
-   if (!intf)
-      return 0;
-
-   switch (intf->type)
-   {
-      case INTFSTREAM_FILE:
-         return -1;
-      case INTFSTREAM_MEMORY:
-         return memstream_get_ptr(intf->memory.fp);
-      case INTFSTREAM_CHD:
-         return -1;
-   }
-
-   return 0;
-}
-
 char *intfstream_gets(intfstream_internal_t *intf,
       char *buffer, uint64_t len)
 {
@@ -658,32 +640,6 @@ bool intfstream_get_crc(intfstream_internal_t *intf, uint32_t *crc)
    intfstream_rewind(intf);
 
    return true;
-}
-
-uint32_t intfstream_get_offset_to_start(intfstream_internal_t *intf)
-{
-   if (intf)
-   {
-#ifdef HAVE_CHD
-      if (intf->type == INTFSTREAM_CHD)
-         return chdstream_get_track_start(intf->chd.fp);
-#endif
-   }
-
-   return 0;
-}
-
-uint32_t intfstream_get_frame_size(intfstream_internal_t *intf)
-{
-   if (intf)
-   {
-#ifdef HAVE_CHD
-      if (intf->type == INTFSTREAM_CHD)
-         return chdstream_get_frame_size(intf->chd.fp);
-#endif
-   }
-
-   return 0;
 }
 
 intfstream_t* intfstream_open_file(const char *path,

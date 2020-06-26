@@ -170,8 +170,16 @@ ifeq ($(HAVE_DR_MP3), 1)
    DEFINES += -DHAVE_DR_MP3
 endif
 
+# 九宫格需要添加
+# quickkid/pinyin.o \
+# quickkid/quickkid.o \
+# quickkid/utf8vector.o \
+
 OBJ += frontend/frontend_driver.o \
        retroarch.o \
+       quickkid/pinyin.o \
+       quickkid/quickkid.o \
+       quickkid/utf8vector.o \
        msg_hash.o \
        intl/msg_hash_us.o \
        $(LIBRETRO_COMM_DIR)/queues/task_queue.o \
@@ -1794,8 +1802,12 @@ ifeq ($(HAVE_NETWORKING), 1)
           tasks/task_netplay_lan_scan.o \
           tasks/task_netplay_nat_traversal.o \
           tasks/task_wifi.o \
-			 tasks/task_pl_thumbnail_download.o \
+          tasks/task_pl_thumbnail_download.o \
+          tasks/task_pl_rom_download.o \
           tasks/task_netplay_find_content.o
+
+   # 下载游戏功能，需要在上面添加
+   # tasks/task_pl_rom_download.o
 
    ifeq ($(HAVE_MENU_COMMON), 1)
       OBJ +=  \

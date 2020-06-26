@@ -40,6 +40,7 @@ struct http_socket_state_t
     void *ssl_ctx;
 };
 
+// 将定义从C文件提取到H文件，方便其他地方调用
 struct http_t
 {
     int status;

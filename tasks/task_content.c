@@ -211,7 +211,7 @@ static void task_cdrom_dump_handler(retro_task_t *task)
 {
    task_cdrom_dump_state_t *state    = (task_cdrom_dump_state_t*)task->state;
    settings_t              *settings = config_get_ptr();
-   const char *directory_core_assets = settings 
+   const char *directory_core_assets = settings
       ? settings->paths.directory_core_assets : NULL;
 
    if (task_get_progress(task) == 100)
@@ -572,7 +572,7 @@ static void content_load_init_wrap(
  * Returns: false (0) if retroarch_main_init failed,
  * otherwise true (1).
  **/
-static bool content_load(content_ctx_info_t *info, 
+static bool content_load(content_ctx_info_t *info,
       content_state_t *p_content)
 {
    RARCH_LOG("content_load begin\n");
@@ -1241,7 +1241,7 @@ static bool content_file_init(
    bool subsystem_path_is_empty               = path_is_empty(RARCH_PATH_SUBSYSTEM);
    bool ret                                   = subsystem_path_is_empty;
    const struct retro_subsystem_info *special =
-     subsystem_path_is_empty 
+     subsystem_path_is_empty
      ? NULL : content_file_init_subsystem(content_ctx->subsystem.data,
            content_ctx->subsystem.size, error_string, &ret);
 
@@ -1417,7 +1417,7 @@ static void task_push_to_history_list(
          }
 
          if (
-              settings && settings->bools.history_list_enable 
+              settings && settings->bools.history_list_enable
                && playlist_hist)
          {
             char subsystem_name[PATH_MAX_LENGTH];
@@ -1454,6 +1454,7 @@ static void task_push_to_history_list(
 static bool command_event_cmd_exec(
       content_state_t *p_content,
       const char *data,
+      const char *label,
       content_information_ctx_t *content_ctx,
       bool launched_from_cli,
       char **error_string)
@@ -1508,7 +1509,7 @@ static bool firmware_update_status(
    core_info_t *core_info     = NULL;
    size_t s_size              = PATH_MAX_LENGTH * sizeof(char);
    char *s                    = NULL;
-   
+
    core_info_get_current_core(&core_info);
 
    if (!core_info)
@@ -1713,7 +1714,7 @@ bool task_push_load_content_from_playlist_from_menu(
     * execute the new core from this point. If this returns false,
     * we assume we can dynamically load the core. */
    if (!command_event_cmd_exec(p_content,
-            fullpath, &content_ctx, CONTENT_MODE_LOAD_NONE, &error_string))
+            fullpath, label, &content_ctx, CONTENT_MODE_LOAD_NONE, &error_string))
    {
       if (error_string)
       {
@@ -1732,7 +1733,7 @@ bool task_push_load_content_from_playlist_from_menu(
 #ifdef HAVE_DYNAMIC
    command_event(CMD_EVENT_LOAD_CORE, NULL);
 #ifdef HAVE_COCOATOUCH
-    /* This seems to be needed for iOS for some reason to show the 
+    /* This seems to be needed for iOS for some reason to show the
      * quick menu after the menu is shown */
    menu_driver_ctl(RARCH_MENU_CTL_SET_PENDING_QUICK_MENU, NULL);
 #endif
@@ -1990,7 +1991,7 @@ bool task_push_load_content_with_new_core_from_menu(
       task_push_to_history_list(p_content, true, false, false);
 #else
    command_event_cmd_exec(p_content,
-         path_get(RARCH_PATH_CONTENT), &content_ctx,
+         path_get(RARCH_PATH_CONTENT), label, &content_ctx,
          false, &error_string);
    command_event(CMD_EVENT_QUIT, NULL);
 #endif

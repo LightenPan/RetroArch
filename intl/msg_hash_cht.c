@@ -1596,11 +1596,6 @@ int msg_hash_get_help_cht_enum(enum msg_hash_enums msg, char *s, size_t len)
                "Dynamically load a new wallpaper \n"
                "depending on context.");
 			break;
-		case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_BASE_URL:
-			snprintf(s, len,
-				"base URL to core updater directory on the \n"
-				"Libretro buildbot.");
-			break;
       case MENU_ENUM_LABEL_CORE_UPDATER_BUILDBOT_URL:
          snprintf(s, len,
                "URL to core updater directory on the \n"
