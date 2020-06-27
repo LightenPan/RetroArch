@@ -159,10 +159,12 @@ static bool get_thumbnail_paths(
       return false;
 
    net_http_urlencode_full(url, raw_url, url_size);
+   RARCH_LOG("get_thumbnail_paths begin. raw_url: %s\n", raw_url);
+   RARCH_LOG("get_thumbnail_paths begin. url: %s\n", url);
 
    if (string_is_empty(url))
       return false;
-   
+
    return true;
 }
 
@@ -406,20 +408,20 @@ static void task_pl_thumbnail_download_handler(retro_task_t *task)
          {
             /* Ensure that we only enqueue one transfer
              * at a time... */
-            
+
             /* > If HTTP task is NULL, then it either finished
              *   or an error occurred - in either case,
              *   current task is 'complete' */
             if (!pl_thumb->http_task)
                pl_thumb->http_task_complete = true;
-            
+
             /* > Wait for task_push_http_transfer_file()
              *   callback to trigger */
             if (pl_thumb->http_task_complete)
                pl_thumb->http_task = NULL;
             else
                break;
-            
+
             /* Check whether all thumbnail types have been processed */
             if (pl_thumb->type_idx > 3)
             {
@@ -434,7 +436,7 @@ static void task_pl_thumbnail_download_handler(retro_task_t *task)
 
             /* Download current thumbnail */
             download_pl_thumbnail(pl_thumb);
-            
+
             /* Increment thumbnail type */
             pl_thumb->type_idx++;
          }
@@ -496,7 +498,7 @@ bool task_push_pl_thumbnail_download(
             string_ends_with_size(playlist_path, "_history.lpl",
                strlen(playlist_path),
                STRLEN_CONST("_history.lpl")
-               ) 
+               )
          || string_is_equal(playlist_file,
             file_path_str(FILE_PATH_CONTENT_FAVORITES))
          || string_is_equal(system, "history")
@@ -569,8 +571,8 @@ static void cb_task_pl_entry_thumbnail_refresh_menu(
    bool do_refresh                 = false;
    playlist_t *current_playlist    = playlist_get_cached();
    menu_handle_t *menu             = menu_driver_get_ptr();
-   const char *menu_driver         = menu_driver_ident(); 
-   
+   const char *menu_driver         = menu_driver_ident();
+
    if (!task)
       return;
 
@@ -587,14 +589,14 @@ static void cb_task_pl_entry_thumbnail_refresh_menu(
     * maximum speed with on demand downloads enabled)
     * NOTE: GLUI requires special treatment, since
     * it displays multiple thumbnails at a time... */
-   
+
    if (!current_playlist)
       return;
    if (!menu)
       return;
    if (string_is_empty(playlist_get_conf_path(current_playlist)))
       return;
-   
+
 #ifdef HAVE_MATERIALUI
    if (string_is_equal(menu_driver, "glui"))
    {
@@ -611,7 +613,7 @@ static void cb_task_pl_entry_thumbnail_refresh_menu(
                playlist_get_conf_path(current_playlist)))
          return;
    }
-   
+
    /* Only refresh if left/right thumbnails did not exist
     * when the task began, but do exist now
     * (with the caveat that we must also refresh if existing
@@ -633,7 +635,7 @@ static void cb_task_pl_entry_thumbnail_refresh_menu(
       unsigned i = (unsigned)pl_thumb->list_index;
       menu_driver_ctl(RARCH_MENU_CTL_REFRESH_THUMBNAIL_IMAGE, &i);
    }
-   
+
 #endif
 }
 
@@ -671,7 +673,7 @@ static void task_pl_entry_thumbnail_download_handler(retro_task_t *task)
             const char *label                = NULL;
             const char *right_thumbnail_path = NULL;
             const char *left_thumbnail_path  = NULL;
-            
+
             /* Check whether current right/left thumbnails
              * already exist (required for menu refresh callback) */
             pl_thumb->right_thumbnail_exists = false;
@@ -700,20 +702,20 @@ static void task_pl_entry_thumbnail_download_handler(retro_task_t *task)
          {
             /* Ensure that we only enqueue one transfer
              * at a time... */
-            
+
             /* > If HTTP task is NULL, then it either finished
              *   or an error occurred - in either case,
              *   current task is 'complete' */
             if (!pl_thumb->http_task)
                pl_thumb->http_task_complete = true;
-            
+
             /* > Wait for task_push_http_transfer_file()
              *   callback to trigger */
             if (pl_thumb->http_task_complete)
                pl_thumb->http_task = NULL;
             else
                break;
-            
+
             /* Check whether all thumbnail types have been processed */
             if (pl_thumb->type_idx > 3)
             {
@@ -723,10 +725,10 @@ static void task_pl_entry_thumbnail_download_handler(retro_task_t *task)
 
             /* Update progress */
             task_set_progress(task, ((pl_thumb->type_idx - 1) * 100) / 3);
-            
+
             /* Download current thumbnail */
             download_pl_thumbnail(pl_thumb);
-            
+
             /* Increment thumbnail type */
             pl_thumb->type_idx++;
          }
@@ -787,13 +789,13 @@ bool task_push_pl_entry_thumbnail_download(
    gfx_thumbnail_path_data_t *
          thumbnail_path_data     = NULL;
    const char *dir_thumbnails    = NULL;
-   
+
    /* Sanity check */
    if (!settings || !task || !pl_thumb || !playlist || !entry_id)
       goto error;
 
    dir_thumbnails                = settings->paths.directory_thumbnails;
-   
+
    if (string_is_empty(system) ||
        string_is_empty(dir_thumbnails) ||
        string_is_empty(playlist_get_conf_path(playlist)))
@@ -831,18 +833,21 @@ bool task_push_pl_entry_thumbnail_download(
     * > Have to do this here rather than in the
     *   task handler to avoid thread race conditions */
    thumbnail_path_data = gfx_thumbnail_path_init();
-   
+
    if (!thumbnail_path_data)
       goto error;
-   
+
    if (!gfx_thumbnail_set_system(
          thumbnail_path_data, system, playlist))
       goto error;
-   
+
    if (!gfx_thumbnail_set_content_playlist(
          thumbnail_path_data, playlist, idx))
       goto error;
-   
+
+   RARCH_LOG("task_push_pl_entry_thumbnail_download2 begin. playlist: %s, system: %s, idx: %u\n",
+      playlist->conf_path, system, idx);
+
    /* Configure task */
    task->handler                 = task_pl_entry_thumbnail_download_handler;
    task->state                   = pl_thumb;
@@ -908,6 +913,6 @@ error:
       free(thumbnail_path_data);
       thumbnail_path_data = NULL;
    }
-   
+
    return false;
 }

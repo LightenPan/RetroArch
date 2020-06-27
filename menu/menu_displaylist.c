@@ -2626,7 +2626,7 @@ static int menu_displaylist_parse_horizontal_content_actions(
                MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS, FILE_TYPE_PLAYLIST_ENTRY, 0, 0);
       }
 
-	  // 下载入口
+      // MG 下载游戏
       menu_entries_append_enum(info->list,
          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM),
          msg_hash_to_str(MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM),
@@ -7404,14 +7404,14 @@ unsigned menu_displaylist_build_list(
          break;
       case DISPLAYLIST_USER_SETTINGS_LIST:
          {
-		    // 添加魔改账号
+            // 添加魔改账号
             menu_displaylist_build_info_t build_list[] = {
                {MENU_ENUM_LABEL_PRIVACY_SETTINGS,  PARSE_ACTION},
                {MENU_ENUM_LABEL_ACCOUNTS_LIST,     PARSE_ACTION},
                {MENU_ENUM_LABEL_NETPLAY_NICKNAME,  PARSE_ONLY_STRING},
-               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,  PARSE_ONLY_STRING},
-               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,  PARSE_ONLY_STRING},
-               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,  PARSE_ONLY_STRING},
+               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,  PARSE_ONLY_STRING}, // 魔改账号
+               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,  PARSE_ONLY_STRING, true}, // 魔改账号
+               {MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,  PARSE_ONLY_STRING}, // 魔改账号
                {MENU_ENUM_LABEL_USER_LANGUAGE,     PARSE_ONLY_UINT},
             };
 
@@ -10284,21 +10284,21 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      MENU_SETTING_ACTION, 0, 0))
                count++;
 
-			// 更新BIOS
-			if (menu_entries_append_enum(info->list,
-					msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS),
-					msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS),
-					MENU_ENUM_LABEL_UPDATE_SYSTEMS,
-					MENU_SETTING_ACTION, 0, 0))
-				count++;
+            // 更新BIOS
+            if (menu_entries_append_enum(info->list,
+                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS),
+                     msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_SYSTEMS),
+                     MENU_ENUM_LABEL_UPDATE_SYSTEMS,
+                     MENU_SETTING_ACTION, 0, 0))
+               count++;
 
-			// 更新游戏列表
-			if (menu_entries_append_enum(info->list,
-					msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS),
-					msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS),
-					MENU_ENUM_LABEL_UPDATE_PLAYLISTS,
-					MENU_SETTING_ACTION, 0, 0))
-				count++;
+            // 更新游戏列表
+            if (menu_entries_append_enum(info->list,
+                     msg_hash_to_str(MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS),
+                     msg_hash_to_str(MENU_ENUM_LABEL_UPDATE_PLAYLISTS),
+                     MENU_ENUM_LABEL_UPDATE_PLAYLISTS,
+                     MENU_SETTING_ACTION, 0, 0))
+               count++;
 #endif
 
             if (menu_entries_append_enum(info->list,

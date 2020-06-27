@@ -1840,6 +1840,18 @@ static int default_action_ok_load_content_with_core_from_menu(const char *_path,
 static int default_action_ok_load_content_from_playlist_from_menu(const char *_path,
       const char *path, const char *entry_label)
 {
+   // 检查核心路径，避免核心不存在时，去加载核心，导致软件崩溃
+   RARCH_LOG("default_action_ok_load_content_from_playlist_from_menu begin. core: %s, rom: %s, label: %s\n",
+      _path, path, entry_label);
+
+   if (strcmp(path_basename(_path), "builtin") != 0 && !path_is_valid(_path)) {
+      runloop_msg_queue_push(
+         msg_hash_to_str(MSG_ERROR_MISS_CORE_FILE),
+         1, 100, true,
+         NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
+      return -1;
+   }
+
    content_ctx_info_t content_info;
    content_info.argc                   = 0;
    content_info.argv                   = NULL;
@@ -2202,7 +2214,16 @@ static int action_ok_playlist_entry_collection(const char *path,
 
    /* Ensure entry path is valid */
    if (!playlist_entry_path_is_valid(content_path))
-      goto error;
+   {
+      // MG 如果这个目录不存在，去MG下载目录，获取完整路径
+      playlist_get_exist_rom_path(entry, content_path, sizeof(content_path));
+
+      // MG 如果从MG下载目录，还是获取不到路径，就返回失败
+      if (!playlist_entry_path_is_valid(content_path))
+      {
+         goto error;
+      }
+   }
 
    /* Free temporary playlist, if required */
    if (playlist_initialized && tmp_playlist)
@@ -2215,6 +2236,7 @@ static int action_ok_playlist_entry_collection(const char *path,
    /* Note: Have to use cached entry label, since entry
     * may be free()'d by above playlist_free() - but need
     * to pass NULL explicitly if label is empty */
+   // MG 从下载目录重获取Rom的完整路径
    return default_action_ok_load_content_from_playlist_from_menu(
          core_path, content_path, string_is_empty(content_label) ? NULL : content_label);
 
@@ -4024,6 +4046,8 @@ void cb_generic_download(retro_task_t *task,
       void *task_data,
       void *user_data, const char *err)
 {
+   RARCH_LOG("cb_generic_download begin.\n");
+   char parent_dir[PATH_MAX_LENGTH] = {0};
    char output_path[PATH_MAX_LENGTH];
    char buf[PATH_MAX_LENGTH];
 #if defined(HAVE_COMPRESSION) && defined(HAVE_ZLIB)
@@ -4058,6 +4082,18 @@ void cb_generic_download(retro_task_t *task,
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
          dir_path = settings->paths.directory_assets;
+         break;
+      // MG 核心更新
+      case MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD:
+         dir_path = settings->paths.directory_libretro;
+         break;
+      // MG 更新BIOS
+      case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
+         dir_path = settings->paths.directory_system;
+         break;
+      // MG 更新游戏列表
+      case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+         dir_path = settings->paths.directory_playlist;
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          dir_path = settings->paths.directory_autoconfig;
@@ -4116,6 +4152,18 @@ void cb_generic_download(retro_task_t *task,
          dir_path = buf;
          break;
       }
+      // MG 下载缩略图
+      case MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL:
+         extract = false;
+         break;
+      // MG 下载游戏
+      case MENU_ENUM_LABEL_CB_SINGLE_ROM:
+         extract = false;
+         break;
+      // MG 下载ZIP格式游戏
+      case MENU_ENUM_LABEL_CB_SINGLE_ZIPROM:
+         extract = true;
+         break;
       default:
          RARCH_WARN("Unknown transfer type '%s' bailing out.\n",
                msg_hash_to_str(transf->enum_idx));
@@ -4125,6 +4173,21 @@ void cb_generic_download(retro_task_t *task,
    if (!string_is_empty(dir_path))
       fill_pathname_join(output_path, dir_path,
             transf->path, sizeof(output_path));
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL)
+   {
+      // MG 下载缩略图
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM)
+   {
+      // MG 下载游戏
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+   {
+      // MG 下载ZIP格式游戏
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
 
    /* Make sure the directory exists
     * This function is horrible. It mutates the original path
@@ -4142,6 +4205,28 @@ void cb_generic_download(retro_task_t *task,
    if (!string_is_empty(dir_path))
       fill_pathname_join(output_path, dir_path,
             transf->path, sizeof(output_path));
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_THUMBNAIL)
+   {
+      // MG 下载缩略图
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM)
+   {
+      // MG 下载游戏
+      strlcpy(output_path, transf->path, sizeof(output_path));
+   }
+   else if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+   {
+      // MG 下载ZIP格式游戏
+      strlcpy(output_path, transf->path, sizeof(output_path));
+      fill_pathname_basedir_noext(parent_dir, transf->path, sizeof(parent_dir));
+      char filename[256] = {0};
+      fill_pathname_base_noext(filename, transf->path, sizeof(filename));
+      fill_pathname_join(parent_dir, parent_dir, filename, sizeof(parent_dir));
+      dir_path = parent_dir;
+   }
+
+   RARCH_LOG("cb_generic_download after calc. output_path: %s\n", output_path);
 
 #ifdef HAVE_COMPRESSION
    if (path_is_compressed_file(output_path))
@@ -4158,6 +4243,13 @@ void cb_generic_download(retro_task_t *task,
    {
       err = "Write failed.";
       goto finish;
+   }
+
+   // MG 下载游戏成功后的提示
+   if (transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ROM
+      || transf->enum_idx == MENU_ENUM_LABEL_CB_SINGLE_ZIPROM)
+   {
+      succ_msg_queue_push("下载成功");
    }
 
 #if defined(HAVE_COMPRESSION) && defined(HAVE_ZLIB)
@@ -4183,6 +4275,20 @@ void cb_generic_download(retro_task_t *task,
          goto finish;
       }
    }
+
+#else
+   // MG 如果是游戏列表下载，下载完成后，重启一下
+   switch (transf->enum_idx)
+   {
+      case MENU_ENUM_LABEL_CB_CORE_UPDATER_DOWNLOAD:
+         generic_action_ok_command(CMD_EVENT_CORE_INFO_INIT);
+         break;
+      case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+         generic_action_ok_command(CMD_EVENT_REBOOT);
+         break;
+      default:
+         break;
+   }
 #endif
 
 finish:
@@ -4206,6 +4312,7 @@ finish:
    if (transf)
       free(transf);
 }
+
 #endif
 
 static int action_ok_download_generic(const char *path,
@@ -4254,8 +4361,25 @@ static int action_ok_download_generic(const char *path,
                lakka_get_project(), sizeof(s));
 #endif
          break;
+      // MG 更新资源文件，vita和其他平台不一样
       case MENU_ENUM_LABEL_CB_UPDATE_ASSETS:
+#ifdef VITA
+         path = "assets_vita.zip";
+#else
          path = "assets.zip";
+#endif
+         break;
+      // MG 更新BIOS
+      case MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS:
+         path = "systems.zip";
+         break;
+      // MG 更新游戏列表，vita和其他平台不一样
+      case MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS:
+#ifdef VITA
+         path = "playlists_vita.zip";
+#else
+         path = "playlists.zip";
+#endif
          break;
       case MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES:
          path = "autoconfig.zip";
@@ -4409,6 +4533,10 @@ DEFAULT_ACTION_OK_DOWNLOAD(action_ok_thumbnails_updater_download, MENU_ENUM_LABE
 DEFAULT_ACTION_OK_DOWNLOAD(action_ok_download_url, MENU_ENUM_LABEL_CB_DOWNLOAD_URL)
 DEFAULT_ACTION_OK_DOWNLOAD(action_ok_lakka_download, MENU_ENUM_LABEL_CB_LAKKA_DOWNLOAD)
 DEFAULT_ACTION_OK_DOWNLOAD(action_ok_update_assets, MENU_ENUM_LABEL_CB_UPDATE_ASSETS)
+// MG 更新BIOS
+DEFAULT_ACTION_OK_DOWNLOAD(action_ok_update_systems, MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS)
+// MG 更新游戏列表
+DEFAULT_ACTION_OK_DOWNLOAD(action_ok_update_playlists, MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS)
 DEFAULT_ACTION_OK_DOWNLOAD(action_ok_update_core_info_files, MENU_ENUM_LABEL_CB_UPDATE_CORE_INFO_FILES)
 DEFAULT_ACTION_OK_DOWNLOAD(action_ok_update_overlays, MENU_ENUM_LABEL_CB_UPDATE_OVERLAYS)
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
@@ -6585,6 +6713,33 @@ static int action_ok_pl_entry_content_thumbnails(const char *path,
 }
 #endif
 
+// MG 游戏详情列表的下载功能
+#ifdef HAVE_NETWORKING
+static int action_ok_pl_entry_content_rom(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char system[PATH_MAX_LENGTH];
+   playlist_t *playlist = playlist_get_cached();
+   menu_handle_t *menu  = menu_driver_get_ptr();
+
+   system[0] = '\0';
+
+   if (!playlist)
+      return -1;
+
+   if (!menu)
+      return menu_cbs_exit();
+
+   menu_driver_get_thumbnail_system(system, sizeof(system));
+
+   task_push_pl_entry_rom_download(system,
+         playlist, menu->rpl_entry_selection_ptr,
+         true, true);
+
+   return 0;
+}
+#endif
+
 static int action_ok_playlist_reset_cores(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6756,6 +6911,8 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_THUMBNAILS_UPDATER_LIST,             action_ok_thumbnails_updater_list},
          {MENU_ENUM_LABEL_PL_THUMBNAILS_UPDATER_LIST,          action_ok_pl_thumbnails_updater_list},
          {MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS,        action_ok_pl_entry_content_thumbnails},
+         // MG 下载游戏
+         {MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM,               action_ok_pl_entry_content_rom},
          {MENU_ENUM_LABEL_UPDATE_LAKKA,                        action_ok_lakka_list},
          {MENU_ENUM_LABEL_NETPLAY_REFRESH_ROOMS,               action_ok_push_netplay_refresh_rooms},
 #endif
@@ -6851,6 +7008,10 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_PLAYLIST_MANAGER_LEFT_THUMBNAIL_MODE,action_ok_playlist_left_thumbnail_mode},
          {MENU_ENUM_LABEL_PLAYLIST_MANAGER_SORT_MODE,          action_ok_playlist_sort_mode},
          {MENU_ENUM_LABEL_UPDATE_ASSETS,                       action_ok_update_assets},
+         // MG 更新BIOS
+         {MENU_ENUM_LABEL_UPDATE_SYSTEMS,                      action_ok_update_systems},
+         // MG 更新游戏列表
+         {MENU_ENUM_LABEL_UPDATE_PLAYLISTS,                    action_ok_update_playlists},
          {MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES,              action_ok_update_core_info_files},
          {MENU_ENUM_LABEL_UPDATE_OVERLAYS,                     action_ok_update_overlays},
          {MENU_ENUM_LABEL_UPDATE_DATABASES,                    action_ok_update_databases},

@@ -2792,21 +2792,21 @@ static const char **input_keyboard_start_line(void *userdata,
 static bool input_keyboard_ctl(
       enum rarch_input_keyboard_ctl_state state, void *data);
 
-// ???????
+// MG 九宫格键盘
 void input_event_set_osk_idx(enum osk_type idx)
 {
    struct rarch_state   *p_rarch  = &rarch_st;
    p_rarch->osk_idx = idx;
 }
 
-// ???????
+// MG 九宫格键盘
 enum osk_type input_event_get_osk_idx(void)
 {
    struct rarch_state   *p_rarch  = &rarch_st;
    return p_rarch->osk_idx;
 }
 
-// ???????
+// MG 九宫格键盘
 int input_event_set_osk_ptr(int i)
 {
    struct rarch_state   *p_rarch  = &rarch_st;
@@ -3815,6 +3815,13 @@ static enum action_iterate_type action_iterate_type(const char *label)
    return ITERATE_TYPE_DEFAULT;
 }
 
+// MG 密码显示成*
+bool menu_entry_is_password(menu_entry_t *entry)
+{
+   return (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD
+      || entry->enum_idx == MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD);
+}
+
 #ifdef HAVE_ACCESSIBILITY
 static void get_current_menu_value(struct rarch_state *p_rarch,
       char* retstr, size_t max)
@@ -3830,7 +3837,8 @@ static void get_current_menu_value(struct rarch_state *p_rarch,
    entry.sublabel_enabled      = false;
    menu_entry_get(&entry, 0, menu_st->selection_ptr, NULL, true);
 
-   if (entry.enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD)
+   // MG 密码显示成*
+   if (menu_entry_is_password(&entry))
       entry_label              = entry.password_value;
    else
       entry_label              = entry.value;
@@ -4766,7 +4774,8 @@ void menu_entry_get_value(menu_entry_t *entry, const char **value)
    if (!entry || !value)
       return;
 
-   if (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD)
+   // MG 密码显示成*
+   if (menu_entry_is_password(entry))
       *value = entry->password_value;
    else
       *value = entry->value;
@@ -4885,7 +4894,8 @@ void menu_entry_get(menu_entry_t *entry, size_t stack_idx,
 
          if (!string_is_empty(entry->value))
          {
-            if (entry->enum_idx == MENU_ENUM_LABEL_CHEEVOS_PASSWORD)
+            // MG 密码显示成*
+            if (menu_entry_is_password(entry))
             {
                size_t size, i;
                size = strlcpy(entry->password_value, entry->value,

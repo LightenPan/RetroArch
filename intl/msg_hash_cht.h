@@ -307,6 +307,16 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_ASSETS,
    "更新附加資源檔（如程式圖示）"
    )
+// MOG 更新BIOS文件
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS,
+   "更新BIOS文件"
+   )
+// MOG 更新遊戲列表
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS,
+   "更新遊戲列表"
+   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_AUTOCONFIG_PROFILES,
    "更新控制器自動設定範本"
@@ -2754,6 +2764,24 @@ MSG_HASH(
    "標準輸入流命令"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_THUMBNAILS,
+   "按需下載縮略圖"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
+   "在瀏覽列表時自動下載缺失的縮略圖圖像。有嚴重的性能影響。"
+   )
+// 自动保存云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
+   "自動保存雲存檔"
+   )
+// 自动保存云存档
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+   "即時存檔完成時，自動上傳雲存檔，XMB界面會有性能損耗"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATER_SETTINGS,
    "更新程序"
    )
@@ -3069,6 +3097,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INFORMATION,
    "訊息"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_THUMBNAILS,
+   "下載縮略圖"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM,
+   "下載遊戲"
    )
 
 /* Playlist Item > Set Core Association */

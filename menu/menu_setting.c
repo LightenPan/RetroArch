@@ -16671,21 +16671,21 @@ static bool setting_append_list(
                   general_read_handler,
                   SD_FLAG_NONE);
 
-			// 云存档
+            // 云存档
             CONFIG_BOOL(
-               list, list_info,
-               &settings->bools.network_on_demand_yunsavestate,
-               MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-               MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
-               network_on_demand_yunsavestate,
-               MENU_ENUM_LABEL_VALUE_OFF,
-               MENU_ENUM_LABEL_VALUE_ON,
-               &group_info,
-               &subgroup_info,
-               parent_group,
-               general_write_handler,
-               general_read_handler,
-               SD_FLAG_NONE);
+                  list, list_info,
+                  &settings->bools.network_on_demand_yunsavestate,
+                  MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+                  MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
+                  network_on_demand_yunsavestate,
+                  MENU_ENUM_LABEL_VALUE_OFF,
+                  MENU_ENUM_LABEL_VALUE_ON,
+                  &group_info,
+                  &subgroup_info,
+                  parent_group,
+                  general_write_handler,
+                  general_read_handler,
+                  SD_FLAG_NONE);
 #endif
          }
          END_SUB_GROUP(list, list_info, parent_group);
@@ -16822,6 +16822,7 @@ static bool setting_append_list(
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
          (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
 
+         // 魔改账号
          CONFIG_STRING(
                list, list_info,
                settings->arrays.retrogame_allinone_password,
@@ -16834,8 +16835,10 @@ static bool setting_append_list(
                parent_group,
                general_write_handler,
                general_read_handler);
+         (*list)[list_info->index - 1].get_string_representation =
+            &setting_get_string_representation_cheevos_password;
          SETTINGS_DATA_LIST_CURRENT_ADD_FLAGS(list, list_info, SD_FLAG_ALLOW_INPUT);
-         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_STRING_LINE_EDIT;
+         (*list)[list_info->index - 1].ui_type       = ST_UI_TYPE_PASSWORD_LINE_EDIT;
 
          CONFIG_STRING(
                list, list_info,

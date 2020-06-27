@@ -664,7 +664,9 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
    strlcpy(transf->path, savepath, sizeof(transf->path));
    strlcpy(transf->title, title, sizeof(transf->title));
    // strlcat(transf->title, "（下载需要设置魔改账号）", sizeof(transf->title));
-   RARCH_LOG("task_push_rom_download. url: %s, savepath: %s, title: %s\n", url, savepath, transf->title);
+   RARCH_LOG("task_push_rom_download. url: %s\n", url);
+   RARCH_LOG("task_push_rom_download. iszip: %s, savepath: %s, title: %s\n",
+      iszip ? "true" : "false", savepath, transf->title);
    task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
 }
 
@@ -821,7 +823,7 @@ bool task_push_pl_entry_rom_download(
       bool overwrite,
       bool mute)
 {
-   RARCH_LOG("task_push_pl_entry_rom_download start\n");
+   // RARCH_LOG("task_push_pl_entry_rom_download start\n");
    settings_t *settings = config_get_ptr();
    if (!settings)
       return false;
@@ -918,8 +920,10 @@ bool task_push_pl_entry_rom_download(
    strlcat(raw_url, url_query, sizeof(raw_url));
    if (!string_is_empty(raw_url))
    {
-      RARCH_LOG("task_push_pl_entry_rom_download log info. iszip: %d, basename: %s, system_name: %s, local_rom_path: %s, raw_url: %s\n",
-         iszip, new_basename, system_name, local_rom_path, raw_url);
+      // RARCH_LOG("task_push_pl_entry_rom_download log info. "
+      //           "iszip: %d, basename: %s, system_name: %s, local_rom_path: %s\n",
+      //    iszip, new_basename, system_name, local_rom_path);
+      // RARCH_LOG("task_push_pl_entry_rom_download log info. raw_url: %s\n", raw_url);
       task_push_rom_download(iszip, p_playlist_entry->label, raw_url, local_rom_path);
    }
    return true;

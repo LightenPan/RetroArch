@@ -149,10 +149,10 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_playlist_manager_clean_playlist, MEN
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_delete_playlist,               MENU_ENUM_SUBLABEL_DELETE_PLAYLIST)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_network_settings_list,         MENU_ENUM_SUBLABEL_NETWORK_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_network_on_demand_thumbnails,  MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS)
+// Ëá™Âä®‰øùÂ≠ò‰∫ëÂ≠òÊ°£
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_network_on_demand_yunsavestate,  MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_user_settings_list,            MENU_ENUM_SUBLABEL_USER_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_recording_settings_list,       MENU_ENUM_SUBLABEL_RECORDING_SETTINGS)
-// ‘∆¥Êµµ
-DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_network_on_demand_yunsavestate,  MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_frame_throttle_settings_list,  MENU_ENUM_SUBLABEL_FRAME_THROTTLE_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_frame_time_counter_settings_list,  MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_frame_time_counter_reset_after_fastforwarding,  MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_RESET_AFTER_FASTFORWARDING)
@@ -342,7 +342,7 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_content_favorites_size,        MENU_
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_menu_input_unified_controls,   MENU_ENUM_SUBLABEL_INPUT_UNIFIED_MENU_CONTROLS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_quit_press_twice,              MENU_ENUM_SUBLABEL_QUIT_PRESS_TWICE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_onscreen_notifications_enable, MENU_ENUM_SUBLABEL_VIDEO_FONT_ENABLE)
-// ƒß∏ƒ’À∫≈
+// √Ñ¬ß¬∏√Ñ√ï√ã¬∫√Ö
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_retrogame_allinone_username,   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_USERNAME)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_retrogame_allinone_password,   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_PASSWORD)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_video_crop_overscan,           MENU_ENUM_SUBLABEL_VIDEO_CROP_OVERSCAN)
@@ -524,8 +524,6 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_scan_directory,                MENU_
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_video_swap_interval,           MENU_ENUM_SUBLABEL_VIDEO_SWAP_INTERVAL)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_sort_savefiles_enable,         MENU_ENUM_SUBLABEL_SORT_SAVEFILES_ENABLE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_sort_savestates_enable,        MENU_ENUM_SUBLABEL_SORT_SAVESTATES_ENABLE)
-// œ¬‘ÿ
-DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_download_pl_entry_rom,                 MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_ROM)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_core_updater_buildbot_url,     MENU_ENUM_SUBLABEL_CORE_UPDATER_BUILDBOT_URL)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_overlay_show_physical_inputs,    MENU_ENUM_SUBLABEL_INPUT_OVERLAY_SHOW_PHYSICAL_INPUTS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_overlay_show_physical_inputs_port,    MENU_ENUM_SUBLABEL_INPUT_OVERLAY_SHOW_PHYSICAL_INPUTS_PORT)
@@ -2383,10 +2381,6 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_download_pl_entry_thumbnails);
             break;
-		 // œ¬‘ÿ
-         case MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM:
-            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_download_pl_entry_rom);
-            break;
          case MENU_ENUM_LABEL_RUN:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_run);
             break;
@@ -2926,10 +2920,11 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
          case MENU_ENUM_LABEL_CHEEVOS_PASSWORD:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_cheevos_password);
             break;
-		 // ƒß∏ƒ’À∫≈
+         // È≠îÊîπË¥¶Âè∑
          case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_retrogame_allinone_username);
             break;
+         // È≠îÊîπË¥¶Âè∑
          case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_retrogame_allinone_password);
             break;
@@ -3416,10 +3411,6 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_network_on_demand_thumbnails);
-            break;
-		 // ‘∆¥Êµµ
-         case MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE:
-            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_network_on_demand_yunsavestate);
             break;
          case MENU_ENUM_LABEL_USER_SETTINGS:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_user_settings_list);

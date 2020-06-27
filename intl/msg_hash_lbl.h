@@ -260,6 +260,14 @@ MSG_HASH(
    MENU_ENUM_LABEL_CB_UPDATE_ASSETS,
    "cb_update_assets"
    )
+// MG 更新BIOS
+MSG_HASH(
+   MENU_ENUM_LABEL_CB_UPDATE_SYSTEMS,
+   "cb_update_systems")
+// MG 更新游戏列表
+MSG_HASH(
+   MENU_ENUM_LABEL_CB_UPDATE_PLAYLISTS,
+   "cb_update_playlists")
 MSG_HASH(
    MENU_ENUM_LABEL_CB_UPDATE_AUTOCONFIG_PROFILES,
    "cb_update_autoconfig_profiles"
@@ -343,6 +351,21 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_CHEEVOS_PASSWORD,
    "cheevos_password"
+   )
+// 魔改账号设置
+MSG_HASH(
+   MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME,
+   "retrogame_allinone_username"
+   )
+// 魔改账号设置
+MSG_HASH(
+   MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD,
+   "retrogame_allinone_password"
+   )
+// 魔改账号设置
+MSG_HASH(
+   MENU_ENUM_LABEL_RETROGAME_ALLINONE_MCODE,
+   "retrogame_allinone_mcode"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_CHEEVOS_TEST_UNOFFICIAL,
@@ -1806,6 +1829,11 @@ MSG_HASH(
    MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "network_on_demand_thumbnails"
    )
+// 自动云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
+   "network_on_demand_yunsavestate"
+   )
 MSG_HASH(
    MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS,
    "subsystem_settings"
@@ -2434,6 +2462,11 @@ MSG_HASH(
    MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS,
    "download_pl_entry_thumbnails"
    )
+// MG 下载游戏
+MSG_HASH(
+   MENU_ENUM_LABEL_DOWNLOAD_PL_ENTRY_ROM,
+   "download_pl_entry_rom"
+   )
 MSG_HASH(
    MENU_ENUM_LABEL_RUN,
    "collection"
@@ -2781,6 +2814,16 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_UPDATE_ASSETS,
    "update_assets"
+   )
+// 更新BIOS
+MSG_HASH(
+   MENU_ENUM_LABEL_UPDATE_SYSTEMS,
+   "update_systems"
+   )
+// 更新游戏列表
+MSG_HASH(
+   MENU_ENUM_LABEL_UPDATE_PLAYLISTS,
+   "update_playlists"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_UPDATE_AUTOCONFIG_PROFILES,

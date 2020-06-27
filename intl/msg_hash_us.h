@@ -307,6 +307,16 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_ASSETS,
    "Update Assets"
    )
+// MG 更新BIOS
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_UPDATE_SYSTEMS,
+   "Update Systems"
+   )
+// MG 更新游戏列表
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_UPDATE_PLAYLISTS,
+   "Update Playlists"
+   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_AUTOCONFIG_PROFILES,
    "Update Controller Profiles"
@@ -3515,7 +3525,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_POINTER_ENABLE,
-   "Allows the menu to be controlled with a touchscreen." 
+   "Allows the menu to be controlled with a touchscreen."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_THREADED_DATA_RUNLOOP_ENABLE,
@@ -4571,6 +4581,11 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "Automatically download missing thumbnails while browsing playlists. Has a severe performance impact."
    )
+// 自动云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
+   "On-Demand Auto Upload Save State"
+   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATER_SETTINGS,
    "Updater"
@@ -4911,6 +4926,33 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CHEEVOS_PASSWORD,
    "Input the password of your RetroAchievements account."
+   )
+
+/* Settings > User */
+
+
+/* Settings > User > Accounts > 魔改 */
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_USERNAME,
+   "RetroGame AllInOne account"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_PASSWORD,
+   "RetroGame AllInOne password"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_RETROGAME_ALLINONE_MCODE,
+   "RetroGame AllInOne mcode"
+   )
+
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_USERNAME,
+   "Input the username of your RetroGame AllInOne account."
+   )
+
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_RETROGAME_ALLINONE_PASSWORD,
+   "Input the password of your RetroGame AllInOne password."
    )
 
 /* Settings > User > Accounts > YouTube */
@@ -5407,6 +5449,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_THUMBNAILS,
    "Download Thumbnails"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_DOWNLOAD_PL_ENTRY_ROM,
+   "Download Rom"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_DOWNLOAD_PL_ENTRY_THUMBNAILS,

@@ -222,13 +222,15 @@ int msg_hash_get_help_chs_enum(enum msg_hash_enums msg, char *s, size_t len)
          break;
       case MENU_ENUM_LABEL_CHEEVOS_PASSWORD:
          snprintf(s, len, "你的Retro成就账号的密码。");
-		 break;
-	  case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
-		  snprintf(s, len, "你的魔改账号。");
-		  break;
-	  case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
-		  snprintf(s, len, "你的魔改邀请码。");
-		  break;
+         break;
+        // 魔改账号
+      case MENU_ENUM_LABEL_RETROGAME_ALLINONE_USERNAME:
+         snprintf(s, len, "你的魔改账号。");
+         break;
+        // 魔改账号
+      case MENU_ENUM_LABEL_RETROGAME_ALLINONE_PASSWORD:
+         snprintf(s, len, "你的魔改邀请码。");
+         break;
       case MENU_ENUM_LABEL_USER_LANGUAGE:
          snprintf(s, len, "变更菜单和提示消息的语言设定， \n"
                " \n"
