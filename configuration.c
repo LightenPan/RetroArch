@@ -575,21 +575,25 @@ static const enum location_driver_enum LOCATION_DEFAULT_DRIVER = LOCATION_ANDROI
 static const enum location_driver_enum LOCATION_DEFAULT_DRIVER = LOCATION_NULL;
 #endif
 
-#if defined(_3DS) && defined(HAVE_RGUI)
-static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
-#else
-#if defined(HAVE_MATERIALUI) && defined(RARCH_MOBILE)
-static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_MATERIALUI;
-#elif defined(HAVE_OZONE)
-static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_OZONE;
-#elif defined(HAVE_XMB) && !defined(_XBOX)
+// MG 所有平台都默认用XMB菜单
+// #if defined(_3DS) && defined(HAVE_RGUI)
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
+// #else
+// #if defined(HAVE_MATERIALUI) && defined(RARCH_MOBILE)
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_MATERIALUI;
+// #elif defined(HAVE_OZONE)
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_OZONE;
+// #elif defined(HAVE_XMB) && !defined(_XBOX)
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
+// #elif defined(HAVE_RGUI)
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
+// #else
+// static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_NULL;
+// #endif
+// #endif
+
+// MG 所有平台都默认用XMB菜单
 static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_XMB;
-#elif defined(HAVE_RGUI)
-static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_RGUI;
-#else
-static const enum menu_driver_enum MENU_DEFAULT_DRIVER = MENU_NULL;
-#endif
-#endif
 
 #define GENERAL_SETTING(key, configval, default_enable, default_setting, type, handle_setting) \
 { \
