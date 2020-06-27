@@ -565,9 +565,11 @@ enum retro_language psp_get_retro_lang_from_langid(int langid)
 
 enum retro_language frontend_psp_get_user_language(void)
 {
-   int langid;
-   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
-   return psp_get_retro_lang_from_langid(langid);
+   // vita 默认使用12简体中文
+   return 12;
+   // int langid;
+   // sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &langid);
+   // return psp_get_retro_lang_from_langid(langid);
 }
 
 static uint64_t frontend_psp_get_mem_total(void)

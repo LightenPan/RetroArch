@@ -73,7 +73,7 @@ extern bool nxlink_connected;
 
 void libnx_apply_overclock(void)
 {
-   const size_t profiles_count = sizeof(SWITCH_CPU_PROFILES) 
+   const size_t profiles_count = sizeof(SWITCH_CPU_PROFILES)
       / sizeof(SWITCH_CPU_PROFILES[1]);
    settings_t *settings        = config_get_ptr();
    unsigned libnx_overclock    = settings->uints.libnx_overclock;
@@ -320,6 +320,13 @@ static void frontend_switch_deinit(void *data)
 #ifdef HAVE_LIBNX
 static void frontend_switch_exec(const char *path, bool should_load_game)
 {
+   // MG 添加游戏标签，用于静态拉起核心时，传递游戏名显示中文
+   if (!path_is_valid(path)) {
+      RARCH_LOG("frontend_switch_exec content path: %s, rom: %s label: %s.\n",
+      path, path_get(RARCH_PATH_CONTENT), path_get(RARCH_PATH_LABEL));
+      return ;
+   }
+
    char game_path[PATH_MAX-4];
 #ifndef IS_SALAMANDER
    const char *arg_data[3];
@@ -708,7 +715,7 @@ static void frontend_switch_init(void *data)
    bool recording_supported      = false;
 
    nifmInitialize(NifmServiceType_User);
-   
+
    if (hosversionBefore(8, 0, 0))
       pcvInitialize();
    else
@@ -756,8 +763,8 @@ static int frontend_switch_parse_drive_list(void *data, bool load_content)
 {
 #ifndef IS_SALAMANDER
    file_list_t *list = (file_list_t *)data;
-   enum msg_hash_enums enum_idx = load_content 
-      ? MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR 
+   enum msg_hash_enums enum_idx = load_content
+      ? MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR
       : MENU_ENUM_LABEL_FILE_BROWSER_DIRECTORY;
 
    if (!list)
@@ -784,7 +791,7 @@ static uint64_t frontend_switch_get_mem_total(void)
    return mem_info.usmblks;
 }
 
-static enum frontend_powerstate 
+static enum frontend_powerstate
 frontend_switch_get_powerstate(int *seconds, int *percent)
 {
    uint32_t pct;

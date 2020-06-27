@@ -561,7 +561,8 @@ static const unsigned xmb_menu_layout       = 2;
 #else
 static const unsigned xmb_menu_layout       = 0;
 #endif
-static const unsigned xmb_icon_theme        = XMB_ICON_THEME_MONOCHROME;
+// MG XMB默认主题
+static const unsigned xmb_icon_theme        = XMB_ICON_THEME_RETROACTIVE;
 static const unsigned xmb_theme             = XMB_THEME_ELECTRIC_BLUE;
 
 #if defined(HAVE_LAKKA) || defined(__arm__) || defined(__PPC64__) || defined(__ppc64__) || defined(__powerpc64__) || defined(__powerpc__) || defined(__ppc__) || defined(__POWERPC__)
