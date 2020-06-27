@@ -145,8 +145,9 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
          "logs", sizeof(g_defaults.dirs[DEFAULT_DIR_LOGS]));
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
+   // MG 修复salamander编译依赖file_path_str的问题
    fill_pathname_join(g_defaults.path.config, user_path,
-         file_path_str(FILE_PATH_MAIN_CONFIG), sizeof(g_defaults.path.config));
+         "retroarch.cfg", sizeof(g_defaults.path.config));
 #else
 
    fill_pathname_join(g_defaults.dirs[DEFAULT_DIR_CORE], g_defaults.dirs[DEFAULT_DIR_PORT],
@@ -183,8 +184,9 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    /* history and main config */
    strlcpy(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY],
          user_path, sizeof(g_defaults.dirs[DEFAULT_DIR_CONTENT_HISTORY]));
+   // MG 修复salamander编译依赖file_path_str的问题
    fill_pathname_join(g_defaults.path.config, user_path,
-         file_path_str(FILE_PATH_MAIN_CONFIG), sizeof(g_defaults.path.config));
+         "retroarch.cfg", sizeof(g_defaults.path.config));
 #endif
 
 #ifndef IS_SALAMANDER
