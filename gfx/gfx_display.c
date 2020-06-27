@@ -1684,17 +1684,18 @@ void gfx_display_draw_keyboard_ninenum(
       1.00, 1.00, 1.00, 1.00,
    };
 
-   gfx_display_draw_quad(
-         userdata,
-         video_width,
-         video_height,
-         0,
-         video_height / 2.0,
-         video_width,
-         video_height / 2.0,
-         video_width,
-         video_height,
-         &osk_dark[0]);
+   // MG 九宫格不显示这个背景
+   // gfx_display_draw_quad(
+   //       userdata,
+   //       video_width,
+   //       video_height,
+   //       0,
+   //       video_height / 2.0,
+   //       video_width,
+   //       video_height / 2.0,
+   //       video_width,
+   //       video_height,
+   //       &osk_dark[0]);
 
 	int row = 3;
 	int column = 4;
@@ -1717,7 +1718,7 @@ void gfx_display_draw_keyboard_ninenum(
                userdata,
                video_width,
                video_height,
-               video_width / 2.0 - (column * ptr_width) / 2.0 + (i % column) * ptr_width,
+               0 + (i % column) * ptr_width,
                video_height / 2.0 + ptr_height * 1.5 + line_y,
                ptr_width, ptr_height,
                video_width,
@@ -1731,7 +1732,7 @@ void gfx_display_draw_keyboard_ninenum(
       }
 
       gfx_display_draw_text(font, grid[i],
-            video_width / 2.0 - (column * ptr_width) / 2.0 + (i % column) * ptr_width + ptr_width/2.0,
+            0 + (i % column) * ptr_width + ptr_width/2.0,
             video_height / 2.0 + ptr_height + line_y + font->size / 3,
             video_width,
             video_height,

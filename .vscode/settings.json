@@ -73,7 +73,8 @@
       "random": "c",
       "limits": "c",
       "string": "c",
-      "ranges": "c"
+      "ranges": "c",
+      "*.tcc": "c"
    },
    "C_Cpp.dimInactiveRegions": false,
 }

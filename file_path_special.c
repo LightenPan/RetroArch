@@ -396,13 +396,14 @@ void fill_pathname_application_special(char *s,
                            APPLICATION_SPECIAL_DIRECTORY_ASSETS_PKG);
                      fill_pathname_join(s, s1, "fallback-font.ttf", len);
                      break;
-                  case RETRO_LANGUAGE_CHINESE_SIMPLIFIED:
-                  case RETRO_LANGUAGE_CHINESE_TRADITIONAL:
-                     fill_pathname_application_special(s1,
-                           PATH_MAX_LENGTH * sizeof(char),
-                           APPLICATION_SPECIAL_DIRECTORY_ASSETS_PKG);
-                     fill_pathname_join(s, s1, "chinese-fallback-font.ttf", len);
-                     break;
+                     // MG 使用新字体需要重做主题包，麻烦，先去掉
+                  // case RETRO_LANGUAGE_CHINESE_SIMPLIFIED:
+                  // case RETRO_LANGUAGE_CHINESE_TRADITIONAL:
+                  //    fill_pathname_application_special(s1,
+                  //          PATH_MAX_LENGTH * sizeof(char),
+                  //          APPLICATION_SPECIAL_DIRECTORY_ASSETS_PKG);
+                  //    fill_pathname_join(s, s1, "chinese-fallback-font.ttf", len);
+                  //    break;
                   case RETRO_LANGUAGE_KOREAN:
                      fill_pathname_application_special(s1,
                            PATH_MAX_LENGTH * sizeof(char),

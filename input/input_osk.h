@@ -29,7 +29,7 @@
 #endif
 
 #define OSK_CHARS_PER_LINE 11
-// �Ź���
+// MG 九宫格每行字符数
 #define OSK_NINENUM_CHARS_PER_LINE 4
 
 RETRO_BEGIN_DECLS
@@ -46,19 +46,19 @@ enum osk_type
    OSK_KATAKANA_PAGE1,
    OSK_KATAKANA_PAGE2,
 #endif
-   OSK_NINENUM, // �Ź���
+   OSK_NINENUM, // MG 九宫格
    OSK_TYPE_LAST
 };
 
-// ???????
+// MG 九宫格
 int input_event_set_osk_ptr(int i);
 
 int input_event_get_osk_ptr(void);
 
-// ???????
+// MG 九宫格
 void input_event_set_osk_idx(enum osk_type idx);
 
-// ???????
+// MG 九宫格
 enum osk_type input_event_get_osk_idx(void);
 
 void input_event_osk_append(enum osk_type *osk_idx, int ptr, bool is_rgui,

@@ -1703,7 +1703,7 @@ struct menu_list
    file_list_t **menu_stack;
    file_list_t **selection_buf;
 
-   // ????Hash??????????????????
+   // MG 记录最近列表位置存储
 	size_t playlist_hashids_size;
 	size_t playlist_hashids[256][2];
 	size_t current_playlist_item_size;
@@ -4507,6 +4507,10 @@ void menu_navigation_set_selection(size_t val)
 {
    struct rarch_state *p_rarch = &rarch_st;
    struct menu_state *menu_st  = &p_rarch->menu_driver_state;
+
+   // MG 记录最近位置
+   size_t old_selection = menu_st->selection_ptr;
+   menu_entries_set_selection_ptr_old(old_selection);
    menu_st->selection_ptr      = val;
 }
 
@@ -4962,6 +4966,9 @@ int menu_entry_select(uint32_t i)
    struct rarch_state *p_rarch = &rarch_st;
    struct menu_state  *menu_st = &p_rarch->menu_driver_state;
 
+   // 记录最近位置
+   size_t old_selection = menu_st->selection_ptr;
+   menu_entries_set_selection_ptr_old(old_selection);
    menu_st->selection_ptr      = i;
 
    menu_entry_init(&entry);
@@ -5063,7 +5070,7 @@ static menu_list_t *menu_list_new(struct rarch_state *p_rarch)
    list->menu_stack            = (file_list_t**)
       calloc(list->menu_stack_size, sizeof(*list->menu_stack));
 
-   // ?????????????
+   // MG 初始化列表最近存储
    list->playlist_hashids_size = 0;
    list->current_playlist_item_size = 0;
 
@@ -5163,6 +5170,9 @@ static void menu_list_flush_stack(
 
       menu_entries_ctl(MENU_ENTRIES_CTL_SET_REFRESH, &refresh);
 
+      // MG 记录最近位置
+      size_t old_selection = menu_st->selection_ptr;
+      menu_entries_set_selection_ptr_old(old_selection);
       menu_st->selection_ptr = new_selection_ptr;
 
       menu_list              = MENU_LIST_GET(list, (unsigned)idx);
@@ -5289,6 +5299,9 @@ static bool menu_entries_refresh(
    if ((selection >= list_size) && list_size)
    {
       size_t idx                = list_size - 1;
+      // MG 记录最近位置
+      size_t old_selection = menu_st->selection_ptr;
+      menu_entries_set_selection_ptr_old(old_selection);
       menu_st->selection_ptr    = idx;
 
       menu_driver_navigation_set(true);
@@ -5824,7 +5837,7 @@ bool menu_entries_ctl(enum menu_entries_ctl_state state, void *data)
    return true;
 }
 
-// ???????????
+// MG 列表位置记录
 void menu_entries_set_current_playlist_item_size(size_t playlist_size)
 {
 	RARCH_LOG("menu_entries_set_current_playlist_item_size begin. playlist_size: %u\n", playlist_size);
@@ -5836,7 +5849,7 @@ void menu_entries_set_current_playlist_item_size(size_t playlist_size)
 	menu_list->current_playlist_item_size = playlist_size;
 }
 
-// ??????????????????????????
+// MG 列表位置记录
 size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t playlist_size)
 {
 	char calc_hashid_key[256] = {0};
@@ -5851,12 +5864,12 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
 		return 0;
 	}
 
-	// ??hashid
+	// 计算HashId
 	char *basename = path_basename(playlist_name);
 	snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, playlist_size);
 	uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
-	// ??hashid???????
+	// 根据HashId查找
 	int current_playlist = 0;
 	for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
 	{
@@ -5874,7 +5887,59 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
 	return menu_list->playlist_hashids[current_playlist][1];
 }
 
-// ???????UI??
+// MG 设置列表最近位置
+void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
+{
+	RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %d\n", select_ptr_old);
+	char calc_hashid_key[256] = {0};
+   struct rarch_state   *p_rarch  = &rarch_st;
+   struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
+   menu_list_t *menu_list         = menu_st->entries.list;
+	if (!menu_list)
+		return;
+
+	playlist_t *cached_playlist = playlist_get_cached();
+	if (!cached_playlist)
+      return;
+
+   // 计算路径HashId
+   char *basename = path_basename(cached_playlist->conf_path);
+   snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
+   uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
+
+   // 遍历查找
+   int current_playlist = 0;
+   for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
+   {
+      if (menu_list->playlist_hashids[i][0] == playlist_hashid)
+      {
+         break;
+      }
+      current_playlist++;
+   }
+
+   if (current_playlist < 64)
+   {
+      // 如果是新列表，则记录下
+      if (current_playlist == menu_list->playlist_hashids_size)
+      {
+         menu_list->playlist_hashids[current_playlist][0] = playlist_hashid;
+         menu_list->playlist_hashids_size++;
+      }
+      menu_list->playlist_hashids[current_playlist][1] = select_ptr_old;
+      // RARCH_LOG("menu_entries_set_selection_ptr_old log playlist save old select ptr. path: %s, size: %d"
+      //    "hashid: %u, current_playlist: %d, total: %d, old_select_ptr: %d, current_playlist_item_size: %u\n",
+      //    cached_playlist->conf_path,
+      //    cached_playlist->size,
+      //    playlist_hashid,
+      //    current_playlist,
+      //    menu_list->playlist_hashids_size,
+      //    menu_list->playlist_hashids[current_playlist][1],
+      //    menu_list->current_playlist_item_size);
+   }
+}
+
+// MG 列表UI信息
 void menu_driver_set_horizontal_list_uiinfo(const char *path, const char *title, const char *logoname, const char *content_logoname)
 {
    RARCH_LOG("menu_driver_set_horizontal_list_uiinfo begin. path: %s, title: %s, logoname: %s, content_logoname: %s\n",
@@ -7098,6 +7163,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
             bool *pending_push     = (bool*)data;
 
             /* Always set current selection to first entry */
+            // MG 记录最近位置
+            size_t old_selection = menu_st->selection_ptr;
+            menu_entries_set_selection_ptr_old(old_selection);
             menu_st->selection_ptr = 0;
 
             /* menu_driver_navigation_set() will be called
@@ -7129,6 +7197,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
             {
                size_t idx  = menu_st->selection_ptr + scroll_speed;
 
+               // MG 记录最近的位置
+               size_t old_selection = menu_st->selection_ptr;
+               menu_entries_set_selection_ptr_old(old_selection);
                menu_st->selection_ptr = idx;
                menu_driver_navigation_set(true);
             }
@@ -7167,6 +7238,9 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                   idx = 0;
             }
 
+            // MG 记录最近的位置
+            size_t old_selection = menu_st->selection_ptr;
+            menu_entries_set_selection_ptr_old(old_selection);
             menu_st->selection_ptr = idx;
             menu_driver_navigation_set(true);
 
@@ -7179,7 +7253,10 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
             size_t menu_list_size     = menu_entries_get_size();
             size_t new_selection      = menu_list_size - 1;
 
-            menu_st->selection_ptr    = new_selection;
+            // MG 记录最近的位置
+            size_t old_selection = menu_st->selection_ptr;
+            menu_entries_set_selection_ptr_old(old_selection);
+            menu_st->selection_ptr = new_selection;
 
             if (p_rarch->menu_driver_ctx->navigation_set_last)
                p_rarch->menu_driver_ctx->navigation_set_last(p_rarch->menu_userdata);
@@ -7194,16 +7271,30 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                return false;
 
             if (menu_st->selection_ptr == menu_st->scroll.index_list[menu_st->scroll.index_size - 1])
+            {
+               // MG 记录最近的位置
+               size_t old_selection = menu_st->selection_ptr;
+               menu_entries_set_selection_ptr_old(old_selection);
                menu_st->selection_ptr = menu_list_size - 1;
+            }
             else
             {
                while (i < menu_st->scroll.index_size - 1
                      && menu_st->scroll.index_list[i + 1] <= menu_st->selection_ptr)
                   i++;
+
+               // MG 记录最近的位置
+               size_t old_selection = menu_st->selection_ptr;
+               menu_entries_set_selection_ptr_old(old_selection);
                menu_st->selection_ptr = menu_st->scroll.index_list[i + 1];
 
                if (menu_st->selection_ptr >= menu_list_size)
+               {
+                  // MG 记录最近的位置
+                  size_t old_selection = menu_st->selection_ptr;
+                  menu_entries_set_selection_ptr_old(old_selection);
                   menu_st->selection_ptr = menu_list_size - 1;
+               }
             }
 
             if (p_rarch->menu_driver_ctx->navigation_ascend_alphabet)
@@ -7227,7 +7318,12 @@ bool menu_driver_ctl(enum rarch_menu_ctl_state state, void *data)
                i--;
 
             if (i > 0)
+            {
+               // MG 记录最近的位置
+               size_t old_selection = menu_st->selection_ptr;
+               menu_entries_set_selection_ptr_old(old_selection);
                menu_st->selection_ptr = menu_st->scroll.index_list[i - 1];
+            }
 
             if (p_rarch->menu_driver_ctx->navigation_descend_alphabet)
                p_rarch->menu_driver_ctx->navigation_descend_alphabet(
@@ -23897,7 +23993,47 @@ void input_event_osk_append(enum osk_type *osk_idx, int ptr, bool is_rgui,
       else
          *osk_idx = ((enum osk_type)(OSK_TYPE_UNKNOWN + 1));
    else
-      input_keyboard_line_append(word);
+   {
+      // MG 处理九宫格输入罗技
+      if (*osk_idx == OSK_NINENUM)
+      {
+         // MG 九宫格只取第一个字符
+         char first_char[2] = {0};
+         if (strlen(word) > 1 && word[0] != '\n')
+         {
+            first_char[0] = word[0];
+         }
+         input_keyboard_line_append(first_char);
+
+         // MG 九宫格搜索时，列表实时跳转
+         file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
+         if (selection_buf)
+         {
+            struct rarch_state *p_rarch = &rarch_st;
+            input_keyboard_line_t *tmp_keyboard_line = p_rarch->keyboard_line;
+            size_t idx = 0;
+            if (tmp_keyboard_line
+               && tmp_keyboard_line->buffer
+               && *tmp_keyboard_line->buffer
+               && file_list_search_quickkid(selection_buf, tmp_keyboard_line->buffer, &idx))
+            {
+               menu_navigation_set_selection(idx);
+               menu_driver_navigation_set(true);
+            }
+            else
+            {
+               runloop_msg_queue_push(
+                  msg_hash_to_str(MSG_ERROR_NO_MATCH_NINENUM),
+                  1, 100, true,
+                  NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_INFO);
+            }
+         }
+      }
+      else
+      {
+         input_keyboard_line_append(word);
+      }
+   }
 }
 
 static void input_event_osk_iterate(
@@ -23937,6 +24073,12 @@ static void input_event_osk_iterate(
          memcpy(p_rarch->osk_grid,
                uppercase_grid,
                sizeof(uppercase_grid));
+         break;
+         // MG 九宫格键盘
+      case OSK_NINENUM:
+         memcpy(p_rarch->osk_grid,
+               ninenum_grid,
+               sizeof(ninenum_grid));
          break;
       case OSK_LOWERCASE_LATIN:
       default:
@@ -24066,28 +24208,62 @@ static unsigned menu_event(
    {
       input_event_osk_iterate(p_rarch, p_rarch->osk_idx);
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+      // MG 处理九宫格键盘移动逻辑
+      if (input_event_get_osk_idx() == OSK_NINENUM)
       {
-         if (p_rarch->osk_ptr < 33)
-            p_rarch->osk_ptr += OSK_CHARS_PER_LINE;
-      }
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+         {
+            // MG 处理九宫格键盘移动逻辑
+            if (p_rarch->osk_ptr < 8)
+               p_rarch->osk_ptr += OSK_NINENUM_CHARS_PER_LINE;
+         }
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
-      {
-         if (p_rarch->osk_ptr >= OSK_CHARS_PER_LINE)
-            p_rarch->osk_ptr -= OSK_CHARS_PER_LINE;
-      }
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
+         {
+            // MG 处理九宫格键盘移动逻辑
+            if (p_rarch->osk_ptr >= OSK_NINENUM_CHARS_PER_LINE)
+               p_rarch->osk_ptr -= OSK_NINENUM_CHARS_PER_LINE;
+         }
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-      {
-         if (p_rarch->osk_ptr < 43)
-            p_rarch->osk_ptr += 1;
-      }
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+         {
+            // MG 处理九宫格键盘移动逻辑
+            if (p_rarch->osk_ptr < 11)
+               p_rarch->osk_ptr += 1;
+         }
 
-      if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+         {
+            // MG 处理九宫格键盘移动逻辑
+            if (p_rarch->osk_ptr >= 1)
+               p_rarch->osk_ptr -= 1;
+         }
+      }
+      else
       {
-         if (p_rarch->osk_ptr >= 1)
-            p_rarch->osk_ptr -= 1;
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+         {
+            if (p_rarch->osk_ptr < 33)
+               p_rarch->osk_ptr += OSK_CHARS_PER_LINE;
+         }
+
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_UP))
+         {
+            if (p_rarch->osk_ptr >= OSK_CHARS_PER_LINE)
+               p_rarch->osk_ptr -= OSK_CHARS_PER_LINE;
+         }
+
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+         {
+            if (p_rarch->osk_ptr < 43)
+               p_rarch->osk_ptr += 1;
+         }
+
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_LEFT))
+         {
+            if (p_rarch->osk_ptr >= 1)
+               p_rarch->osk_ptr -= 1;
+         }
       }
 
       if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_L))

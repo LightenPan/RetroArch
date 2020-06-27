@@ -989,7 +989,7 @@ static void xmb_render_messagebox_internal(
                TEXT_ALIGN_LEFT, 1.0f, false, 0.0f, false);
    }
 
-   // 如果是九宫键盘，要显示九宫格键盘
+   // MG 如果是九宫键盘，要显示九宫格键盘
    if (menu_input_dialog_get_display_kb())
    {
       if (input_event_get_osk_idx() == OSK_NINENUM) {

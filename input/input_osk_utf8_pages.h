@@ -40,6 +40,7 @@ static const char *lowercase_grid[] = {
                           "a","s","d","f","g","h","j","k","l","@","Upper",
                           "z","x","c","v","b","n","m"," ","-",".","Next"};
 
+// MG 九宫格键盘
 static const char *ninenum_grid[] = {
                           "1\nABC","2\nDEF","3\nGHI","\nBksp",
                           "4\nJKL","5\nMNO","6\nPQR","\nEnter",

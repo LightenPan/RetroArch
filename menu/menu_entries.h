@@ -145,8 +145,10 @@ size_t menu_entries_get_stack_size(size_t idx);
 
 size_t menu_entries_get_size(void);
 
+// MG 列表位置记录
 size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t playlist_size);
 
+// MG 列表位置记录
 void menu_entries_set_selection_ptr_old(size_t select_ptr_old);
 
 void menu_entries_set_current_playlist_item_size(size_t playlist_size);
