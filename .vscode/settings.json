@@ -71,7 +71,9 @@
       "menu_thumbnail.h": "c",
       "chrono": "c",
       "random": "c",
-      "limits": "c"
+      "limits": "c",
+      "string": "c",
+      "ranges": "c"
    },
    "C_Cpp.dimInactiveRegions": false,
 }

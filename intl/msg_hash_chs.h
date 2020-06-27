@@ -4957,6 +4957,11 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "加载状态"
    )
+// MG 云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
+   "读取云存档"
+   )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LOAD_STATE,
    "从当前选定的卡槽加载状态。"

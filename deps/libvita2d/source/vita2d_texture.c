@@ -497,7 +497,7 @@ static inline void draw_texture_tint_scale_generic(const vita2d_texture *texture
 
    for(int n = 0; n < 4; n++){
       int k = (n + 2) % 4 ;
-      vertices[n].r = color[4*k+0]; 
+      vertices[n].r = color[4*k+0];
       vertices[n].g = color[4*k+1];
       vertices[n].b = color[4*k+2];
       vertices[n].a = color[4*k+3];

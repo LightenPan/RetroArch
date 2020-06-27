@@ -2992,7 +2992,7 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_SETTING_ACTION_SAVESTATE:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE: // 云存档
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // MG 云存档
          return xmb->textures.list[XMB_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
          return xmb->textures.list[XMB_TEXTURE_CORE_INFO];

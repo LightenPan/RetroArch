@@ -3832,6 +3832,17 @@ static int action_ok_load_state(const char *path,
    return 0;
 }
 
+// MG 云存档调用入口
+static int action_ok_yun_load_state(
+   const char *path, const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   RARCH_LOG("action_ok_yun_load_state begin. path: %s, label: %s\n", path, label);
+
+   if (generic_action_ok_command(CMD_EVENT_YUN_LOAD_STATE) == -1)
+      return menu_cbs_exit();
+   return 0;
+}
+
 static int action_ok_save_state(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6947,6 +6958,8 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_CUSTOM_BIND_ALL,                     action_ok_lookup_setting},
          {MENU_ENUM_LABEL_SAVE_STATE,                          action_ok_save_state},
          {MENU_ENUM_LABEL_LOAD_STATE,                          action_ok_load_state},
+         // MG 云存档
+         {MENU_ENUM_LABEL_YUN_LOAD_STATE,                      action_ok_yun_load_state},
          {MENU_ENUM_LABEL_UNDO_LOAD_STATE,                     action_ok_undo_load_state},
          {MENU_ENUM_LABEL_UNDO_SAVE_STATE,                     action_ok_undo_save_state},
          {MENU_ENUM_LABEL_RESUME_CONTENT,                      action_ok_resume_content},

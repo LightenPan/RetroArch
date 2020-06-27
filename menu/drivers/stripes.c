@@ -2253,7 +2253,7 @@ static uintptr_t stripes_icon_get_id(stripes_handle_t *stripes,
       case MENU_SETTING_ACTION_SAVESTATE:
          return stripes->textures.list[STRIPES_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE: // 云存档
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // MG 云存档
          return stripes->textures.list[STRIPES_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
          return stripes->textures.list[STRIPES_TEXTURE_CORE_INFO];
@@ -3084,7 +3084,7 @@ static void stripes_frame(void *data, video_frame_info_t *video_info)
    if (stripes->mouse_show)
    {
       menu_input_pointer_t pointer;
-      bool cursor_visible   = video_fullscreen 
+      bool cursor_visible   = video_fullscreen
          && menu_mouse_enable;
 
       menu_input_get_pointer_state(&pointer);

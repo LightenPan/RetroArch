@@ -594,19 +594,19 @@ void yun_load_rom_state_cb(retro_task_t *task, void *task_data, void *user_data,
       goto finish;
    }
 
-   // 处理加载存档逻辑
-   retro_ctx_serialize_info_t serial_info;
-   serial_info.data_const = data->data;
-   serial_info.size = data->len;
-   if (!core_unserialize(&serial_info))
+   // 加载存档文件
+   if (content_load_state(transf->path, false, false))
    {
-      snprintf(show_errmsg, sizeof(show_errmsg), "当前核心加载存档数据失败：%s", transf->path);
-      goto finish;
-   }
+#ifdef HAVE_NETWORKING
+      netplay_driver_ctl(RARCH_NETPLAY_CTL_LOAD_SAVESTATE, NULL);
+#endif
 
-   if (settings && settings->bools.menu_savestate_resume)
-   {
-      generic_action_ok_command(CMD_EVENT_RESUME);
+      if (settings && settings->bools.menu_savestate_resume)
+      {
+         generic_action_ok_command(CMD_EVENT_RESUME);
+      }
+
+      succ_msg_queue_push("加载云存档成功");
    }
 
 finish:

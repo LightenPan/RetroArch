@@ -5547,6 +5547,11 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "Load State"
    )
+// MG 云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
+   "Load Cloud State"
+   )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LOAD_STATE,
    "Load a saved state from the currently selected slot."

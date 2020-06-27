@@ -3009,7 +3009,7 @@ core_info_t *playlist_get_default_core_info(playlist_t* playlist)
    return NULL;
 }
 
-// »ñÈ¡romµÄÊµ¼ÊÂ·¾¶£¬Èç¹ûÏÂÔØÄ¿Â¼ÓĞ£¬ÔòÓÅÏÈÓÃÏÂÔØÄ¿Â¼
+// MG è·å–romçš„å®é™…è·¯å¾„ï¼Œå¦‚æœä¸‹è½½ç›®å½•æœ‰ï¼Œåˆ™ä¼˜å…ˆç”¨ä¸‹è½½ç›®å½•
 void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_t size)
 {
    strlcpy(path, entry->path, size);
@@ -3030,7 +3030,7 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
          return;
       }
 
-      // Ä§¸ÄÑ¹Ëõ°ü£¬»áµ¥¶ÀÉú³É¶ÔÓ¦µÄÎÄ¼ş¼Ğ£¬ÔÙ¶à¼ÓÒ»¸öÎÄ¼ş¼ĞÅĞ¶ÏÒ»ÏÂ
+      // é­”æ”¹å‹ç¼©åŒ…ï¼Œä¼šå•ç‹¬ç”Ÿæˆå¯¹åº”çš„æ–‡ä»¶å¤¹ï¼Œå†å¤šåŠ ä¸€ä¸ªæ–‡ä»¶å¤¹åˆ¤æ–­ä¸€ä¸‹
       char basename2[256] = {0};
       strlcpy(basename2, basename, sizeof(basename2));
       char *filename = path_remove_extension(basename2);
@@ -3046,7 +3046,7 @@ void playlist_get_exist_rom_path(struct playlist_entry *entry, char *path, size_
    }
 }
 
-// ±£´æµ±Ç°ÁĞ±íÑ¡ÔñµÄÁĞ±íÏî
+// ä¿å­˜å½“å‰åˆ—è¡¨é€‰æ‹©çš„åˆ—è¡¨é¡¹
 void playlist_set_last_select_ptr(playlist_t *playlist, size_t select_ptr)
 {
    if (!playlist)

@@ -14831,6 +14831,18 @@ static bool command_event_main_state(
             }
             push_msg = false;
             break;
+            // MG 加载云存档
+         case CMD_EVENT_YUN_LOAD_STATE:
+            if (yun_load_rom_state(state_path))
+            {
+               ret = true;
+               {
+                  if (settings->bools.frame_time_counter_reset_after_load_state)
+                     p_rarch->video_driver_frame_time_count = 0;
+               }
+            }
+            push_msg = false;
+            break;
          case CMD_EVENT_UNDO_LOAD_STATE:
             command_event_undo_load_state(msg, sizeof(msg));
             ret = true;
@@ -15214,6 +15226,7 @@ bool command_event(enum event_command cmd, void *data)
             break;
          }
       case CMD_EVENT_LOAD_STATE:
+      case CMD_EVENT_YUN_LOAD_STATE:
          /* Immutable - disallow savestate load when
           * we absolutely cannot change game state. */
          if (p_rarch->bsv_movie_state_handle)
