@@ -845,7 +845,7 @@ bool task_push_pl_entry_thumbnail_download(
          thumbnail_path_data, playlist, idx))
       goto error;
 
-   RARCH_LOG("task_push_pl_entry_thumbnail_download2 begin. playlist: %s, system: %s, idx: %u\n",
+   RARCH_LOG("task_push_pl_entry_thumbnail_download need download. playlist: %s, system: %s, idx: %u\n",
       playlist->conf_path, system, idx);
 
    /* Configure task */
@@ -874,7 +874,7 @@ bool task_push_pl_entry_thumbnail_download(
 
    task_queue_push(task);
 
-   RARCH_LOG("task_push_pl_entry_thumbnail_download end. playlist: %s, system: %s, idx: %u\n",
+   RARCH_LOG("task_push_pl_entry_thumbnail_download succ. playlist: %s, system: %s, idx: %u\n",
       playlist->conf_path, system, idx);
    return true;
 
@@ -906,13 +906,10 @@ error:
       playlist_path = NULL;
    }
 
-   RARCH_LOG("task_push_pl_entry_thumbnail_download error end. playlist: %s, system: %s, idx: %u\n",
-      playlist->conf_path, system, idx);
    if (thumbnail_path_data)
    {
       free(thumbnail_path_data);
       thumbnail_path_data = NULL;
    }
-
    return false;
 }
