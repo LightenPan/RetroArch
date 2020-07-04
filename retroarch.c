@@ -11743,76 +11743,9 @@ bool menu_input_dialog_start(menu_input_ctx_line_t *line)
 
 bool menu_input_dialog_get_display_kb(void)
 {
+   // MG 默认显示虚拟键盘，不调用系统键盘，不然无法显示九宫格
+   // 去掉switch的特殊键盘逻辑
    struct rarch_state *p_rarch = &rarch_st;
-#ifdef HAVE_LIBNX
-   SwkbdConfig kbd;
-   Result rc;
-   /* Indicates that we are "typing" from the swkbd
-    * result to RetroArch with repeated calls to input_keyboard_event
-    * This prevents input_keyboard_event from calling back
-    * menu_input_dialog_get_display_kb, looping indefinintely */
-   static bool typing = false;
-
-   if (typing)
-      return false;
-
-
-   /* swkbd only works on "real" titles */
-   if (     __nx_applet_type != AppletType_Application
-         && __nx_applet_type != AppletType_SystemApplication)
-      return p_rarch->menu_input_dialog_keyboard_display;
-
-   if (!p_rarch->menu_input_dialog_keyboard_display)
-      return false;
-
-   rc = swkbdCreate(&kbd, 0);
-
-   if (R_SUCCEEDED(rc))
-   {
-      unsigned i;
-      char buf[LIBNX_SWKBD_LIMIT] = {'\0'};
-      swkbdConfigMakePresetDefault(&kbd);
-
-      swkbdConfigSetGuideText(&kbd,
-            p_rarch->menu_input_dialog_keyboard_label);
-
-      rc = swkbdShow(&kbd, buf, sizeof(buf));
-
-      swkbdClose(&kbd);
-
-      /* RetroArch uses key-by-key input
-         so we need to simulate it */
-      typing = true;
-      for (i = 0; i < LIBNX_SWKBD_LIMIT; i++)
-      {
-         /* In case a previous "Enter" press closed the keyboard */
-         if (!p_rarch->menu_input_dialog_keyboard_display)
-            break;
-
-         if (buf[i] == '\n' || buf[i] == '\0')
-            input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-         else
-         {
-            /* input_keyboard_line_append expects a null-terminated
-               string, so just make one (yes, the touch keyboard is
-               a list of "null-terminated characters") */
-            char oldchar = buf[i+1];
-            buf[i+1]     = '\0';
-            input_keyboard_line_append(&buf[i]);
-            buf[i+1]     = oldchar;
-         }
-      }
-
-      /* fail-safe */
-      if (p_rarch->menu_input_dialog_keyboard_display)
-         input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-
-      typing = false;
-      libnx_apply_overclock();
-      return false;
-   }
-   libnx_apply_overclock();
-#endif
    return p_rarch->menu_input_dialog_keyboard_display;
 }
 
