@@ -379,7 +379,7 @@ static void download_pl_rom(pl_rom_handle_t *pl_thumb)
          /* Note: We don't actually care if this fails since that
           * just means the file is missing from the server, so it's
           * not something we can handle here... */
-         pl_thumb->http_task = (retro_task_t*)task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
+         pl_thumb->http_task = (retro_task_t*)task_push_http_transfer_file(url, false, NULL, cb_generic_download, transf);
       }
    }
 }
@@ -645,7 +645,7 @@ bool yun_load_rom_state(char *path)
    char *load_state_url = genYunLoadStateUrl(loadname);
    {
       RARCH_LOG("yun_load_rom_state log http info. url: %s, loadname: %s, path: %s\n", load_state_url, loadname, path);
-      task_push_http_transfer(load_state_url, false, NULL, yun_load_rom_state_cb, transf);
+      task_push_http_transfer_file(load_state_url, false, NULL, yun_load_rom_state_cb, transf);
    }
    free(load_state_url);
    return true;
@@ -667,7 +667,7 @@ void task_push_rom_download(bool iszip, const char *title, const char *url, cons
    RARCH_LOG("task_push_rom_download. url: %s\n", url);
    RARCH_LOG("task_push_rom_download. iszip: %s, savepath: %s, title: %s\n",
       iszip ? "true" : "false", savepath, transf->title);
-   task_push_http_transfer(url, false, NULL, cb_generic_download, transf);
+   task_push_http_transfer_file(url, false, NULL, cb_generic_download, transf);
 }
 
 void task_push_rom_download_multi(rom_download_handle_t *pHandle, bool iszip, const char *basename)

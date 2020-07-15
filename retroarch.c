@@ -2188,6 +2188,7 @@ struct rarch_state
    char subsystem_path[PATH_MAX_LENGTH];
    char path_default_shader_preset[PATH_MAX_LENGTH];
    char path_content[PATH_MAX_LENGTH];
+   char path_label[PATH_MAX_LENGTH];
    char path_libretro[PATH_MAX_LENGTH];
    char path_config_file[PATH_MAX_LENGTH];
    char path_config_append_file[PATH_MAX_LENGTH];
@@ -11021,6 +11022,9 @@ char *path_get_ptr(enum rarch_path_type type)
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
+        // 静态链接添加标签
+      case RARCH_PATH_LABEL:
+        return p_rarch->path_label;
    }
 
    return NULL;
@@ -11057,6 +11061,9 @@ const char *path_get(enum rarch_path_type type)
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
+        // 静态链接添加标签
+      case RARCH_PATH_LABEL:
+        return p_rarch->path_label;
    }
 
    return NULL;
@@ -11087,6 +11094,9 @@ size_t path_get_realsize(enum rarch_path_type type)
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
+        // 静态链接添加标签
+      case RARCH_PATH_LABEL:
+        return sizeof(p_rarch->path_label);
    }
 
    return 0;
@@ -11166,6 +11176,11 @@ bool path_set(enum rarch_path_type type, const char *path)
          break;
       case RARCH_PATH_NONE:
          break;
+         // MG 静态链接添加标签
+      case RARCH_PATH_LABEL:
+        strlcpy(p_rarch->path_label, path,
+            sizeof(p_rarch->path_label));
+        break;
    }
 
    return true;
@@ -11212,6 +11227,11 @@ bool path_is_empty(enum rarch_path_type type)
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
+        // 静态链接添加标签
+      case RARCH_PATH_LABEL:
+        if (string_is_empty(p_rarch->path_label))
+        return true;
+        break;
    }
 
    return false;
@@ -11250,6 +11270,10 @@ void path_clear(enum rarch_path_type type)
       case RARCH_PATH_NONE:
       case RARCH_PATH_NAMES:
          break;
+         // MG 静态链接添加标签
+      case RARCH_PATH_LABEL:
+         *p_rarch->path_label = '\0';
+         break;
    }
 }
 
@@ -11260,6 +11284,7 @@ static void path_clear_all(void)
    path_clear(RARCH_PATH_CONFIG_APPEND);
    path_clear(RARCH_PATH_CORE_OPTIONS);
    path_clear(RARCH_PATH_BASENAME);
+   path_clear(RARCH_PATH_LABEL); // MG 静态链接添加标签
 }
 
 enum rarch_content_type path_is_media_type(const char *path)
@@ -35551,6 +35576,29 @@ bool retroarch_main_init(int argc, char *argv[])
 #ifdef HAVE_ACCESSIBILITY
    if (is_accessibility_enabled(p_rarch))
       accessibility_startup_message(p_rarch);
+#endif
+
+// MG 静态链接时，需要获取游戏标签
+#if defined(VITA) || defined(HAVE_LIBNX)
+   if (argc >= 3)
+   {
+      const char *fullpath = path_get(RARCH_PATH_CONTENT);
+      enum rarch_content_type cont_type = path_is_media_type(fullpath);
+      switch (cont_type)
+      {
+         case RARCH_CONTENT_MOVIE:
+         case RARCH_CONTENT_MUSIC:
+         case RARCH_CONTENT_IMAGE:
+         case RARCH_CONTENT_GONG:
+            break;
+         default:
+         {
+            path_set(RARCH_PATH_LABEL, argv[2]);
+            RARCH_LOG("retroarch_main_init hit label: %s\n", argv[2]);
+            break;
+         }
+      }
+   }
 #endif
 
    if (verbosity_is_enabled())

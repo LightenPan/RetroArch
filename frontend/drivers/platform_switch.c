@@ -328,6 +328,7 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
    }
 
    char game_path[PATH_MAX-4];
+   char game_label[PATH_MAX-4];
 #ifndef IS_SALAMANDER
    const char *arg_data[3];
    int args           = 0;
@@ -346,9 +347,15 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
    if (should_load_game && !path_is_empty(RARCH_PATH_CONTENT))
    {
       strlcpy(game_path, path_get(RARCH_PATH_CONTENT), sizeof(game_path));
-      arg_data[args] = game_path;
-      arg_data[args + 1] = NULL;
-      args++;
+      // MG 添加游戏标签
+      arg_data[args++] = game_path;
+      char *label = path_get(RARCH_PATH_LABEL);
+      if (label && !string_is_empty(label))
+      {
+         strcpy(game_label, label);
+         arg_data[args++] = game_label;
+      }
+      arg_data[args] = NULL;
       RARCH_LOG("content path: [%s].\n", path_get(RARCH_PATH_CONTENT));
    }
 #endif
@@ -370,13 +377,15 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
             svcExitProcess();
       }
 #endif
+      // MG 核心加载游戏时,需要修改路径,传递参数
       char *argBuffer = (char *)malloc(PATH_MAX);
-      if (should_load_game)
-         snprintf(argBuffer, PATH_MAX, "%s \"%s\"", path, game_path);
+      if (should_load_game && path_is_valid(game_path))
+         snprintf(argBuffer, PATH_MAX, "%s \"%s\" \"%s\"", path, game_path, game_label);
       else
          snprintf(argBuffer, PATH_MAX, "%s", path);
 
       envSetNextLoad(path, argBuffer);
+      RARCH_LOG("content envSetNextLoad argBuffer: %s.\n", argBuffer);
    }
 }
 

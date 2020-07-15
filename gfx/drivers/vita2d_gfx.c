@@ -709,6 +709,9 @@ static uintptr_t vita_load_texture(void *video_data, void *data,
    stride                     /= 4;
 
    tex32                       = vita2d_texture_get_datap(texture);
+   if(!tex32)
+      return 0;
+
    frame32                     = image->pixels;
    pitch                       = image->width;
 
