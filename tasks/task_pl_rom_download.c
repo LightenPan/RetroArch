@@ -627,7 +627,7 @@ finish:
       free(transf);
 }
 
-bool yun_load_rom_state(char *path)
+int yun_load_rom_state(char *path)
 {
    char *loadname = path_basename(path);
    RARCH_LOG("yun_load_rom_state begin. loadname: %s, path: %s\n", loadname, path);

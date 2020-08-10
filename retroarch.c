@@ -5858,7 +5858,7 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
    menu_list_t *menu_list         = menu_st->entries.list;
 	if (!menu_list)
-		return;
+		return 0;
 
 	if (!playlist_name)
 	{

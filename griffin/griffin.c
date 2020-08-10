@@ -19,6 +19,14 @@
 
 #define CINTERFACE
 
+// 安卓默认打开资源更新
+#if defined(ANDROID)
+#define HAVE_ONLINE_UPDATER 1
+#define HAVE_UPDATE_ASSETS 1
+#define HAVE_UPDATE_CORES 1
+#define HAVE_ACCESSIBILITY 1
+#endif
+
 #if !defined(__WINRT__)
 #define HAVE_IBXM 1
 #endif
@@ -1008,6 +1016,11 @@ FILE
 #include "../libretro-common/vfs/vfs_implementation.c"
 #endif
 
+// 添加九宫格功能
+#include "../quickkid/pinyin.c"
+#include "../quickkid/utf8vector.c"
+#include "../quickkid/quickkid.c"
+
 #ifdef HAVE_CDROM
 #include "../libretro-common/cdrom/cdrom.c"
 #include "../libretro-common/vfs/vfs_implementation_cdrom.c"
@@ -1228,8 +1241,6 @@ NETPLAY
 #include "../tasks/task_netplay_nat_traversal.c"
 #include "../tasks/task_wifi.c"
 #include "../tasks/task_netplay_find_content.c"
-#include "../tasks/task_pl_thumbnail_download.c"
-#include "../tasks/task_pl_rom_download.c" // 添加下载功能
 #endif
 
 /*============================================================
@@ -1252,6 +1263,8 @@ DATA RUNLOOP
 #include "../tasks/task_database_cue.c"
 #endif
 #if defined(HAVE_NETWORKING) && defined(HAVE_MENU)
+#include "../tasks/task_pl_thumbnail_download.c"
+#include "../tasks/task_pl_rom_download.c" // 添加下载功能
 #include "../tasks/task_core_updater.c"
 #endif
 
