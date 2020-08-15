@@ -11701,23 +11701,6 @@ static bool setting_append_list(
 
             CONFIG_UINT(
                   list, list_info,
-                  &settings->uints.input_turbo_mode,
-                  MENU_ENUM_LABEL_INPUT_TURBO_MODE,
-                  MENU_ENUM_LABEL_VALUE_INPUT_TURBO_MODE,
-                  turbo_mode,
-                  &group_info,
-                  &subgroup_info,
-                  parent_group,
-                  general_write_handler,
-                  general_read_handler);
-            (*list)[list_info->index - 1].ui_type   = ST_UI_TYPE_UINT_COMBOBOX;
-            (*list)[list_info->index - 1].action_ok = &setting_action_ok_uint;
-            (*list)[list_info->index - 1].get_string_representation =
-               &setting_get_string_representation_turbo_mode;
-            menu_settings_list_current_add_range(list, list_info, 0, (INPUT_TURBO_MODE_LAST-1), 1, true, true);
-
-            CONFIG_UINT(
-                  list, list_info,
                   &settings->uints.input_turbo_default_button,
                   MENU_ENUM_LABEL_INPUT_TURBO_DEFAULT_BUTTON,
                   MENU_ENUM_LABEL_VALUE_INPUT_TURBO_DEFAULT_BUTTON,
@@ -11732,6 +11715,23 @@ static bool setting_append_list(
             (*list)[list_info->index - 1].get_string_representation =
                &setting_get_string_representation_turbo_default_button;
             menu_settings_list_current_add_range(list, list_info, 0, (INPUT_TURBO_DEFAULT_BUTTON_LAST-1), 1, true, true);
+
+            CONFIG_UINT(
+                  list, list_info,
+                  &settings->uints.input_turbo_mode,
+                  MENU_ENUM_LABEL_INPUT_TURBO_MODE,
+                  MENU_ENUM_LABEL_VALUE_INPUT_TURBO_MODE,
+                  turbo_mode,
+                  &group_info,
+                  &subgroup_info,
+                  parent_group,
+                  general_write_handler,
+                  general_read_handler);
+            (*list)[list_info->index - 1].ui_type   = ST_UI_TYPE_UINT_COMBOBOX;
+            (*list)[list_info->index - 1].action_ok = &setting_action_ok_uint;
+            (*list)[list_info->index - 1].get_string_representation =
+               &setting_get_string_representation_turbo_mode;
+            menu_settings_list_current_add_range(list, list_info, 0, (INPUT_TURBO_MODE_LAST-1), 1, true, true);
 
             END_SUB_GROUP(list, list_info, parent_group);
 

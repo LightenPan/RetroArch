@@ -5891,7 +5891,7 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
 // MG 设置列表最近位置
 void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 {
-	RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %d\n", select_ptr_old);
+	// RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %d\n", select_ptr_old);
 	char calc_hashid_key[256] = {0};
    struct rarch_state   *p_rarch  = &rarch_st;
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
