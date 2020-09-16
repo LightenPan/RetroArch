@@ -48,13 +48,14 @@ enum event_command
    CMD_EVENT_LOAD_CORE,
    CMD_EVENT_LOAD_CORE_PERSIST,
    CMD_EVENT_UNLOAD_CORE,
+   CMD_EVENT_SAVE_STATE,
    CMD_EVENT_LOAD_STATE,
-   CMD_EVENT_YUN_LOAD_STATE, // MG 云存档
+   CMD_EVENT_YUN_SAVE_STATE, // MG 保存云存档
+   CMD_EVENT_YUN_LOAD_STATE, // MG 读取云存档
    /* Swaps the current state with what's on the undo load buffer */
    CMD_EVENT_UNDO_LOAD_STATE,
    /* Rewrites a savestate on disk */
    CMD_EVENT_UNDO_SAVE_STATE,
-   CMD_EVENT_SAVE_STATE,
    CMD_EVENT_SAVE_STATE_DECREMENT,
    CMD_EVENT_SAVE_STATE_INCREMENT,
    /* Takes screenshot. */

@@ -918,7 +918,6 @@ static const bool savestate_auto_index = false;
  * startup if savestate_auto_load is set. */
 static const bool savestate_auto_save = false;
 static const bool savestate_auto_load = false;
-static const bool network_on_demand_yunsavestate = false; // 自动下载缩略图
 static const bool savestate_thumbnail_enable = false;
 
 /* When creating save (srm) files, compress

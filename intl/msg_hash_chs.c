@@ -1694,6 +1694,11 @@ int msg_hash_get_help_chs_enum(enum msg_hash_enums msg, char *s, size_t len)
          snprintf(s, len,
                "保存即时存档。");
          break;
+         // MG 保存云存档
+      case MENU_ENUM_LABEL_YUN_SAVE_STATE:
+         snprintf(s, len,
+               "保存云存档。");
+         break;
       case MENU_ENUM_LABEL_CHEAT_INDEX_PLUS:
          snprintf(s, len,
                "下一个金手指。");

@@ -494,15 +494,9 @@ finish:
 bool yun_save_rom_state(char *path)
 {
    settings_t *settings = config_get_ptr();
-   bool isopen = settings->bools.network_on_demand_yunsavestate;
    char show_errmsg[1024] = {0};
    const char *savename = path_basename(path);
-   RARCH_LOG("yun_save_rom_state begin. savyun_save_rom_state log infoename: %s, savepath: %s, isopen: %d\n", savename, path, isopen);
-
-   if (!isopen)
-   {
-      return true;
-   }
+   RARCH_LOG("yun_save_rom_state begin. savyun_save_rom_state log infoename: %s, savepath: %s\n", savename, path);
 
    const int64_t max_buf_size = 10*1024*1024;
    void *file_buf = NULL;
@@ -1324,15 +1318,9 @@ static bool task_push_yun_save_rom_state_finder(retro_task_t *task, void *user_d
 bool task_push_yun_save_rom_state(char *path)
 {
    settings_t *settings = config_get_ptr();
-   bool isopen = settings->bools.network_on_demand_yunsavestate;
    char show_errmsg[1024] = {0};
    const char *savename = path_basename(path);
-   RARCH_LOG("task_push_yun_save_rom_state begin. savename: %s, savepath: %s, isopen: %d\n", savename, path, isopen);
-
-   if (!isopen)
-   {
-      return true;
-   }
+   RARCH_LOG("task_push_yun_save_rom_state begin. savename: %s, savepath: %s\n", savename, path);
 
    char *save_state_buf = NULL;
    int64_t save_state_buf_size = 0;

@@ -430,9 +430,24 @@ void ozone_draw_osk(ozone_handle_t *ozone,
          video_height,
          ozone->theme->entries_border);
 
-   /* Backdrop */
-   /* TODO: Remove the backdrop if blur shader is available */
-   gfx_display_draw_quad(
+   if (input_event_get_osk_idx() == OSK_NINENUM) {
+      /* Backdrop */
+      /* TODO: Remove the backdrop if blur shader is available */
+      gfx_display_draw_quad(
+         userdata,
+         video_width,
+         video_height,
+         margin + ozone->dimensions.spacer_1px,
+         margin + ozone->dimensions.spacer_1px,
+         video_width - margin*2 - ozone->dimensions.spacer_2px,
+         bottom_end - margin*2 - ozone->dimensions.spacer_2px,
+         video_width,
+         video_height,
+         ozone_backdrop);
+   } else {
+      /* Backdrop */
+      /* TODO: Remove the backdrop if blur shader is available */
+      gfx_display_draw_quad(
          userdata,
          video_width,
          video_height,
@@ -443,7 +458,8 @@ void ozone_draw_osk(ozone_handle_t *ozone,
          video_width,
          video_height,
          ozone_osk_backdrop);
-
+   }
+   
    /* Placeholder & text*/
    if (!draw_placeholder)
    {
@@ -494,16 +510,42 @@ void ozone_draw_osk(ozone_handle_t *ozone,
       }
    }
 
-   /* Keyboard */
-   gfx_display_draw_keyboard(
-         userdata,
-         video_width,
-         video_height,
-         ozone->theme->textures[OZONE_THEME_TEXTURE_CURSOR_STATIC],
-         ozone->fonts.entries_label.font,
-         input_event_get_osk_grid(),
-         input_event_get_osk_ptr(),
-         ozone->theme->text_rgba);
+   // MG 如果是九宫键盘，要显示九宫格键盘
+   if (menu_input_dialog_get_display_kb())
+   {
+      if (input_event_get_osk_idx() == OSK_NINENUM) {
+         gfx_display_draw_keyboard_ninenum(
+            userdata,
+            video_width,
+            video_height,
+            ozone->theme->textures[OZONE_THEME_TEXTURE_CURSOR_STATIC],
+            ozone->fonts.entries_label.font,
+            input_event_get_osk_grid(),
+            input_event_get_osk_ptr(),
+            ozone->theme->text_rgba);
+      } else {
+         gfx_display_draw_keyboard(
+            userdata,
+            video_width,
+            video_height,
+            ozone->theme->textures[OZONE_THEME_TEXTURE_CURSOR_STATIC],
+            ozone->fonts.entries_label.font,
+            input_event_get_osk_grid(),
+            input_event_get_osk_ptr(),
+            ozone->theme->text_rgba);
+      }
+   }
+
+   // /* Keyboard */
+   // gfx_display_draw_keyboard(
+   //       userdata,
+   //       video_width,
+   //       video_height,
+   //       ozone->theme->textures[OZONE_THEME_TEXTURE_CURSOR_STATIC],
+   //       ozone->fonts.entries_label.font,
+   //       input_event_get_osk_grid(),
+   //       input_event_get_osk_ptr(),
+   //       ozone->theme->text_rgba);
 
    string_list_free(list);
 }

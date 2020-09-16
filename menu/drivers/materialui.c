@@ -9392,6 +9392,7 @@ static void materialui_list_insert(
             }
             else if (
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_SAVE_STATE)) ||
+                  string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_YUN_SAVE_STATE)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_SAVE_CURRENT_CONFIG_OVERRIDE_CORE)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_SAVE_CURRENT_CONFIG_OVERRIDE_CONTENT_DIR)) ||
                   string_is_equal(label, msg_hash_to_str(MENU_ENUM_LABEL_QUICK_MENU_OVERRIDE_OPTIONS)) ||

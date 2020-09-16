@@ -85,15 +85,15 @@ bool file_list_insert(file_list_t *list,
    {
       struct item_file *copy = (struct item_file*)
          malloc(sizeof(struct item_file));
-
-      copy->path             = NULL;
-      copy->label            = NULL;
-      copy->alt              = NULL;
-      copy->type             = 0;
-      copy->directory_ptr    = 0;
-      copy->entry_idx        = 0;
-      copy->userdata         = NULL;
-      copy->actiondata       = NULL;
+      memset(copy, 0, sizeof(sizeof(struct item_file)));
+      // copy->path             = NULL;
+      // copy->label            = NULL;
+      // copy->alt              = NULL;
+      // copy->type             = 0;
+      // copy->directory_ptr    = 0;
+      // copy->entry_idx        = 0;
+      // copy->userdata         = NULL;
+      // copy->actiondata       = NULL;
 
       memcpy(copy, &list->list[i-1], sizeof(struct item_file));
 
@@ -111,7 +111,7 @@ bool file_list_insert(file_list_t *list,
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
    list->list[idx].actiondata    = NULL;
-   list->list[idx].ninenum         = NULL;
+   list->list[idx].ninenum       = NULL;
 
    if (label)
       list->list[idx].label      = strdup(label);
@@ -153,7 +153,7 @@ bool file_list_append(file_list_t *list,
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
    list->list[idx].actiondata    = NULL;
-   list->list[idx].ninenum         = NULL;
+   list->list[idx].ninenum       = NULL;
 
    if (label)
       list->list[idx].label      = strdup(label);

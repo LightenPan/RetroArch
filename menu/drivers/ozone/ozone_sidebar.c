@@ -103,6 +103,49 @@ unsigned ozone_system_tabs_icons[OZONE_SYSTEM_TAB_LAST] = {
    OZONE_TAB_TEXTURE_SCAN_CONTENT
 };
 
+void format_ozone_node(ozone_node_t *node, char *str, int len)
+{
+   if (!node || !str) {
+      return;
+   }
+
+   if (len < 1024) {
+      return;
+   }
+
+   snprintf(str, len, "height: %d, position_y: %d, wrap: %d, sublabel_lines: %d, fullpath: %s, console_name: %s, icon: %ld, content_icon: %ld",
+      node->height,
+      node->position_y,
+      node->wrap,
+      node->sublabel_lines,
+      node->fullpath,
+      node->console_name,
+      node->icon,
+      node->content_icon
+   );
+}
+
+void format_list_item_file(struct item_file *node, char *str, int len)
+{
+   if (!node || !str) {
+      return;
+   }
+
+   if (len < 1024) {
+      return;
+   }
+
+   snprintf(str, len, "path: %s, label: %s, alt: %s, type: %d, directory_ptr: %u, entry_idx: %u, ninenum: %s",
+      node->path,
+      node->label,
+      node->alt,
+      node->type,
+      node->directory_ptr,
+      node->entry_idx,
+      node->ninenum
+   );
+}
+
 void ozone_draw_sidebar(
       ozone_handle_t *ozone,
       void *userdata,
@@ -324,6 +367,20 @@ void ozone_draw_sidebar(
 
          if (!node)
             goto console_iterate;
+
+         char node_str[1024] = {0};
+         char file_item_str[1024] = {0};
+         format_ozone_node(node, node_str, sizeof(node));
+         format_list_item_file(&ozone->horizontal_list->list[i], file_item_str, sizeof(file_item_str));
+         RARCH_LOG("node_str: %s\n", node_str);
+         RARCH_LOG("file_item_str: %s\n", file_item_str);
+
+         // MG 处理游戏主机标签
+         char *list_label = NULL;
+         file_list_get_label_at_offset(ozone->horizontal_list, i, &list_label);
+         if (list_label) {
+            strncpy(console_title, list_label, sizeof(console_title));
+         }
 
          /* Icon */
          ozone_draw_icon(

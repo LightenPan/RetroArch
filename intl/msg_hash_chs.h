@@ -4151,16 +4151,6 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "在浏览列表时自动下载缺失的缩略图图像。有严重的性能影响。"
    )
-// 自动保存云存档
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "自动保存云存档"
-   )
-// 自动保存云存档
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "即时存档完成时，自动上传云存档，XMB界面会有性能损耗"
-   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATER_SETTINGS,
    "更新程序"
@@ -4956,6 +4946,11 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "加载状态"
+   )
+// MG 云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE,
+   "保存云存档"
    )
 // MG 云存档
 MSG_HASH(
@@ -8599,6 +8594,11 @@ MSG_HASH(
    MSG_FAILED_TO_BIND_SOCKET,
    "端口绑定失败。"
    )
+MSG_HASH(
+   MSG_ERROR_NO_MATCH_NINENUM,
+   "九宫格模糊匹配没有找到游戏。"
+   )
+// MG 九宫格模糊匹配错误
 MSG_HASH(
    MSG_FAILED_TO_CREATE_THE_DIRECTORY,
    "创建文件夹失败。"

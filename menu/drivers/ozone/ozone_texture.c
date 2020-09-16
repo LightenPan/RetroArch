@@ -74,6 +74,7 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
       case MENU_ENUM_LABEL_STATE_SLOT:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_SETTING];
       case MENU_ENUM_LABEL_SAVE_STATE:
+      case MENU_ENUM_LABEL_YUN_SAVE_STATE:
       case MENU_ENUM_LABEL_CORE_CREATE_BACKUP:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_SAVESTATE];
       case MENU_ENUM_LABEL_LOAD_STATE:
@@ -387,9 +388,10 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
       case MENU_SETTING_ACTION_DELETE_ENTRY:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_CLOSE];
       case MENU_SETTING_ACTION_SAVESTATE:
+      case MENU_SETTING_ACTION_YUNSAVESTATE: // MG 保存云存档
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
-      case MENU_SETTING_ACTION_YUNLOADSTATE: // MG ???
+      case MENU_SETTING_ACTION_YUNLOADSTATE: // MG 加载云存档
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_CORE_INFO];

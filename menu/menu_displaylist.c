@@ -2188,7 +2188,15 @@ static int menu_displaylist_parse_load_content_settings(
                   MENU_SETTING_ACTION_LOADSTATE, 0, 0))
                count++;
 
-            // 云存档入口
+            // MG 保存云存档
+            if (menu_entries_append_enum(list,
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE),
+                  msg_hash_to_str(MENU_ENUM_LABEL_YUN_SAVE_STATE),
+                  MENU_ENUM_LABEL_YUN_SAVE_STATE,
+                  MENU_SETTING_ACTION_YUNSAVESTATE, 0, 0))
+               count++;
+
+            // MG 加载云存档
             if (menu_entries_append_enum(list,
                   msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE),
                   msg_hash_to_str(MENU_ENUM_LABEL_YUN_LOAD_STATE),
@@ -6141,13 +6149,6 @@ unsigned menu_displaylist_build_list(
             if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(list,
                      MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
                      PARSE_ONLY_BOOL, false) != -1)
-               count++;
-
-
-            // 云存档
-            if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(list,
-                        MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-                        PARSE_ONLY_BOOL, false) != -1)
                count++;
 
 #ifdef HAVE_ONLINE_UPDATER
@@ -10358,12 +10359,6 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
 #ifdef HAVE_NETWORKING
             if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(info->list,
                   MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
-                  PARSE_ONLY_BOOL, false) != -1)
-               count++;
-
-            // 云存档
-            if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(info->list,
-                  MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
                   PARSE_ONLY_BOOL, false) != -1)
                count++;
 #endif

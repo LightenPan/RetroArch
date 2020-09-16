@@ -49,7 +49,8 @@ bool content_save_ram_file(unsigned slot, bool compress);
 bool content_load_state(const char* path, bool load_to_backup_buffer, bool autoload);
 
 /* Save a state from memory to disk. */
-bool content_save_state(const char *path, bool save_to_disk, bool autosave);
+// MG 添加保存云存档参数
+bool content_save_state(const char *path, bool save_to_disk, bool autosave, bool yunsave);
 
 /* Returns true if a save state task is in progress */
 bool content_save_state_in_progress(void);

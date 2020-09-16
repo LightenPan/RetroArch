@@ -46,6 +46,8 @@
 #include "../../../core_info.h"
 #include "../../../verbosity.h"
 
+#include "../../../libretro-common/include/lists/file_list.h"
+
 static const char *OZONE_TEXTURES_FILES[OZONE_TEXTURE_LAST] = {
    "retroarch",
    "cursor_border"
@@ -2624,11 +2626,17 @@ static void ozone_frame(void *data, video_frame_info_t *video_info)
          gfx_animation_push(&entry);
       }
 
-      ozone_draw_backdrop(
-            userdata,
-            video_width,
-            video_height,
-            float_min(ozone->animations.messagebox_alpha, 0.75f));
+      // ozone_draw_backdrop(
+      //       userdata,
+      //       video_width,
+      //       video_height,
+      //       float_min(ozone->animations.messagebox_alpha, 0.75f));
+
+      // ozone_draw_backdrop(
+      //       userdata,
+      //       video_width,
+      //       video_height,
+      //       0.75f);
 
       if (draw_osk)
       {
@@ -2777,6 +2785,13 @@ static void ozone_populate_entries(void *data, const char *path, const char *lab
       menu_driver_ctl(RARCH_MENU_CTL_UNSET_PREVENT_POPULATE, NULL);
       ozone_selection_changed(ozone, false);
       return;
+   }
+
+   // MG 修改默认键盘
+   if (ozone->is_playlist) {
+      input_event_set_osk_idx(OSK_NINENUM); // 设置键盘为九宫格键盘
+   } else {
+      input_event_set_osk_idx(OSK_LOWERCASE_LATIN); // 设置为默认键盘
    }
 
    ozone->need_compute = true;
@@ -2972,6 +2987,7 @@ static void ozone_list_deep_copy(const file_list_t *src, file_list_t *dst,
       d->alt   = string_is_empty(d->alt)   ? NULL : strdup(d->alt);
       d->path  = string_is_empty(d->path)  ? NULL : strdup(d->path);
       d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
+      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum); // 九宫格
 
       if (src_udata)
          file_list_set_userdata(dst, j, (void*)ozone_copy_node((const ozone_node_t*)src_udata));
@@ -3756,8 +3772,25 @@ static enum menu_action ozone_parse_menu_entry_action(
          /* Ignore if cursor is in sidebar */
          if (ozone->cursor_in_sidebar)
          {
+            /* If cursor is active, ensure we target
+             * an on screen category */
+            // 魔改 如果是在分类栏中，向上翻页滚动10项
+            size_t selection = (ozone->cursor_mode) ?
+                  ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
+
+            new_selection = (int)selection - 10;
+
+            if (new_selection < 0)
+               new_selection = horizontal_list_size + ozone->system_tab_end;
+
+            ozone_sidebar_goto(ozone, new_selection);
+
             new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            ozone->cursor_mode = false;
             break;
+
+            // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            // break;
          }
 
          /* If pointer is active and current selection
@@ -3773,8 +3806,25 @@ static enum menu_action ozone_parse_menu_entry_action(
          /* > Ignore if cursor is in sidebar */
          if (ozone->cursor_in_sidebar)
          {
+            /* If cursor is active, ensure we target
+             * an on screen category */
+            // 魔改 如果是在分类栏中，向下翻页滚动10项
+            size_t selection = (ozone->cursor_mode) ?
+                  ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
+
+            new_selection = (int)(selection + 10);
+
+            if (new_selection >= (int)(ozone->system_tab_end + horizontal_list_size + 1))
+               new_selection = 0;
+
+            ozone_sidebar_goto(ozone, new_selection);
+
             new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            ozone->cursor_mode = false;
             break;
+
+            // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            // break;
          }
 
          /* If pointer is active and current selection

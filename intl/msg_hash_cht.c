@@ -1748,6 +1748,10 @@ int msg_hash_get_help_cht_enum(enum msg_hash_enums msg, char *s, size_t len)
          snprintf(s, len,
                "儲存即時存檔.");
          break;
+      case MENU_ENUM_LABEL_YUN_SAVE_STATE:
+         snprintf(s, len,
+               "儲存云存檔.");
+         break;
       case MENU_ENUM_LABEL_CHEAT_INDEX_PLUS:
          snprintf(s, len,
                "增加 cheat index.\n");

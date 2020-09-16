@@ -3858,6 +3858,22 @@ static int action_ok_save_state(const char *path,
    return 0;
 }
 
+// MG 保存云存档调用入口
+static int action_ok_yun_save_state(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   settings_t *settings = config_get_ptr();
+   bool resume          = settings->bools.menu_savestate_resume;
+
+   if (generic_action_ok_command(CMD_EVENT_YUN_SAVE_STATE) == -1)
+      return menu_cbs_exit();
+
+   if (resume)
+      return generic_action_ok_command(CMD_EVENT_RESUME);
+
+   return 0;
+}
+
 static int action_ok_cheevos_toggle_hardcore_mode(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6959,6 +6975,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_SAVE_STATE,                          action_ok_save_state},
          {MENU_ENUM_LABEL_LOAD_STATE,                          action_ok_load_state},
          // MG 云存档
+         {MENU_ENUM_LABEL_YUN_SAVE_STATE,                      action_ok_yun_save_state},
          {MENU_ENUM_LABEL_YUN_LOAD_STATE,                      action_ok_yun_load_state},
          {MENU_ENUM_LABEL_UNDO_LOAD_STATE,                     action_ok_undo_load_state},
          {MENU_ENUM_LABEL_UNDO_SAVE_STATE,                     action_ok_undo_save_state},

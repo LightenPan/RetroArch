@@ -1630,8 +1630,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST:
          case MENU_ENUM_LABEL_ACHIEVEMENT_LIST_HARDCORE:
          case MENU_ENUM_LABEL_SAVE_STATE:
+         case MENU_ENUM_LABEL_YUN_SAVE_STATE: // MG 保存云存档
          case MENU_ENUM_LABEL_LOAD_STATE:
-         case MENU_ENUM_LABEL_YUN_LOAD_STATE: // �ƴ浵
+         case MENU_ENUM_LABEL_YUN_LOAD_STATE: // MG 加载云存档
             BIND_ACTION_GET_VALUE(cbs,
                   menu_action_setting_disp_set_label_menu_more);
             break;

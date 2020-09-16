@@ -98,6 +98,7 @@ typedef struct
    bool load_to_backup_buffer;
    bool autoload;
    bool autosave;
+   bool yunsave;
    bool undo_save;
    bool mute;
    int state_slot;
@@ -485,7 +486,8 @@ bool content_undo_load_state(void)
 
    /* Swap the current state with the backup state. This way, we can undo
    what we're undoing */
-   content_save_state("RAM", false, false);
+   // MG 添加保存云存档参数
+   content_save_state("RAM", false, false, false);
 
    ret                    = core_unserialize(&serial_info);
 
@@ -1042,7 +1044,8 @@ static void content_load_state_cb(retro_task_t *task,
    serial_info.size       = size;
 
    /* Backup the current state so we can undo this load */
-   content_save_state("RAM", false, false);
+   // MG 添加保存云存档参数
+   content_save_state("RAM", false, false, false);
 
    ret                    = core_unserialize(&serial_info);
 
@@ -1099,15 +1102,16 @@ static void save_state_cb(retro_task_t *task,
    settings_t     *settings   = config_get_ptr();
    const char *dir_screenshot = settings->paths.directory_screenshot;
 
-   RARCH_LOG("save_state_cb begin. path: %s\n", path);
+   RARCH_LOG("save_state_cb begin. path: %s, yunsave: %d\n", path, state->yunsave);
 
    if (state->thumbnail_enable)
       take_screenshot(dir_screenshot,
             path, true, state->has_valid_framebuffer, false, true);
 
-   // �����ƴ浵����
-   // yun_save_rom_state(path);
-   task_push_yun_save_rom_state(path);
+   // MG 保存云存档
+   if (state->yunsave) {
+      task_push_yun_save_rom_state(path);
+   }
 
    free(path);
    free(state);
@@ -1121,7 +1125,7 @@ static void save_state_cb(retro_task_t *task,
  *
  * Create a new task to save the content state.
  **/
-static void task_push_save_state(const char *path, void *data, size_t size, bool autosave)
+static void task_push_save_state(const char *path, void *data, size_t size, bool autosave, bool yunsave)
 {
    retro_task_t       *task        = task_init();
    save_task_state_t *state        = (save_task_state_t*)calloc(1, sizeof(*state));
@@ -1142,6 +1146,7 @@ static void task_push_save_state(const char *path, void *data, size_t size, bool
    state->size                   = size;
    state->autosave               = autosave;
    state->mute                   = autosave; /* don't show OSD messages if we are auto-saving */
+   state->yunsave                = yunsave; // MG 云存档
    state->thumbnail_enable       = savestate_thumbnail_enable;
    state->state_slot             = state_slot;
    state->has_valid_framebuffer  = video_driver_cached_frame_has_valid_framebuffer();
@@ -1198,7 +1203,8 @@ static void content_load_and_save_state_cb(retro_task_t *task,
 
    content_load_state_cb(task, task_data, user_data, error);
 
-   task_push_save_state(path, data, size, autosave);
+   // MG 添加云存档标志
+   task_push_save_state(path, data, size, autosave, load_data->yunsave);
 
    free(path);
 }
@@ -1214,7 +1220,7 @@ static void content_load_and_save_state_cb(retro_task_t *task,
  * and then save the content state.
  **/
 static void task_push_load_and_save_state(const char *path, void *data,
-      size_t size, bool load_to_backup_buffer, bool autosave)
+      size_t size, bool load_to_backup_buffer, bool autosave, bool yunsave)
 {
    retro_task_t      *task     = NULL;
    settings_t        *settings = config_get_ptr();
@@ -1246,6 +1252,7 @@ static void task_push_load_and_save_state(const char *path, void *data,
    state->autosave   = autosave;
    state->mute       = autosave; /* don't show OSD messages if we
                                     are auto-saving */
+   state->yunsave    = yunsave; // MG 云存档标志位
    if (load_to_backup_buffer)
       state->mute                = true;
    state->state_slot             = state_slot;
@@ -1280,7 +1287,7 @@ static void task_push_load_and_save_state(const char *path, void *data,
  *
  * Returns: true if successful, false otherwise.
  **/
-bool content_save_state(const char *path, bool save_to_disk, bool autosave)
+bool content_save_state(const char *path, bool save_to_disk, bool autosave, bool yunsave)
 {
    retro_ctx_size_info_t info;
    void *data  = NULL;
@@ -1322,10 +1329,12 @@ bool content_save_state(const char *path, bool save_to_disk, bool autosave)
          RARCH_LOG("%s ...\n",
                msg_hash_to_str(MSG_FILE_ALREADY_EXISTS_SAVING_TO_BACKUP_BUFFER));
 
-         task_push_load_and_save_state(path, data, info.size, true, autosave);
+         // MG 添加云存档标志位
+         task_push_load_and_save_state(path, data, info.size, true, autosave, yunsave);
       }
       else
-         task_push_save_state(path, data, info.size, autosave);
+         // MG 添加云存档标志位
+         task_push_save_state(path, data, info.size, autosave, yunsave);
    }
    else
    {

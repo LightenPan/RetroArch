@@ -4581,11 +4581,6 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "Automatically download missing thumbnails while browsing playlists. Has a severe performance impact."
    )
-// 自动云存档
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "On-Demand Auto Upload Save State"
-   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATER_SETTINGS,
    "Updater"
@@ -5546,6 +5541,11 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "Load State"
+   )
+// MG 云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE,
+   "Save Cloud State"
    )
 // MG 云存档
 MSG_HASH(
@@ -10072,6 +10072,11 @@ MSG_HASH(
 MSG_HASH(
    MSG_FAILED_TO_BIND_SOCKET,
    "Failed to bind socket."
+   )
+// MG 九宫格模糊匹配错误
+MSG_HASH(
+   MSG_ERROR_NO_MATCH_NINENUM,
+   "Failed to match by nine num."
    )
 MSG_HASH(
    MSG_FAILED_TO_CREATE_THE_DIRECTORY,

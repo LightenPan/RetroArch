@@ -1829,11 +1829,6 @@ MSG_HASH(
    MENU_ENUM_LABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "network_on_demand_thumbnails"
    )
-// 自动云存档
-MSG_HASH(
-   MENU_ENUM_LABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "network_on_demand_yunsavestate"
-   )
 MSG_HASH(
    MENU_ENUM_LABEL_SUBSYSTEM_SETTINGS,
    "subsystem_settings"

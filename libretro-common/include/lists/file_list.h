@@ -42,7 +42,7 @@ struct item_file
    size_t entry_idx;
    void *userdata;
    void *actiondata;
-	char *ninenum; // ¾Å¹¬¸ñÊäÈë
+	char *ninenum; // ï¿½Å¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 };
 
 typedef struct file_list

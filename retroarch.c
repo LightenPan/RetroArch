@@ -14563,7 +14563,7 @@ static bool command_event_save_auto_state(
    fill_pathname_noext(savestate_name_auto, global->name.savestate,
          ".auto", savestate_name_auto_size);
 
-   ret = content_save_state((const char*)savestate_name_auto, true, true);
+   ret = content_save_state((const char*)savestate_name_auto, true, true, false);
    RARCH_LOG("%s \"%s\" %s.\n",
          msg_hash_to_str(MSG_AUTO_SAVE_STATE_TO),
          savestate_name_auto, ret ?
@@ -14855,7 +14855,9 @@ static bool command_event_main_state(
       switch (cmd)
       {
          case CMD_EVENT_SAVE_STATE:
-            content_save_state(state_path, true, false);
+            // MG 添加云存档标志
+            RARCH_LOG("CMD_EVENT_SAVE_STATE\n");
+            content_save_state(state_path, true, false, false);
             {
                bool frame_time_counter_reset_after_save_state =
                   settings->bools.frame_time_counter_reset_after_save_state;
@@ -14883,6 +14885,20 @@ static bool command_event_main_state(
                      p_rarch->video_driver_frame_time_count = 0;
                }
             }
+            push_msg = false;
+            break;
+            // MG 保存云存档
+         case CMD_EVENT_YUN_SAVE_STATE:
+            // MG 添加云存档标志
+            RARCH_LOG("CMD_EVENT_YUN_SAVE_STATE\n");
+            content_save_state(state_path, true, false, true);
+            {
+               bool frame_time_counter_reset_after_save_state =
+                  settings->bools.frame_time_counter_reset_after_save_state;
+               if (frame_time_counter_reset_after_save_state)
+                  p_rarch->video_driver_frame_time_count = 0;
+            }
+            ret      = true;
             push_msg = false;
             break;
             // MG 加载云存档
@@ -15330,6 +15346,7 @@ bool command_event(enum event_command cmd, void *data)
 #endif
          return false;
       case CMD_EVENT_SAVE_STATE:
+      case CMD_EVENT_YUN_SAVE_STATE:
          {
             bool savestate_auto_index = settings->bools.savestate_auto_index;
             int state_slot            = settings->ints.state_slot;
@@ -24195,6 +24212,11 @@ static unsigned menu_event(
             // MG 处理九宫格键盘移动逻辑
             if (p_rarch->osk_ptr >= 1)
                p_rarch->osk_ptr -= 1;
+         }
+
+         // MG 九宫格键盘时，再按一次X，则隐藏键盘
+         if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_X)) {
+            input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
          }
       }
       else

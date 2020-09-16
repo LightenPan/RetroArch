@@ -74,7 +74,8 @@
       "limits": "c",
       "string": "c",
       "ranges": "c",
-      "*.tcc": "c"
+      "*.tcc": "c",
+      "filesystem": "c"
    },
    "C_Cpp.dimInactiveRegions": false,
 }

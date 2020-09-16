@@ -2771,16 +2771,6 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_THUMBNAILS,
    "在瀏覽列表時自動下載缺失的縮略圖圖像。有嚴重的性能影響。"
    )
-// 自动保存云存档
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "自動保存雲存檔"
-   )
-// 自动保存云存档
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETWORK_ON_DEMAND_YUNSAVESTATE,
-   "即時存檔完成時，自動上傳雲存檔，XMB界面會有性能損耗"
-   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATER_SETTINGS,
    "更新程序"
@@ -3150,6 +3140,11 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "戴入狀態"
+   )
+// MG 云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE,
+   "儲存雲狀態"
    )
 // MG 云存档
 MSG_HASH(
@@ -4701,6 +4696,11 @@ MSG_HASH(
    MSG_FAILED_TO_BIND_SOCKET,
    "無法連接通訊埠."
    )
+MSG_HASH(
+   MSG_ERROR_NO_MATCH_NINENUM,
+   "九宫格模糊匹配没有找到游戏。"
+   )
+// MG 九宫格模糊匹配错误
 MSG_HASH(
    MSG_FAILED_TO_CREATE_THE_DIRECTORY,
    "創建目錄失敗。"

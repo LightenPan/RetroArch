@@ -118,6 +118,10 @@ int pinyin_to_ninenum(const char *in_str, char *out_str, int out_len)
 	int i = 0;
 	int j = 0;
 	while(in_str[i] != '\0') {
+      if (i >= out_len - 1) {
+         break;
+      }
+      
 		unsigned char ninenum = char_to_ninenum(in_str[i]);
 		if (ninenum > 0 && j < out_len - 1) {
 			out_str[j++] = ninenum;
