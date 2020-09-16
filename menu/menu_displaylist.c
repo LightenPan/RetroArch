@@ -3156,13 +3156,13 @@ static unsigned menu_displaylist_parse_playlist_manager_list(
                   file_path_str(FILE_PATH_CONTENT_FAVORITES)))
             continue;
 
-         menu_entries_append_enum(info->list,
-               path,
-               "",
-               MENU_ENUM_LABEL_PLAYLIST_MANAGER_SETTINGS,
-               MENU_SETTING_ACTION,
-               0, 0);
-         count++;
+         // menu_entries_append_enum(info->list,
+         //       path,
+         //       "",
+         //       MENU_ENUM_LABEL_PLAYLIST_MANAGER_SETTINGS,
+         //       MENU_SETTING_ACTION,
+         //       0, 0);
+         // count++;
       }
    }
 

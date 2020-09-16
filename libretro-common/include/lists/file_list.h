@@ -42,7 +42,7 @@ struct item_file
    size_t entry_idx;
    void *userdata;
    void *actiondata;
-	char *ninenum; // �Ź�������
+	char *ninenum; // MG 九宫格模糊匹配字符串
 };
 
 typedef struct file_list

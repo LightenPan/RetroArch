@@ -372,8 +372,8 @@ void ozone_draw_sidebar(
          char file_item_str[1024] = {0};
          format_ozone_node(node, node_str, sizeof(node));
          format_list_item_file(&ozone->horizontal_list->list[i], file_item_str, sizeof(file_item_str));
-         RARCH_LOG("node_str: %s\n", node_str);
-         RARCH_LOG("file_item_str: %s\n", file_item_str);
+         // RARCH_LOG("node_str: %s\n", node_str);
+         // RARCH_LOG("file_item_str: %s\n", file_item_str);
 
          // MG 处理游戏主机标签
          char *list_label = NULL;
@@ -885,6 +885,11 @@ void ozone_refresh_horizontal_list(ozone_handle_t *ozone)
 
 void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
 {
+   settings_t *settings = config_get_ptr();
+   if (!settings) {
+      return;
+   }
+
    unsigned i;
    size_t list_size = ozone_list_get_size(ozone, MENU_LIST_HORIZONTAL);
 
@@ -910,6 +915,52 @@ void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
       if (!string_ends_with_size(path, ".lpl",
                strlen(path), STRLEN_CONST(".lpl")))
          continue;
+
+      /////////////////////////////////////////////////////////////////////////////
+      // MG 读取列表文件对应的配置信息
+      char lpl_ini_file[1024] = {0};
+
+      fill_pathname_join_concat(
+         lpl_ini_file, settings->paths.directory_playlist,
+         path, ".ini", sizeof(lpl_ini_file));
+      // RARCH_LOG("lpl_ini_file: %s\n", lpl_ini_file);
+
+      char conf_console_name[1024] = {0};
+      char conf_console_logo_path[PATH_MAX_LENGTH] = {0};
+      char conf_console_content_logo_path[PATH_MAX_LENGTH] = {0};
+      config_file_t *conf = config_file_new_from_path_to_string(lpl_ini_file);
+      if (conf != NULL)
+      {
+         char *console_name = NULL;
+         if (config_get_string(conf, "name", &console_name))
+         {
+            strlcpy(conf_console_name, console_name, sizeof(conf_console_name));
+            free(console_name);
+         }
+
+         char *console_logo_name = NULL;
+         if (config_get_string(conf, "logo", &console_logo_name))
+         {
+            fill_pathname_join_concat(
+               conf_console_logo_path, ozone->icons_path,
+               console_logo_name, ".png", PATH_MAX_LENGTH * sizeof(char));
+            free(console_logo_name);
+         }
+
+         char *console_content_logo_name = NULL;
+         if (config_get_string(conf, "content-logo", &console_content_logo_name))
+         {
+            fill_pathname_join_concat(
+               conf_console_content_logo_path, ozone->icons_path,
+               console_content_logo_name, ".png", PATH_MAX_LENGTH * sizeof(char));
+            free(console_content_logo_name);
+         }
+
+         RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
+            conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
+      }
+      free(conf);
+      /////////////////////////////////////////////////////////////////////////////
 
       {
          struct texture_image ti;
@@ -945,6 +996,10 @@ void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
          ti.pixels        = NULL;
          ti.supports_rgba = video_driver_supports_rgba();
 
+         // MG 如果配置的主机图标存在，则使用配置的主机图标
+         if (path_is_valid(conf_console_logo_path)) {
+            strlcpy(texturepath, conf_console_logo_path, PATH_MAX_LENGTH * sizeof(char));
+         }
          if (image_texture_load(&ti, texturepath))
          {
             if (ti.pixels)
@@ -976,6 +1031,10 @@ void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
                   PATH_MAX_LENGTH * sizeof(char));
          }
 
+         // MG 如果配置的主机内容图标存在，则使用配置的主机内容图标
+         if (path_is_valid(conf_console_content_logo_path)) {
+            strlcpy(content_texturepath, conf_console_content_logo_path, PATH_MAX_LENGTH * sizeof(char));
+         }
          if (image_texture_load(&ti, content_texturepath))
          {
             if (ti.pixels)
@@ -996,11 +1055,16 @@ void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
          if (node->console_name)
             free(node->console_name);
 
-         /* Note: console_name will *always* be valid here,
-          * but provide a fallback to prevent NULL pointer
-          * dereferencing in case of unknown errors... */
-         node->console_name = strdup(
-               console_name ? console_name : path);
+         // MG 如果配置的主机名存在，则使用配置的主机名
+         if (strlen(conf_console_name) > 0) {
+               node->console_name = strdup(conf_console_name);
+         } else {
+            /* Note: console_name will *always* be valid here,
+            * but provide a fallback to prevent NULL pointer
+            * dereferencing in case of unknown errors... */
+            node->console_name = strdup(
+                  console_name ? console_name : path);
+         }
 
          free(sysname);
          free(texturepath);
