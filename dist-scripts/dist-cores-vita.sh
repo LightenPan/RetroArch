@@ -1,7 +1,7 @@
 #!/bin/sh
 
-. ../version.all
-PLATFORM=$1
+# . ../version.all
+PLATFORM=vita
 SALAMANDER=no
 MAKEFILE_GRIFFIN=no
 

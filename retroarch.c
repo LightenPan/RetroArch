@@ -5940,17 +5940,6 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
    }
 }
 
-// MG 列表UI信息
-void menu_driver_set_horizontal_list_uiinfo(const char *path, const char *title, const char *logoname, const char *content_logoname)
-{
-   RARCH_LOG("menu_driver_set_horizontal_list_uiinfo begin. path: %s, title: %s, logoname: %s, content_logoname: %s\n",
-      path, title, logoname, content_logoname);
-   struct rarch_state   *p_rarch  = &rarch_st;
-   if (p_rarch->menu_driver_ctx && p_rarch->menu_driver_ctx->set_horizontal_list_uiinfo)
-      p_rarch->menu_driver_ctx->set_horizontal_list_uiinfo(
-         p_rarch->menu_userdata, path, title, logoname, content_logoname);
-}
-
 static void menu_display_common_image_upload(
       void *task_data,
       void *user_data,

@@ -1230,135 +1230,6 @@ static void xmb_set_thumbnail_system(void *data, char*s, size_t len)
          xmb->thumbnail_path_data, s, playlist_get_cached());
 }
 
-// 动态标题和说明
-static void xmb_set_horizontal_list_title(void *data, const char *path, const char *title)
-{
-   RARCH_LOG("xmb_set_horizontal_list_title begin. path: %s, title: %s\n", path, title);
-   xmb_handle_t *xmb = (xmb_handle_t*)data;
-   if (!xmb || !xmb->horizontal_list || !path || !title)
-      return;
-
-   if (xmb->horizontal_list->size == 0)
-      return;
-
-   for (unsigned i = 0; i < xmb->horizontal_list->size; i++)
-   {
-      const char *item_path = NULL;
-      file_list_get_at_offset(xmb->horizontal_list, i, &item_path, NULL, NULL, NULL);
-      if (!item_path)
-         continue;
-
-      if (!strstr(item_path, file_path_str(FILE_PATH_LPL_EXTENSION)))
-         continue;
-
-      const char *basename = path_basename(path);
-      if (strcmp(item_path, basename) != 0)
-         continue;
-
-      file_list_set_label_at_offset(xmb->horizontal_list, i, title);
-      break;
-   }
-}
-
-static void xmb_set_horizontal_list_logo(void *data, const char *path, const char *logoname, const char *content_logoname)
-{
-   RARCH_LOG("xmb_set_horizontal_list_logo begin. path: %s, logoname: %s, content_logoname: %s\n", path, logoname, content_logoname);
-   xmb_handle_t *xmb = (xmb_handle_t*)data;
-   if (!xmb || !xmb->horizontal_list || !path || (!logoname || !content_logoname))
-      return;
-
-   if (xmb->horizontal_list->size == 0)
-      return;
-
-   // 找到列表对应的节点
-   xmb_node_t *node = NULL;
-   for (unsigned i = 0; i < xmb->horizontal_list->size; i++)
-   {
-      const char *item_path = NULL;
-      file_list_get_at_offset(xmb->horizontal_list, i, &item_path, NULL, NULL, NULL);
-      // RARCH_LOG("xmb_set_horizontal_list_logo log item. item_path: %s\n", item_path);
-      if (!item_path)
-         continue;
-
-      if (!strstr(item_path, file_path_str(FILE_PATH_LPL_EXTENSION)))
-         continue;
-
-      const char *basename = path_basename(path);
-      if (strcmp(item_path, basename) != 0)
-         continue;
-
-      node = file_list_get_userdata_at_offset(xmb->horizontal_list, i);
-      break;
-   }
-
-   if (node == NULL)
-      return;
-
-   // 按需加载logo
-   char iconpath[PATH_MAX_LENGTH] = {0};
-   char texturepath[PATH_MAX_LENGTH] = {0};
-
-   fill_pathname_application_special(iconpath,
-      PATH_MAX_LENGTH * sizeof(char),
-      APPLICATION_SPECIAL_DIRECTORY_ASSETS_XMB_ICONS);
-
-   fill_pathname_join_concat(texturepath, iconpath, logoname,
-      file_path_str(FILE_PATH_PNG_EXTENSION),
-      PATH_MAX_LENGTH * sizeof(char));
-
-   struct texture_image ti;
-   ti.width         = 0;
-   ti.height        = 0;
-   ti.pixels        = NULL;
-   ti.supports_rgba = video_driver_supports_rgba();
-
-   // 图片存在，并且不是当前logo
-   if (path_is_valid(texturepath))
-   {
-      RARCH_LOG("xmb_set_horizontal_list_logo load logo. logoname: %s, texturepath: %s\n", logoname, texturepath);
-      if (image_texture_load(&ti, texturepath))
-      {
-         if (ti.pixels)
-         {
-            video_driver_texture_unload(&node->icon);
-            video_driver_texture_load(&ti, TEXTURE_FILTER_MIPMAP_LINEAR, &node->icon);
-         }
-
-         image_texture_free(&ti);
-      }
-   }
-
-   char content_texturepath[PATH_MAX_LENGTH] = {0};
-
-   fill_pathname_join_concat(content_texturepath, iconpath, content_logoname,
-      file_path_str(FILE_PATH_PNG_EXTENSION),
-      PATH_MAX_LENGTH * sizeof(char));
-
-   // 图片存在，并且不是当前logo
-   if (path_is_valid(content_texturepath))
-   {
-      RARCH_LOG("xmb_set_horizontal_list_logo load content logo. content_logoname: %s, content_texturepath: %s\n",
-         content_logoname, content_texturepath);
-      if (image_texture_load(&ti, content_texturepath))
-      {
-         if (ti.pixels)
-         {
-            video_driver_texture_unload(&node->content_icon);
-            video_driver_texture_load(&ti, TEXTURE_FILTER_MIPMAP_LINEAR, &node->content_icon);
-         }
-
-         image_texture_free(&ti);
-      }
-   }
-}
-
-static void xmb_set_horizontal_list_uiinfo(
-   void *data, const char *path, const char *title, const char *logoname, const char *content_logoname)
-{
-   xmb_set_horizontal_list_title(data, path, title);
-   xmb_set_horizontal_list_logo(data, path, logoname, content_logoname);
-}
-
 static void xmb_get_thumbnail_system(void *data, char*s, size_t len)
 {
    xmb_handle_t *xmb  = (xmb_handle_t*)data;
@@ -2300,6 +2171,11 @@ static void xmb_toggle_horizontal_list(xmb_handle_t *xmb)
 static void xmb_context_reset_horizontal_list(
       xmb_handle_t *xmb)
 {
+   settings_t *settings = config_get_ptr();
+   if (!settings) {
+      return;
+   }
+
    unsigned i;
    int depth; /* keep this integer */
    size_t list_size                =
@@ -2334,6 +2210,62 @@ static void xmb_context_reset_horizontal_list(
       if (!string_ends_with_size(path, ".lpl",
                strlen(path), STRLEN_CONST(".lpl")))
          continue;
+      
+      /////////////////////////////////////////////////////////////////////////////
+      // MG 读取列表文件对应的配置信息
+      char lpl_ini_file[1024] = {0};
+
+      fill_pathname_join_concat(
+         lpl_ini_file, settings->paths.directory_playlist,
+         path, ".ini", sizeof(lpl_ini_file));
+      // RARCH_LOG("lpl_ini_file: %s\n", lpl_ini_file);
+
+      char conf_console_name[1024] = {0};
+      char conf_console_logo_path[PATH_MAX_LENGTH] = {0};
+      char conf_console_content_logo_path[PATH_MAX_LENGTH] = {0};
+      config_file_t *conf = config_file_new_from_path_to_string(lpl_ini_file);
+      char xmb_iconpath[PATH_MAX_LENGTH] = {0};
+      if (conf != NULL && xmb_iconpath != NULL)
+      {
+         fill_pathname_application_special(xmb_iconpath,
+               PATH_MAX_LENGTH * sizeof(char),
+               APPLICATION_SPECIAL_DIRECTORY_ASSETS_XMB_ICONS);
+
+         char *console_name = NULL;
+         if (config_get_string(conf, "name", &console_name))
+         {
+            strlcpy(conf_console_name, console_name, sizeof(conf_console_name));
+            free(console_name);
+         }
+
+         char *console_logo_name = NULL;
+         if (config_get_string(conf, "logo", &console_logo_name))
+         {
+            fill_pathname_join_concat(
+               conf_console_logo_path, xmb_iconpath,
+               console_logo_name, ".png", PATH_MAX_LENGTH * sizeof(char));
+            free(console_logo_name);
+         }
+
+         char *console_content_logo_name = NULL;
+         if (config_get_string(conf, "content-logo", &console_content_logo_name))
+         {
+            fill_pathname_join_concat(
+               conf_console_content_logo_path, xmb_iconpath,
+               console_content_logo_name, ".png", PATH_MAX_LENGTH * sizeof(char));
+            free(console_content_logo_name);
+         }
+
+         RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
+            conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
+      }
+      free(conf);
+      /////////////////////////////////////////////////////////////////////////////
+
+      // MG 设置标题
+      if (strlen(conf_console_name) > 0) {
+         file_list_set_label_at_offset(xmb->horizontal_list, i, conf_console_name);
+      }
 
       {
          struct texture_image ti;
@@ -2372,6 +2304,10 @@ static void xmb_context_reset_horizontal_list(
          ti.pixels        = NULL;
          ti.supports_rgba = video_driver_supports_rgba();
 
+         // MG 如果配置的主机图标存在，则使用配置的主机图标
+         if (path_is_valid(conf_console_logo_path)) {
+            strlcpy(texturepath, conf_console_logo_path, PATH_MAX_LENGTH * sizeof(char));
+         }
          if (image_texture_load(&ti, texturepath))
          {
             if (ti.pixels)
@@ -2399,6 +2335,10 @@ static void xmb_context_reset_horizontal_list(
                   PATH_MAX_LENGTH * sizeof(char));
          }
 
+         // MG 如果配置的主机内容图标存在，则使用配置的主机内容图标
+         if (path_is_valid(conf_console_content_logo_path)) {
+            strlcpy(content_texturepath, conf_console_content_logo_path, PATH_MAX_LENGTH * sizeof(char));
+         }
          if (image_texture_load(&ti, content_texturepath))
          {
             if (ti.pixels)
@@ -7318,6 +7258,5 @@ menu_ctx_driver_t menu_ctx_xmb = {
 #else
    NULL,
 #endif
-   xmb_menu_entry_action,
-   xmb_set_horizontal_list_uiinfo // 设置列表信息
+   xmb_menu_entry_action
 };

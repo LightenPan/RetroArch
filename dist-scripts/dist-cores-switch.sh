@@ -1,7 +1,7 @@
 #!/bin/sh
 
-. ../version.all.libnx
-PLATFORM=$1
+# . ../version.all.libnx
+PLATFORM=libnx
 SALAMANDER=no
 MAKEFILE_GRIFFIN=no
 
