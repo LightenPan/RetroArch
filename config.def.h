@@ -53,48 +53,6 @@
 #define DEFAULT_ASPECT_RATIO -1.0f
 #endif
 
-#if defined(ANDROID)
-#define DEFAULT_MAX_PADS 8
-#define ANDROID_KEYBOARD_PORT DEFAULT_MAX_PADS
-#elif defined(_3DS)
-#define DEFAULT_MAX_PADS 1
-#elif defined(SWITCH) || defined(HAVE_LIBNX)
-#define DEFAULT_MAX_PADS 8
-#elif defined(WIIU)
-#ifdef WIIU_HID
-#define DEFAULT_MAX_PADS 16
-#else
-#define DEFAULT_MAX_PADS 5
-#endif
-#elif defined(DJGPP)
-#define DEFAULT_MAX_PADS 1
-#define DOS_KEYBOARD_PORT DEFAULT_MAX_PADS
-#elif defined(XENON)
-#define DEFAULT_MAX_PADS 4
-#elif defined(VITA) || defined(SN_TARGET_PSP2)
-#define DEFAULT_MAX_PADS 4
-#elif defined(PSP)
-#define DEFAULT_MAX_PADS 1
-#elif defined(PS2)
-#define DEFAULT_MAX_PADS 2
-#elif defined(GEKKO) || defined(HW_RVL)
-#define DEFAULT_MAX_PADS 4
-#elif defined(__linux__) || (defined(BSD) && !defined(__MACH__))
-#define DEFAULT_MAX_PADS 8
-#elif defined(__QNX__)
-#define DEFAULT_MAX_PADS 8
-#elif defined(__CELLOS_LV2__)
-#define DEFAULT_MAX_PADS 7
-#elif defined(_XBOX)
-#define DEFAULT_MAX_PADS 4
-#elif defined(HAVE_XINPUT) && !defined(HAVE_DINPUT)
-#define DEFAULT_MAX_PADS 4
-#elif defined(DINGUX)
-#define DEFAULT_MAX_PADS 2
-#else
-#define DEFAULT_MAX_PADS 16
-#endif
-
 #if defined(GEKKO)
 #define DEFAULT_MOUSE_SCALE 1
 #endif
@@ -118,6 +76,8 @@
 #ifdef HAVE_MATERIALUI
 /* Show icons to the left of each menu entry */
 #define DEFAULT_MATERIALUI_ICONS_ENABLE true
+/* Show system-specific icons in the playlists tab */
+#define DEFAULT_MATERIALUI_PLAYLIST_ICONS_ENABLE true
 #endif
 
 /* Material UI colour theme */
@@ -174,6 +134,8 @@
 #define DEFAULT_CRT_SWITCH_RESOLUTION_SUPER 2560
 
 #define DEFAULT_CRT_SWITCH_CENTER_ADJUST 0
+
+#define DEFAULT_CRT_SWITCH_PORCH_ADJUST 0
 
 #define DEFAULT_HISTORY_LIST_ENABLE true
 
@@ -257,6 +219,18 @@
 #define DEFAULT_LOAD_DUMMY_ON_CORE_SHUTDOWN true
 #endif
 #define DEFAULT_CHECK_FIRMWARE_BEFORE_LOADING false
+
+/* Specifies whether to 'reload' (fork and quit)
+ * RetroArch when launching content with the
+ * currently loaded core
+ * > Only relevant on platforms without dynamic core
+ *   loading support
+ * > Setting this to 'false' will decrease loading
+ *   times when required core is already running,
+ *   but may cause stability issues (if core misbehaves) */
+#ifndef HAVE_DYNAMIC
+#define DEFAULT_ALWAYS_RELOAD_CORE_ON_RUN_CONTENT true
+#endif
 
 /* Forcibly disable composition.
  * Only valid on Windows Vista/7/8 for now. */
@@ -346,6 +320,10 @@
 /* On resize and fullscreen, rendering area will stay 4:3 */
 #define DEFAULT_FORCE_ASPECT true
 
+/* Only applies to Android 9.0 (API 28) and up */
+/* Choose if the screen will be able to write around the notch or not */
+#define DEFAULT_NOTCH_WRITE_OVER_ENABLE false
+
 /* Enable use of shaders. */
 #ifdef RARCH_CONSOLE
 #define DEFAULT_SHADER_ENABLE true
@@ -381,7 +359,12 @@
 
 #define DEFAULT_SHOW_HIDDEN_FILES false
 
-#define DEFAULT_OVERLAY_HIDE_IN_MENU false
+#define DEFAULT_OVERLAY_HIDE_IN_MENU true
+
+/* Automatically disable overlays when a
+ * controller is connected in port 1 */
+#define DEFAULT_OVERLAY_HIDE_WHEN_GAMEPAD_CONNECTED false
+
 #define DEFAULT_OVERLAY_SHOW_MOUSE_CURSOR true
 
 #define DEFAULT_DISPLAY_KEYBOARD_OVERLAY false
@@ -391,6 +374,19 @@
 #else
 #define DEFAULT_INPUT_OVERLAY_OPACITY 0.7f
 #endif
+
+#define DEFAULT_INPUT_OVERLAY_SCALE_LANDSCAPE 1.0f
+#define DEFAULT_INPUT_OVERLAY_ASPECT_ADJUST_LANDSCAPE 0.0f
+#define DEFAULT_INPUT_OVERLAY_X_SEPARATION_LANDSCAPE 0.0f
+#define DEFAULT_INPUT_OVERLAY_Y_SEPARATION_LANDSCAPE 0.0f
+#define DEFAULT_INPUT_OVERLAY_X_OFFSET_LANDSCAPE 0.0f
+#define DEFAULT_INPUT_OVERLAY_Y_OFFSET_LANDSCAPE 0.0f
+
+#define DEFAULT_INPUT_OVERLAY_SCALE_PORTRAIT 1.0f
+#define DEFAULT_INPUT_OVERLAY_ASPECT_ADJUST_PORTRAIT 0.0f
+#define DEFAULT_INPUT_OVERLAY_X_SEPARATION_PORTRAIT 0.0f
+#define DEFAULT_INPUT_OVERLAY_X_OFFSET_PORTRAIT 0.0f
+#define DEFAULT_INPUT_OVERLAY_Y_OFFSET_PORTRAIT 0.0f
 
 #if defined(RARCH_MOBILE)
 #define DEFAULT_OVERLAY_AUTO_ROTATE true
@@ -548,8 +544,18 @@ static const bool content_show_netplay      = true;
 #endif
 #endif
 static const bool content_show_history      = true;
-static const bool content_show_add     	    = true;
+
+/* Specifies 'add content' visibility when using
+ * menus WITH a dedicated 'Import Content' tab */
+#define DEFAULT_MENU_CONTENT_SHOW_ADD true
+/* Specifies 'add content' visibility when using
+ * menus WITHOUT a dedicated 'Import Content' tab */
+#define DEFAULT_MENU_CONTENT_SHOW_ADD_ENTRY MENU_ADD_CONTENT_ENTRY_DISPLAY_PLAYLISTS_TAB
+
 static const bool content_show_playlists    = true;
+#if defined(HAVE_LIBRETRODB)
+#define DEFAULT_MENU_CONTENT_SHOW_EXPLORE true
+#endif
 
 #ifdef HAVE_XMB
 static const unsigned xmb_alpha_factor      = 75;
@@ -602,6 +608,7 @@ static const bool rgui_shadows = false;
 static const unsigned rgui_particle_effect = RGUI_PARTICLE_EFFECT_NONE;
 #define DEFAULT_RGUI_PARTICLE_EFFECT_SPEED 1.0f
 static const bool rgui_extended_ascii = false;
+#define DEFAULT_RGUI_SWITCH_ICONS true
 #endif
 
 #ifdef HAVE_MENU
@@ -621,6 +628,9 @@ static const bool default_auto_shaders_enable = true;
 
 static const bool default_sort_savefiles_enable = false;
 static const bool default_sort_savestates_enable = false;
+static const bool default_sort_savefiles_by_content_enable = false;
+static const bool default_sort_savestates_by_content_enable = false;
+static const bool default_sort_screenshots_by_content_enable = false;
 
 static const bool default_savestates_in_content_dir = false;
 static const bool default_savefiles_in_content_dir = false;
@@ -646,12 +656,14 @@ static const unsigned input_backtouch_enable       = false;
 static const unsigned input_backtouch_toggle       = false;
 #endif
 
+#define DEFAULT_OVERLAY_ENABLE_AUTOPREFERRED true
+
 #define DEFAULT_SHOW_PHYSICAL_INPUTS true
 
 #define DEFAULT_ALL_USERS_CONTROL_MENU false
 
 #if defined(ANDROID) || defined(_WIN32)
-#define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS false
+#define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS true
 #else
 #define DEFAULT_MENU_SWAP_OK_CANCEL_BUTTONS false
 #endif
@@ -675,8 +687,8 @@ static const unsigned input_backtouch_toggle       = false;
 
 /* Offset for where messages will be placed on-screen.
  * Values are in range [0.0, 1.0]. */
-static const float message_pos_offset_x = 0.03;
-static const float message_pos_offset_y = 0.10;
+static const float message_pos_offset_x = 0.05;
+static const float message_pos_offset_y = 0.05;
 
 /* Color of the message.
  * RGB hex value. */
@@ -697,6 +709,10 @@ static const float message_bgcolor_opacity = 1.0f;
 
 /* Watch shader files for changes and auto-apply as necessary. */
 #define DEFAULT_VIDEO_SHADER_WATCH_FILES false
+
+/* Initialise file browser with last used directory
+ * when selecting shader presets/passes via the menu */
+#define DEFAULT_VIDEO_SHADER_REMEMBER_LAST_DIR false
 
 /* Screenshots named automatically. */
 #define DEFAULT_AUTO_SCREENSHOT_FILENAME true
@@ -755,6 +771,56 @@ static const bool audio_enable_menu_bgm    = false;
 #else
 #define DEFAULT_MENU_ENABLE_WIDGETS false
 #endif
+
+/* Display an animation when loading content
+ * > Currently implemented only as a widget */
+#define DEFAULT_MENU_SHOW_LOAD_CONTENT_ANIMATION DEFAULT_MENU_ENABLE_WIDGETS
+
+/* Display a notification when successfully
+ * connecting/disconnecting an autoconfigured
+ * controller
+ * > Disabled by default on the Switch */
+#if defined(HAVE_LIBNX) && defined(HAVE_GFX_WIDGETS)
+#define DEFAULT_NOTIFICATION_SHOW_AUTOCONFIG false
+#else
+#define DEFAULT_NOTIFICATION_SHOW_AUTOCONFIG true
+#endif
+
+#if defined(HAVE_SCREENSHOTS)
+#define DEFAULT_NOTIFICATION_SHOW_SCREENSHOT_TAKEN true
+#else
+#define DEFAULT_NOTIFICATION_SHOW_SCREENSHOT_TAKEN false
+#endif
+
+/* Display a notification when cheats are being
+ * applied */
+#define DEFAULT_NOTIFICATION_SHOW_CHEATS_APPLIED true
+
+/* Display a notification when loading an
+ * input remap file */
+#define DEFAULT_NOTIFICATION_SHOW_REMAP_LOAD true
+
+/* Display a notification when loading a
+ * configuration override file */
+#define DEFAULT_NOTIFICATION_SHOW_CONFIG_OVERRIDE_LOAD true
+
+/* Display a notification when automatically restoring
+ * at launch the last used disk of multi-disk content */
+#define DEFAULT_NOTIFICATION_SHOW_SET_INITIAL_DISK true
+
+/* Display a notification when fast forwarding
+ * content */
+#define DEFAULT_NOTIFICATION_SHOW_FAST_FORWARD true
+
+/*Display a notification when taking a screenshot*/
+#define DEFAULT_NOTIFICATION_SHOW_SCREENSHOT true
+
+/*Desired duration of the screenshot notification*/
+#define DEFAULT_NOTIFICATION_SHOW_SCREENSHOT_DURATION 0
+
+/* Display a white flashing effect with the desired
+ * duration when taking a screenshot*/
+#define DEFAULT_NOTIFICATION_SHOW_SCREENSHOT_FLASH 0
 
 /* Output samplerate. */
 #ifdef GEKKO
@@ -820,6 +886,9 @@ static const bool audio_enable_menu_bgm    = false;
 
 /* FPS display will be updated at the set interval (in frames) */
 #define DEFAULT_FPS_UPDATE_INTERVAL 256
+
+/* Memory status display will be updated at the set interval (in frames) */
+#define DEFAULT_MEMORY_UPDATE_INTERVAL 256
 
 /* Enables displaying the current frame count. */
 #define DEFAULT_FRAMECOUNT_SHOW false
@@ -918,6 +987,7 @@ static const bool savestate_auto_index = false;
  * startup if savestate_auto_load is set. */
 static const bool savestate_auto_save = false;
 static const bool savestate_auto_load = false;
+
 static const bool savestate_thumbnail_enable = false;
 
 /* When creating save (srm) files, compress
@@ -1030,6 +1100,8 @@ static const int default_content_favorites_size = 200;
 
 #define DEFAULT_PLAYLIST_FUZZY_ARCHIVE_MATCH false
 
+#define DEFAULT_PLAYLIST_PORTABLE_PATHS false
+
 /* Show Menu start-up screen on boot. */
 #define DEFAULT_MENU_SHOW_START_SCREEN true
 
@@ -1135,7 +1207,7 @@ static const bool ui_companion_toggle = false;
 #define DEFAULT_CONTENT_RUNTIME_LOG true
 #endif
 
-/* Keep track of how long each content has been running
+/* Keep track of how long each content has been running 
  * for over time (ignores core) */
 #define DEFAULT_CONTENT_RUNTIME_LOG_AGGREGATE false
 
@@ -1287,5 +1359,19 @@ static char DEFAULT_NETWORK_WIKI_API_URL[] = "http://wekafei.cn";
 #define DEFAULT_AI_SERVICE_MODE 1
 
 #define DEFAULT_AI_SERVICE_URL "http://localhost:4404/"
+
+#if defined(HAVE_FFMPEG) || defined(HAVE_MPV)
+#define DEFAULT_BUILTIN_MEDIAPLAYER_ENABLE true
+#else
+#define DEFAULT_BUILTIN_MEDIAPLAYER_ENABLE false
+#endif
+
+#if defined(HAVE_IMAGEVIEWER)
+#define DEFAULT_BUILTIN_IMAGEVIEWER_ENABLE true
+#else
+#define DEFAULT_BUILTIN_IMAGEVIEWER_ENABLE false
+#endif
+
+#define DEFAULT_FILTER_BY_CURRENT_CORE false
 
 #endif

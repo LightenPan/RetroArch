@@ -53,7 +53,8 @@ void rcheevos_pause_hardcore();
 
 bool rcheevos_unload(void);
 
-bool rcheevos_toggle_hardcore_mode(void);
+void rcheevos_hardcore_enabled_changed(void);
+void rcheevos_toggle_hardcore_paused(void);
 
 void rcheevos_test(void);
 
@@ -61,16 +62,13 @@ void rcheevos_set_support_cheevos(bool state);
 
 bool rcheevos_get_support_cheevos(void);
 
-int rcheevos_get_console(void);
-
 const char* rcheevos_get_hash(void);
 
 const char *rcheevos_get_richpresence(void);
 
-extern bool rcheevos_loaded;
-extern bool rcheevos_hardcore_active;
-extern bool rcheevos_hardcore_paused;
-extern bool rcheevos_state_loaded_flag;
+uint8_t* rcheevos_patch_address(unsigned address);
+
+bool rcheevos_hardcore_active(void);
 
 RETRO_END_DECLS
 

@@ -38,110 +38,289 @@
 /* Forward declarations */
 float get_backing_scale_factor(void);
 
-int32_t cocoa_input_find_any_key(void)
+static bool apple_key_state[MAX_KEYS];
+#if TARGET_OS_IPHONE
+/* TODO/FIXME - static globals */
+static bool small_keyboard_active = false;
+
+#define HIDKEY(X) X
+#define MAX_ICADE_PROFILES 4
+#define MAX_ICADE_KEYS     0x100
+
+typedef struct icade_map
 {
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)input_driver_get_data();
+   bool up;
+   enum retro_key key;
+} icade_map_t;
 
-   if (!apple)
-      return 0;
+static icade_map_t icade_maps[MAX_ICADE_PROFILES][MAX_ICADE_KEYS];
 
-   if (apple->joypad)
-       apple->joypad->poll();
-
-#ifdef HAVE_MFI
-    if (apple->sec_joypad)
-        apple->sec_joypad->poll();
-#endif
-
-   return apple_keyboard_find_any_key();
-}
-
-static int cocoa_input_find_any_button_ret(cocoa_input_data_t *apple,
-   input_bits_t * state, unsigned port)
+static bool handle_small_keyboard(unsigned* code, bool down)
 {
-   unsigned i;
-
-   if (state)
-      for (i = 0; i < 256; i++)
-         if (BIT256_GET_PTR(state,i))
-            return i;
-   return -1;
-}
-
-int32_t cocoa_input_find_any_button(uint32_t port)
-{
-   int ret = -1;
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)input_driver_get_data();
-
-   if (!apple)
-      return -1;
-
-   if (apple->joypad)
+   static uint8_t mapping[128];
+   static bool map_initialized;
+   static const struct { uint8_t orig; uint8_t mod; } mapping_def[] =
    {
-       apple->joypad->poll();
+      { KEY_Grave,      KEY_Escape     }, { KEY_1,          KEY_F1         },
+      { KEY_2,          KEY_F2         }, { KEY_3,          KEY_F3         },
+      { KEY_4,          KEY_F4         }, { KEY_5,          KEY_F5         },
+      { KEY_6,          KEY_F6         }, { KEY_7,          KEY_F7         },
+      { KEY_8,          KEY_F8         }, { KEY_9,          KEY_F9         },
+      { KEY_0,          KEY_F10        }, { KEY_Minus,      KEY_F11        },
+      { KEY_Equals,     KEY_F12        }, { KEY_Up,         KEY_PageUp     },
+      { KEY_Down,       KEY_PageDown   }, { KEY_Left,       KEY_Home       },
+      { KEY_Right,      KEY_End        }, { KEY_Q,          KP_7           },
+      { KEY_W,          KP_8           }, { KEY_E,          KP_9           },
+      { KEY_A,          KP_4           }, { KEY_S,          KP_5           },
+      { KEY_D,          KP_6           }, { KEY_Z,          KP_1           },
+      { KEY_X,          KP_2           }, { KEY_C,          KP_3           },
+      { 0 }
+   };
+   unsigned translated_code  = 0;
 
-       if (apple->joypad->get_buttons)
-       {
-          input_bits_t state;
-          apple->joypad->get_buttons(port,&state);
-          ret = cocoa_input_find_any_button_ret(apple, &state, port);
-       }
+   if (!map_initialized)
+   {
+      int i;
+      for (i = 0; mapping_def[i].orig; i ++)
+         mapping[mapping_def[i].orig] = mapping_def[i].mod;
+      map_initialized = true;
    }
 
-   if (ret != -1)
-      return ret;
-
-#ifdef HAVE_MFI
-   if (apple->sec_joypad)
+   if (*code == KEY_RightShift)
    {
-       apple->sec_joypad->poll();
-
-       if (apple->sec_joypad->get_buttons)
-       {
-          input_bits_t state;
-          apple->sec_joypad->poll();
-          apple->sec_joypad->get_buttons(port,&state);
-          ret = cocoa_input_find_any_button_ret(apple, &state, port);
-       }
+      small_keyboard_active = down;
+      *code = 0;
+      return true;
    }
-#endif
 
-   if (ret != -1)
-      return ret;
+   if (*code < 128)
+      translated_code = mapping[*code];
 
-   return -1;
+   /* Allow old keys to be released. */
+   if (!down && apple_key_state[*code])
+      return false;
+
+   if ((!down && apple_key_state[translated_code]) ||
+         small_keyboard_active)
+   {
+      *code = translated_code;
+      return true;
+   }
+
+   return false;
 }
 
-int32_t cocoa_input_find_any_axis(uint32_t port)
+static bool handle_icade_event(unsigned *code, bool *keydown)
 {
-   int i;
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)input_driver_get_data();
+   static bool initialized = false;
+   bool ret                = false;
+   settings_t *settings    = config_get_ptr();
+   unsigned kb_type_idx    = settings->uints.input_keyboard_gamepad_mapping_type;
 
-   if (apple && apple->joypad)
-       apple->joypad->poll();
-
-#ifdef HAVE_MFI
-   if (apple && apple->sec_joypad)
-       apple->sec_joypad->poll();
-#endif
-
-   for (i = 0; i < 6; i++)
+   if (!initialized)
    {
-      int16_t value = apple->joypad ? apple->joypad->axis(port, i) : 0;
+      unsigned i;
+      unsigned j = 0;
 
-      if (abs(value) > 0x4000)
-         return (value < 0) ? -(i + 1) : i + 1;
+      for (j = 0; j < MAX_ICADE_PROFILES; j++)
+      {
+         for (i = 0; i < MAX_ICADE_KEYS; i++)
+         {
+            icade_maps[j][i].key = RETROK_UNKNOWN;
+            icade_maps[j][i].up  = false;
+         }
+      }
 
-#ifdef HAVE_MFI
-      value = apple->sec_joypad ? apple->sec_joypad->axis(port, i) : value;
-#endif
+      /* iPega PG-9017 */
+      j = 1;
 
-      if (abs(value) > 0x4000)
-         return (value < 0) ? -(i + 1) : i + 1;
+      icade_maps[j][rarch_keysym_lut[RETROK_a]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_d]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_w]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_x]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_u]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_i]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_j]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_k]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_h]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_y]].key = RETROK_s;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].key = RETROK_s;
+
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].up  = true;
+
+      /* 8-bitty */
+      j = 2;
+
+      icade_maps[j][rarch_keysym_lut[RETROK_a]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_d]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_w]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_x]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_h]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_j]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_i]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_k]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_y]].key = RETROK_RSHIFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].key = RETROK_RSHIFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_u]].key = RETROK_RETURN;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].key = RETROK_RETURN;
+      icade_maps[j][rarch_keysym_lut[RETROK_l]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_v]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_o]].key = RETROK_s;
+      icade_maps[j][rarch_keysym_lut[RETROK_g]].key = RETROK_s;
+
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_v]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_g]].up  = true;
+
+      /* SNES30 8bitDo */
+      j = 3;
+
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_w]].key = RETROK_UP;
+      icade_maps[j][rarch_keysym_lut[RETROK_x]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].key = RETROK_DOWN;
+      icade_maps[j][rarch_keysym_lut[RETROK_a]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].key = RETROK_LEFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_d]].key = RETROK_RIGHT;
+      icade_maps[j][rarch_keysym_lut[RETROK_u]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].key = RETROK_x;
+      icade_maps[j][rarch_keysym_lut[RETROK_h]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].key = RETROK_z;
+      icade_maps[j][rarch_keysym_lut[RETROK_y]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].key = RETROK_a;
+      icade_maps[j][rarch_keysym_lut[RETROK_j]].key = RETROK_s;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].key = RETROK_s;
+      icade_maps[j][rarch_keysym_lut[RETROK_k]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].key = RETROK_q;
+      icade_maps[j][rarch_keysym_lut[RETROK_i]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].key = RETROK_w;
+      icade_maps[j][rarch_keysym_lut[RETROK_l]].key = RETROK_RSHIFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_v]].key = RETROK_RSHIFT;
+      icade_maps[j][rarch_keysym_lut[RETROK_o]].key = RETROK_RETURN;
+      icade_maps[j][rarch_keysym_lut[RETROK_g]].key = RETROK_RETURN;
+
+      icade_maps[j][rarch_keysym_lut[RETROK_v]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_g]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_e]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_z]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_q]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_c]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_r]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_f]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_n]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_t]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_p]].up  = true;
+      icade_maps[j][rarch_keysym_lut[RETROK_m]].up  = true;
+
+      initialized = true;
    }
 
-   return 0;
+   if ((*code < 0x20) && (icade_maps[kb_type_idx][*code].key != RETROK_UNKNOWN))
+   {
+      *keydown     = icade_maps[kb_type_idx][*code].up ? false : true;
+      ret          = true;
+      *code        = rarch_keysym_lut[icade_maps[kb_type_idx][*code].key];
+   }
+
+   return ret;
 }
+
+void apple_input_keyboard_event(bool down,
+      unsigned code, uint32_t character, uint32_t mod, unsigned device)
+{
+   settings_t *settings         = config_get_ptr();
+   bool keyboard_gamepad_enable = settings->bools.input_keyboard_gamepad_enable;
+   bool small_keyboard_enable   = settings->bools.input_small_keyboard_enable;
+   code                         = HIDKEY(code);
+
+   if (keyboard_gamepad_enable)
+   {
+      if (handle_icade_event(&code, &down))
+         character = 0;
+      else
+         code      = 0;
+   }
+   else if (small_keyboard_enable)
+   {
+      if (handle_small_keyboard(&code, down))
+         character = 0;
+   }
+
+   if (code == 0 || code >= MAX_KEYS)
+      return;
+
+   apple_key_state[code] = down;
+
+   input_keyboard_event(down,
+         input_keymaps_translate_keysym_to_rk(code),
+         character, (enum retro_mod)mod, device);
+}
+#else
+/* Taken from https://github.com/depp/keycode,
+ * check keycode.h for license. */
+static const unsigned char MAC_NATIVE_TO_HID[128] = {
+   4, 22,  7,  9, 11, 10, 29, 27,  6, 25,255,  5, 20, 26,  8, 21,
+   28, 23, 30, 31, 32, 33, 35, 34, 46, 38, 36, 45, 37, 39, 48, 18,
+   24, 47, 12, 19, 40, 15, 13, 52, 14, 51, 49, 54, 56, 17, 16, 55,
+   43, 44, 53, 42,255, 41,231,227,225, 57,226,224,229,230,228,255,
+   108, 99,255, 85,255, 87,255, 83,255,255,255, 84, 88,255, 86,109,
+   110,103, 98, 89, 90, 91, 92, 93, 94, 95,111, 96, 97,255,255,255,
+   62, 63, 64, 60, 65, 66,255, 68,255,104,107,105,255, 67,255, 69,
+   255,106,117, 74, 75, 76, 61, 77, 59, 78, 58, 80, 79, 81, 82,255
+};
+
+#define HIDKEY(X) (X < 128) ? MAC_NATIVE_TO_HID[X] : 0
+
+void apple_input_keyboard_event(bool down,
+      unsigned code, uint32_t character, uint32_t mod, unsigned device)
+{
+   code                         = HIDKEY(code);
+   if (code == 0 || code >= MAX_KEYS)
+      return;
+
+   apple_key_state[code] = down;
+
+   input_keyboard_event(down,
+         input_keymaps_translate_keysym_to_rk(code),
+         character, (enum retro_mod)mod, device);
+}
+#endif
 
 static void *cocoa_input_init(const char *joypad_driver)
 {
@@ -151,19 +330,13 @@ static void *cocoa_input_init(const char *joypad_driver)
 
    input_keymaps_init_keyboard_lut(rarch_key_map_apple_hid);
 
-   apple->joypad = input_joypad_init_driver(joypad_driver, apple);
-
-#ifdef HAVE_MFI
-   apple->sec_joypad = input_joypad_init_driver("mfi", apple);
-#endif
-
    return apple;
 }
 
 static void cocoa_input_poll(void *data)
 {
    uint32_t i;
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)data;
+   cocoa_input_data_t *apple    = (cocoa_input_data_t*)data;
 #ifndef IOS
    float   backing_scale_factor = get_backing_scale_factor();
 #endif
@@ -195,115 +368,19 @@ static void cocoa_input_poll(void *data)
             &apple->touches[i].full_x,
             &apple->touches[i].full_y);
    }
-
-   if (apple->joypad)
-      apple->joypad->poll();
-#ifdef HAVE_MFI
-   if (apple->sec_joypad)
-       apple->sec_joypad->poll();
-#endif
 }
 
-static int16_t cocoa_mouse_state(cocoa_input_data_t *apple,
-      unsigned id)
-{
-  int16_t val;
-  switch (id)
-  {
-     case RETRO_DEVICE_ID_MOUSE_X:
-        val = apple->window_pos_x - apple->mouse_x_last;
-        apple->mouse_x_last = apple->window_pos_x;
-        return val;
-     case RETRO_DEVICE_ID_MOUSE_Y:
-        val = apple->window_pos_y - apple->mouse_y_last;
-        apple->mouse_y_last = apple->window_pos_y;
-        return val;
-     case RETRO_DEVICE_ID_MOUSE_LEFT:
-          return apple->mouse_buttons & 1;
-     case RETRO_DEVICE_ID_MOUSE_RIGHT:
-          return apple->mouse_buttons & 2;
-      case RETRO_DEVICE_ID_MOUSE_WHEELUP:
-          return apple->mouse_wu;
-      case RETRO_DEVICE_ID_MOUSE_WHEELDOWN:
-          return apple->mouse_wd;
-      case RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP:
-          return apple->mouse_wl;
-      case RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN:
-          return apple->mouse_wr;
-  }
-
-  return 0;
-}
-
-static int16_t cocoa_mouse_state_screen(cocoa_input_data_t *apple,
-                                        unsigned id)
-{
-   int16_t val;
-#ifndef IOS
-   float   backing_scale_factor = get_backing_scale_factor();
-#endif
-
-    switch (id)
-    {
-        case RETRO_DEVICE_ID_MOUSE_X:
-            val = apple->window_pos_x;
-            break;
-        case RETRO_DEVICE_ID_MOUSE_Y:
-            val = apple->window_pos_y;
-            break;
-        default:
-            return cocoa_mouse_state(apple, id);
-    }
-
-#ifndef IOS
-    val *= backing_scale_factor;
-#endif
-    return val;
-}
-
-static int16_t cocoa_pointer_state(cocoa_input_data_t *apple,
-      unsigned device, unsigned idx, unsigned id)
-{
-   const bool want_full = (device == RARCH_DEVICE_POINTER_SCREEN);
-
-   if (idx < apple->touch_count && (idx < MAX_TOUCHES))
-   {
-      int16_t x, y;
-      const cocoa_touch_data_t *touch = (const cocoa_touch_data_t *)
-         &apple->touches[idx];
-
-       if (!touch)
-           return 0;
-
-      x = touch->fixed_x;
-      y = touch->fixed_y;
-
-      if (want_full)
-      {
-         x = touch->full_x;
-         y = touch->full_y;
-      }
-
-      switch (id)
-      {
-         case RETRO_DEVICE_ID_POINTER_PRESSED:
-            return (x != -0x8000) && (y != -0x8000);
-         case RETRO_DEVICE_ID_POINTER_X:
-            return x;
-         case RETRO_DEVICE_ID_POINTER_Y:
-            return y;
-         case RETRO_DEVICE_ID_POINTER_COUNT:
-            return apple->touch_count;
-      }
-   }
-
-   return 0;
-}
-
-static int16_t cocoa_input_state(void *data,
+static int16_t cocoa_input_state(
+      void *data,
+      const input_device_driver_t *joypad,
+      const input_device_driver_t *sec_joypad,
       rarch_joypad_info_t *joypad_info,
-      const struct retro_keybind **binds, unsigned port,
-      unsigned device, unsigned idx, unsigned id)
+      const struct retro_keybind **binds,
+      bool keyboard_mapping_blocked,
+      unsigned port,
+      unsigned device,
+      unsigned idx,
+      unsigned id)
 {
    cocoa_input_data_t *apple = (cocoa_input_data_t*)data;
 
@@ -313,45 +390,28 @@ static int16_t cocoa_input_state(void *data,
          if (id == RETRO_DEVICE_ID_JOYPAD_MASK)
          {
             unsigned i;
+            /* Do a bitwise OR to combine both input
+             * states together */
             int16_t ret = 0;
-            for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+
+            if (!keyboard_mapping_blocked)
             {
-               if (binds[port][i].valid)
+               for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
                {
-                  if (button_is_pressed(
-                           apple->joypad,
-                           joypad_info, binds[port], port, i))
-                     ret |= (1 << i);
-#ifdef HAVE_MFI
-                  else if (button_is_pressed(
-                           apple->sec_joypad,
-                           joypad_info, binds[port], port, i))
-                     ret |= (1 << i);
-#endif
-                  else if (apple_key_state[rarch_keysym_lut[binds[port][i].key]])
+                  if (
+                        (binds[port][i].key < RETROK_LAST) &&
+                        apple_key_state[rarch_keysym_lut[binds[port][i].key]] & 0x80)
                      ret |= (1 << i);
                }
             }
             return ret;
          }
-         else
+
+         if (binds[port][id].valid)
          {
-            if (binds[port][id].valid)
-            {
-               if (button_is_pressed(
-                        apple->joypad,
-                        joypad_info, binds[port], port, id))
+            if (id < RARCH_BIND_LIST_END)
+               if (apple_key_state[rarch_keysym_lut[binds[port][id].key]])
                   return 1;
-#ifdef HAVE_MFI
-               else if (button_is_pressed(
-                        apple->sec_joypad,
-                        joypad_info, binds[port], port, id))
-                  return 1;
-#endif
-               else if (id < RARCH_BIND_LIST_END)
-                  if (apple_key_state[rarch_keysym_lut[binds[port][id].key]])
-                     return 1;
-            }
          }
          break;
       case RETRO_DEVICE_ANALOG:
@@ -359,12 +419,87 @@ static int16_t cocoa_input_state(void *data,
       case RETRO_DEVICE_KEYBOARD:
          return (id < RETROK_LAST) && apple_key_state[rarch_keysym_lut[(enum retro_key)id]];
       case RETRO_DEVICE_MOUSE:
-         return cocoa_mouse_state(apple, id);
       case RARCH_DEVICE_MOUSE_SCREEN:
-         return cocoa_mouse_state_screen(apple, id);
+         {
+            int16_t val = 0;
+            switch (id)
+            {
+               case RETRO_DEVICE_ID_MOUSE_X:
+                  if (device == RARCH_DEVICE_MOUSE_SCREEN)
+                  {
+#ifdef IOS
+                     return apple->window_pos_x;
+#else
+                     return apple->window_pos_x * get_backing_scale_factor();
+#endif
+                  }
+                  val = apple->window_pos_x - apple->mouse_x_last;
+                  apple->mouse_x_last = apple->window_pos_x;
+                  return val;
+               case RETRO_DEVICE_ID_MOUSE_Y:
+                  if (device == RARCH_DEVICE_MOUSE_SCREEN)
+                  {
+#ifdef IOS
+                     return apple->window_pos_y;
+#else
+                     return apple->window_pos_y * get_backing_scale_factor();
+#endif
+                  }
+                  val = apple->window_pos_y - apple->mouse_y_last;
+                  apple->mouse_y_last = apple->window_pos_y;
+                  return val;
+               case RETRO_DEVICE_ID_MOUSE_LEFT:
+                  return apple->mouse_buttons & 1;
+               case RETRO_DEVICE_ID_MOUSE_RIGHT:
+                  return apple->mouse_buttons & 2;
+               case RETRO_DEVICE_ID_MOUSE_WHEELUP:
+                  return apple->mouse_wu;
+               case RETRO_DEVICE_ID_MOUSE_WHEELDOWN:
+                  return apple->mouse_wd;
+               case RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP:
+                  return apple->mouse_wl;
+               case RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN:
+                  return apple->mouse_wr;
+            }
+         }
+         break;
       case RETRO_DEVICE_POINTER:
       case RARCH_DEVICE_POINTER_SCREEN:
-         return cocoa_pointer_state(apple, device, idx, id);
+         {
+            const bool want_full = (device == RARCH_DEVICE_POINTER_SCREEN);
+
+            if (idx < apple->touch_count && (idx < MAX_TOUCHES))
+            {
+               int16_t x, y;
+               const cocoa_touch_data_t *touch = (const cocoa_touch_data_t *)
+                  &apple->touches[idx];
+
+               if (!touch)
+                  return 0;
+
+               x = touch->fixed_x;
+               y = touch->fixed_y;
+
+               if (want_full)
+               {
+                  x = touch->full_x;
+                  y = touch->full_y;
+               }
+
+               switch (id)
+               {
+                  case RETRO_DEVICE_ID_POINTER_PRESSED:
+                     return (x != -0x8000) && (y != -0x8000);
+                  case RETRO_DEVICE_ID_POINTER_X:
+                     return x;
+                  case RETRO_DEVICE_ID_POINTER_Y:
+                     return y;
+                  case RETRO_DEVICE_ID_POINTER_COUNT:
+                     return apple->touch_count;
+               }
+            }
+         }
+         break;
    }
 
    return 0;
@@ -378,73 +513,20 @@ static void cocoa_input_free(void *data)
    if (!apple || !data)
       return;
 
-   if (apple->joypad)
-      apple->joypad->destroy();
-
-#ifdef HAVE_MFI
-   if (apple->sec_joypad)
-       apple->sec_joypad->destroy();
-#endif
-
    for (i = 0; i < MAX_KEYS; i++)
       apple_key_state[i] = 0;
 
    free(apple);
 }
 
-static bool cocoa_input_set_rumble(void *data,
-   unsigned port, enum retro_rumble_effect effect, uint16_t strength)
-{
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)data;
-
-   if (apple && apple->joypad)
-      return input_joypad_set_rumble(apple->joypad,
-            port, effect, strength);
-#ifdef HAVE_MFI
-    if (apple && apple->sec_joypad)
-        return input_joypad_set_rumble(apple->sec_joypad,
-            port, effect, strength);
-#endif
-   return false;
-}
-
 static uint64_t cocoa_input_get_capabilities(void *data)
 {
-   (void)data;
-
    return
       (1 << RETRO_DEVICE_JOYPAD)   |
       (1 << RETRO_DEVICE_MOUSE)    |
       (1 << RETRO_DEVICE_KEYBOARD) |
       (1 << RETRO_DEVICE_POINTER)  |
       (1 << RETRO_DEVICE_ANALOG);
-}
-
-static void cocoa_input_grab_mouse(void *data, bool state)
-{
-   /* Dummy for now. Might be useful in the future. */
-   (void)data;
-   (void)state;
-}
-
-static const input_device_driver_t *cocoa_input_get_sec_joypad_driver(void *data)
-{
-#ifdef HAVE_MFI
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)data;
-
-   if (apple && apple->sec_joypad)
-      return apple->sec_joypad;
-#endif
-   return NULL;
-}
-
-static const input_device_driver_t *cocoa_input_get_joypad_driver(void *data)
-{
-   cocoa_input_data_t *apple = (cocoa_input_data_t*)data;
-
-   if (apple && apple->joypad)
-      return apple->joypad;
-   return NULL;
 }
 
 input_driver_t input_cocoa = {
@@ -456,10 +538,6 @@ input_driver_t input_cocoa = {
    NULL,
    cocoa_input_get_capabilities,
    "cocoa",
-   cocoa_input_grab_mouse,
-   NULL,
-   cocoa_input_set_rumble,
-   cocoa_input_get_joypad_driver,
-   cocoa_input_get_sec_joypad_driver,
-   false
+   NULL,                         /* grab_mouse */
+   NULL
 };

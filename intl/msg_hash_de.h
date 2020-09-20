@@ -33,12 +33,12 @@ MSG_HASH(
    "Musik"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_VIDEO_TAB,
-   "Videotreiber"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_TAB,
    "Aktiviere Netplay"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_TAB,
+   "Durchsuchen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ADD_TAB,
@@ -77,7 +77,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LOAD_DISC,
-   "Lädt eine physische Medien-Disk. Du solltest zuerst den Core auswählen (Core laden), den du mit der Disk zu nutzen beabsichtigst."
+   "Lade eine physische Medien-Disk. Du solltest zuerst den Core auswählen (Core laden), den du mit der Disk zu nutzen beabsichtigst."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DUMP_DISC,
@@ -97,11 +97,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ADD_CONTENT_LIST,
-   "Inhalt durchsuchen"
+   "Inhalt importieren"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_ADD_CONTENT_LIST,
-   "Sucht nach Inhalten und fügt diese zur Datenbank hinzu."
+   "Erstelle und aktualisiere Wiedergabelisten, indem du Inhalte scannst."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SHOW_WIMP,
@@ -109,7 +109,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SHOW_WIMP,
-   "Öffnet das Desktop-Menü, wenn geschlossen."
+   "Öffnet das traditionelle Desktop-Menü."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_DISABLE_KIOSK_MODE,
@@ -117,7 +117,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_MENU_DISABLE_KIOSK_MODE,
-   "Deaktiviert den Kiosk-Modus. Ein Neustart wird benötigt, damit die Änderungen angewendet werden."
+   "Deaktiviert den Kiosk Modus. (Neustart erforderlich)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ONLINE_UPDATER,
@@ -191,6 +191,10 @@ MSG_HASH(
    "Core herunterladen..."
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_DOWNLOAD_CORE,
+   "Downloade und installiere einen Core vom Online-Updater."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SIDELOAD_CORE_LIST,
    "Core installieren oder wiederherstellen"
    )
@@ -230,7 +234,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_GOTO_FAVORITES,
-   "Inhalt, den du zu deinen Favoriten hinzugefügt hast, wird hier erscheinen."
+   "Inhalte, die du zu deinen Favoriten hinzugefügt hast, erscheinen hier."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_GOTO_MUSIC,
@@ -249,12 +253,16 @@ MSG_HASH(
    "Bilder, die bereits angezeigt wurden, werden hier erscheinen."
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_GOTO_VIDEO,
-   "Videotreiber"
-   )
-MSG_HASH(
    MENU_ENUM_SUBLABEL_GOTO_VIDEO,
    "Videos, die bereits abgespielt wurden, werden hier erscheinen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_GOTO_EXPLORE,
+   "Erkunden"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_GOTO_EXPLORE,
+   "Durchsuchen Sie alle Inhalte, die der Datenbank entsprechen, über eine kategorisierte Suchschnittstelle."
    )
 
 /* Main Menu > Online Updater */
@@ -280,6 +288,10 @@ MSG_HASH(
    "Wiedergabelisten Miniaturansichten-Updater"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_PL_THUMBNAILS_UPDATER_LIST,
+   "Lade Thumbnails für Einträge in den Playlists runter."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DOWNLOAD_CORE_CONTENT,
    "Inhalt herunterladen"
    )
@@ -293,7 +305,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_AUTOCONFIG_PROFILES,
-   "Gamepad/Controller-Profile aktualisieren"
+   "Aktualisiere Controller-Profile"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UPDATE_CHEATS,
@@ -329,6 +341,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CORE_INFORMATION,
    "Zeige Informationen über diese Anwendung/diesen Core an."
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_DISC_INFORMATION,
+   "Informationen über eingefügte Media-Discs anzeigen."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETWORK_INFORMATION,
@@ -402,6 +418,10 @@ MSG_HASH(
    "Unterstützte Erweiterungen"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CORE_INFO_REQUIRED_HW_API,
+   "Benötigte Grafik-API"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MISSING,
    "Fehlt"
    )
@@ -414,12 +434,44 @@ MSG_HASH(
    "Notwendig"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CORE_LOCK,
+   "Installierten Core verriegeln"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CORE_LOCK,
+   "Verhindert die Änderung des aktuell installierten Cores. Kann verwendet werden, um unerwünschte Updates zu vermeiden, wenn Inhalte eine bestimmte Core-Version benötigen (z.B. Arcade-ROM-Sets)."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CORE_DELETE,
    "Core löschen"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CORE_DELETE,
    "Lösche diesen Core von der Festplatte."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CORE_CREATE_BACKUP,
+   "Backup-Core"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CORE_CREATE_BACKUP,
+   "Erstelle einen archiviertes Backup des aktuell installierten Cores."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CORE_RESTORE_BACKUP_LIST,
+   "Backup wiederherstellen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CORE_RESTORE_BACKUP_LIST,
+   "Installiere eine vorherige Version des Core aus einer Liste von archivierten Backups."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CORE_DELETE_BACKUP_LIST,
+   "Backup löschen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CORE_DELETE_BACKUP_LIST,
+   "Entferne eine Datei aus der Liste der archivierten Backups."
    )
 
 /* Main Menu > Information > System Information */
@@ -502,7 +554,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SYSTEM_INFO_NETWORK_REMOTE_SUPPORT,
-   "Unterstützung für Netzwerk-Controller"
+   "Netzwerk-Controller Unterstützung"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SYSTEM_INFO_COCOA_SUPPORT,
@@ -971,6 +1023,18 @@ MSG_HASH(
    "KI-Dienst"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_AI_SERVICE_SETTINGS,
+   "Einstellungen für den KI-Service ändern (Translation/TTS/Misc)."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ACCESSIBILITY_SETTINGS,
+   "Bedienungshilfen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ACCESSIBILITY_SETTINGS,
+   "Änder die Einstellungen für die Bedienungshilfen-Erzähler."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_POWER_MANAGEMENT_SETTINGS,
    "Energieverwaltung"
    )
@@ -993,6 +1057,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_NETWORK_SETTINGS,
    "Ändere die Einstellungen für das Netzwerk."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_PLAYLIST_SETTINGS,
+   "Wiedergabelisten"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_PLAYLIST_SETTINGS,
@@ -1027,11 +1095,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_JOYPAD_DRIVER,
-   "Controller-Treiber"
+   "Kontroller"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_JOYPAD_DRIVER,
-   "Zu verwendender Joypad-Treiber."
+   "Ausgewählter Kontroller Treiber."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_DRIVER,
@@ -1066,12 +1134,16 @@ MSG_HASH(
    "Zu verwendender Kameratreiber."
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_BLUETOOTH_DRIVER,
+   "Zu verwendender Bluetooth-Treiber."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_WIFI_DRIVER,
    "WLAN-Treiber"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_WIFI_DRIVER,
-   "Zu verwendender WLAN-Treiber."
+   "Zu verwendender Wi-Fi-Treiber."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOCATION_DRIVER,
@@ -1109,12 +1181,44 @@ MSG_HASH(
    "Native Signale mit niedgriger Auflösung ausgeben, welche mit CRT Bildschirmen benutzt werden können."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_OUTPUT_SETTINGS,
+   "Ausgabe"
+   )
+MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_OUTPUT_SETTINGS,
    "Einstellungen für die Videoausgabe anpassen."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_FULLSCREEN_MODE_SETTINGS,
+   "Vollbildmodus"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_FULLSCREEN_MODE_SETTINGS,
+   "Bearbeite Vollbildmodus Einstellungen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_WINDOWED_MODE_SETTINGS,
+   "Fenstermodus"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_WINDOWED_MODE_SETTINGS,
+   "Bearbeite Vollbildmodus Einstellungen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_SCALING_SETTINGS,
+   "Skalierung"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SCALING_SETTINGS,
+   "Ändere die Einstellungen der Videoskalierung."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SYNCHRONIZATION_SETTINGS,
-   "Synchronisiere Audio"
+   "Synchronisation"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SYNCHRONIZATION_SETTINGS,
+   "Ändere die Einstellungen der Video-Synchronisation."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SUSPEND_SCREENSAVER_ENABLE,
@@ -1138,7 +1242,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_BLACK_FRAME_INSERTION,
-   "Fügt ein schwarzes Bild zwischen Einzelbildern ein. Nützlich für Benutzer von 120Hz-Monitoren, die 60Hz mit weniger 'ghosting' wünschen."
+   "Fügt einen schwarzen Rahmen zwischen den Frames ein. Nützlich auf einigen Bildschirme mit hoher Refresh-Rate, um Ghosting zu vermeiden."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_GPU_SCREENSHOT,
@@ -1157,8 +1261,20 @@ MSG_HASH(
    "Wendet einen leichten Weichzeichner auf das Bild an, um die Pixelkanten etwas abzurunden. Diese Option hat einen sehr geringen Einfluss auf die Leistung."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_DELAY,
+   "Auto-Shader Verzögerung"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SHADER_DELAY,
+   "Verzögert das Laden von Shadern (in ms). Kann grafische Fehler beheben, wenn 'Screen-Grabbing'-Software verwendet wird."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_FILTER,
    "Grafikfilter"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_FILTER,
+   "Einen CPU-gestützten Videofilter anwenden.\nHINWEIS: Könnte zu hohen Leistungskosten kommen. Einige Video-Filter funktionieren möglicherweise nur bei Kernen mit 32bit oder 16bit Farben."
    )
 
 /* Settings > Video > CRT SwitchRes */
@@ -1182,6 +1298,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CRT_SWITCH_X_AXIS_CENTERING,
    "Versuche eine dieser Optionen, wenn das Bild nicht richtig zentriert auf dem Bildschirm erscheint."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CRT_SWITCH_PORCH_ADJUST,
+   "Porch anpassen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CRT_SWITCH_PORCH_ADJUST,
+   "Wechsel durch diese Optionen, um die Vergrößerungseinstellungen anzupassen und die Bildgröße zu ändern."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CRT_SWITCH_RESOLUTION_USE_CUSTOM_REFRESH_RATE,
@@ -1211,8 +1335,24 @@ MSG_HASH(
    "Erzwinge eine bestimmte Bildrotation. Diese Rotation wird Rotationen hinzugefügt, die vom Core vorgegeben werden."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SCREEN_ORIENTATION,
+   "Bildschirmausrichtung"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SCREEN_ORIENTATION,
+   "Erzwingt eine bestimmte Ausrichtung des Bildschirms vom Betriebssystem."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_GPU_INDEX,
+   "GPU-Index"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_REFRESH_RATE,
    "Bildwiederholrate"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_REFRESH_RATE,
+   "Vertikale Aktualisierungsrate deines Bildschirms. Wird verwendet, um eine passende Audioeingangsrate zu berechnen.\nHINWEIS: Dies wird ignoriert, wenn 'Threaded Video' aktiviert ist."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_REFRESH_RATE_AUTO,
@@ -1221,6 +1361,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_REFRESH_RATE_AUTO,
    "Die geschätzte Bildwiederholrate des Bildschirms in Hz."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_REFRESH_RATE_POLLED,
+   "Angezeigte Aktualisierungsrate festlegen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_REFRESH_RATE_POLLED,
+   "Aktualisierungsrate, die vom Displaytreiber ausgeht."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_FORCE_SRGB_DISABLE,
@@ -1277,6 +1425,22 @@ MSG_HASH(
    "Legt die Fenstergröße relativ zu der Core-Bildgröße fest. Alternativ kannst Du weiter unten die Höhe und Breite des Bildes selbst anpassen."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_WINDOW_OPACITY,
+   "Fenster-Deckkraft"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_WINDOW_SHOW_DECORATIONS,
+   "Dekorationen des Fensters anzeigen"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_WINDOW_SAVE_POSITION,
+   "Fensterposition und Größe merken"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_WINDOW_SAVE_POSITION,
+   "Fenstergröße und -position merken. Aktivierung hat Vorrang über Fenster Skalierung"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_WINDOW_WIDTH,
    "Fensterbreite"
    )
@@ -1321,7 +1485,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_VIEWPORT_CUSTOM_X,
-   "Benutzerdefinierter Versatz, der für die Position der X-Achse des Bildes verwendet wird. Wird ignoriert, wenn 'Pixelgenaue Bildskalierung' aktiviert ist, das Bild wird dann zentriert."
+   "Benutzerdefinierter Viewport-Offset zur Definition der X-Achsen-Position des Viewports. Diese werden ignoriert, wenn 'Integer-Skalierung' aktiviert ist."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_VIEWPORT_CUSTOM_Y,
@@ -1329,7 +1493,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_VIEWPORT_CUSTOM_Y,
-   "Benutzerdefinierter Versatz, der für die Position der Y-Achse des Bildes verwendet wird. Wird ignoriert, wenn 'Pixelgenaue Bildskalierung' aktiviert ist, das Bild wird dann zentriert."
+   "Benutzerdefinierter Viewport-Offset zur Definition der Y-Achsen-Position des Viewports. Diese werden ignoriert, wenn 'Integer-Skalierung' aktiviert ist."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_VIEWPORT_CUSTOM_WIDTH,
@@ -1353,7 +1517,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_CROP_OVERSCAN,
-   "Schneidet ein paar Pixel an den Bildrändern ab, die üblicherweise von Entwicklern leer gelassen werden und manchmal auch fehlerhafte Pixel enthalten."
+   "Schneidet ein paar Pixel an den Bildrändern ab, die üblicherweise von Entwicklern leer gelassen werden und manchmal auch fehlerhafte Pixel enthalten"
    )
 
 /* Settings > Video > Synchronization */
@@ -1379,6 +1543,10 @@ MSG_HASH(
    "Adaptiver Vsync"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_ADAPTIVE_VSYNC,
+   "V-Sync ist aktiviert, bis die Leistung unter die Ziel-Refresh-Rate fällt. Kann Ruckeln minimieren, wenn die Leistung unter Echtzeit fällt und energieeffizienter ist."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_FRAME_DELAY,
    "Bildverzögerung"
    )
@@ -1402,16 +1570,40 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_HARD_SYNC_FRAMES,
    "Anzahl der Bilder, der die CPU der GPU voraus sein darf, wenn die CPU/GPU-Synchronisation aktiviert ist."
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VRR_RUNLOOP_ENABLE,
+   "Synchronisation zur Exact Content Framerate (G-Sync, FreeSync)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VRR_RUNLOOP_ENABLE,
+   "Keine Abweichung vom Core benötigten Timing. Nützlich für variable Refresh Rate Bildschirme (G-Sync, FreeSync, HDMI 2.1 VRR)."
+   )
 
 /* Settings > Audio */
 
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AUDIO_OUTPUT_SETTINGS,
+   "Ausgabe"
+   )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_AUDIO_OUTPUT_SETTINGS,
    "Ändere die Einstellungen der Audio-Ausgabe."
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_RESAMPLER_SETTINGS,
+   "Ändere die Einstellungen der Audio-Ausgabe."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AUDIO_SYNCHRONIZATION_SETTINGS,
    "Synchronisiere Audio"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_SYNCHRONIZATION_SETTINGS,
+   "Ändere die Einstellungen der Video-Synchronisation."
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MIDI_SETTINGS,
+   "Ändere die MIDI Einstellungen."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AUDIO_MIXER_SETTINGS,
@@ -1420,6 +1612,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_AUDIO_MIXER_SETTINGS,
    "Anzeigen und/oder anzeigen von Audiomixer-Einstellungen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SOUNDS,
+   "Menü-Töne"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AUDIO_MUTE,
@@ -1436,6 +1632,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_AUDIO_MIXER_MUTE,
    "Audio-Mixer laut-/stummschalten."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_AUDIO_FASTFORWARD_MUTE,
+   "Stummschalten bei Fast-Forwarding"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_AUDIO_FASTFORWARD_MUTE,
+   "Audio automatisch stummschalten, wenn Fast-Forward verwendet wird."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_AUDIO_VOLUME,
@@ -1566,8 +1770,24 @@ MSG_HASH(
    "Eingabe"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_MIDI_INPUT,
+   "Eingabegerät auswählen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MIDI_OUTPUT,
+   "Ausgabe"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MIDI_OUTPUT,
+   "Ausgabegerät auswählen."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MIDI_VOLUME,
    "Lautstärke"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MIDI_VOLUME,
+   "Ausgabelautstärke festplegen (%)."
    )
 
 /* Settings > Audio > Mixer Settings > Mixer Stream */
@@ -1631,6 +1851,22 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_AUDIO_ENABLE_MENU,
    "Menuton aktivieren oder deaktivieren"
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SOUND_OK,
+   "'OK'-Ton aktivieren"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SOUND_CANCEL,
+   "'Abbrechen' Ton aktivieren"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SOUND_NOTICE,
+   "'Benachrichtungen' Ton aktivieren"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SOUND_BGM,
+   "'BGM' aktivieren"
+   )
 
 /* Settings > Input */
 
@@ -1644,15 +1880,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_POLL_TYPE_BEHAVIOR,
-   "Abfrageverhalten"
+   "Polling Verhalten"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_POLL_TYPE_BEHAVIOR,
-   "Beeinflusst, wie die Eingabe in RetroArch abgefragt wird. Wird dieser Wert auf 'Früh' oder 'Spät' gesetzt, kann sich je nach Konfiguration die Latenz verringern."
+   "Beeinflusst, wie Polling in RetroArch abgefragt wird. Wird dieser Wert auf 'Früh' oder 'Spät' gesetzt, kann sich je nach Konfiguration die Latenz verringern."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_REMAP_BINDS_ENABLE,
-   "Tasten-Neubelegung aktivieren"
+   "Tasten-Neubelegung für diesen Core"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_REMAP_BINDS_ENABLE,
@@ -1664,7 +1900,23 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_AUTODETECT_ENABLE,
-   "Aktiviere automatische Erkennung von Eingabegeräten. Wird versuchen, Controller automatisch zu erkennen (Plug-and-Play)."
+   "Konfiguriert automatisch Controller, die ein Profil haben, im Plug-and-Play-Stil."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_BUTTON_AXIS_THRESHOLD,
+   "Grenzwert für Achsen-Eingabetaste"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_BUTTON_AXIS_THRESHOLD,
+   "Wie weit eine Achse angesteuert werden muss, um zu einem Tastendruck auszulösen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_ANALOG_DEADZONE,
+   "Totzonenregler"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_ANALOG_SENSITIVITY,
+   "Analogempfindlichkeit"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_BIND_TIMEOUT,
@@ -1675,12 +1927,20 @@ MSG_HASH(
    "Zeitdauer in Sekunden, nach der die nächste Tastenbelegung abgefragt wird."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_BIND_HOLD,
+   "Tasten einbinden"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_BIND_HOLD,
+   "Anzahl der Sekunden, um eine Eingabe zu halten, um sie einzubinden."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_TURBO_PERIOD,
    "Autofeuer-Frequenz"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_TURBO_PERIOD,
-   "Beschreibt, nach wie vielen Einzelbildern eine Taste mit aktiviertem Turbo-Modus erneut gedrückt wird."
+   "Die Zeit (in Frames), wenn die Eingabe mit Turbo aktiviert wird."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_DUTY_CYCLE,
@@ -1691,8 +1951,40 @@ MSG_HASH(
    "Beschreibt, wie lange eine Taste mit aktivierem Turbo-Modus 'gedrückt' wird. Dieser Wert wird in der Anzahl der Einzelbilder angegeben."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_TURBO_MODE,
+   "Turbo-Modus"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_TURBO_MODE,
+   "Wählt das allgemeine Verhalten des Turbo-Modus."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_TURBO_DEFAULT_BUTTON,
+   "Turbo-Button Standard"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_TURBO_DEFAULT_BUTTON,
+   "Standard aktive Taste für Turbo Modus 'Einzelne Taste'."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+   "Haptisches Feedback (Vibration)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_HAPTIC_FEEDBACK_SETTINGS,
+   "Ändere haptische Feedback- und Vibrationseinstellungen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_MENU_SETTINGS,
+   "Menü-Steuerung"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_MENU_SETTINGS,
+   "Menü-Steuerungseinstellungen ändern."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_HOTKEY_BINDS,
-   "Tastenkürzel belegen"
+   "Tastenkürzel aktivieren"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_HOTKEY_BINDS,
@@ -1700,7 +1992,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_USER_BINDS,
-   "Port für Benutzer %u"
+   "Port %u Kontroller"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_USER_BINDS,
@@ -1709,6 +2001,14 @@ MSG_HASH(
 
 /* Settings > Input > Haptic Feedback/Vibration */
 
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIBRATE_ON_KEYPRESS,
+   "Vibration bei Tastendruck"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ENABLE_DEVICE_VIBRATION,
+   "Aktiviert Vibration für unterstützte Cores"
+   )
 
 /* Settings > Input > Menu Controls */
 
@@ -1740,152 +2040,356 @@ MSG_HASH(
 /* Settings > Input > Hotkey Binds */
 
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_QUIT_PRESS_TWICE,
+   "Beenden bestätigen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_QUIT_PRESS_TWICE,
+   "Benötigt den Hotkey Beenden, um RetroArch zu beenden."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_MENU_ENUM_TOGGLE_GAMEPAD_COMBO,
    "Controller-Tastenkombination für Menü"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_MENU_ENUM_TOGGLE_GAMEPAD_COMBO,
-   "Controller-Tastenkombination, mit der das Menü aufgerufen wird."
+   "Kontroller-Tastenkombination, mit der das Menü aufgerufen wird."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_HOTKEY_BLOCK_DELAY,
+   "Hotkey Aktivierungsverzögerung (Frames)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_HOTKEY_BLOCK_DELAY,
+   "Fügt eine Verzögerung in Frames hinzu, bevor die normale Eingabe nach Drücken (und Halten) der zugewiesenen Taste 'Hotkey Enable' blockiert wird. Ermöglicht die normale Eingabe der 'Hotkey Enable'-Taste, wenn sie einer anderen Aktion zugeordnet ist (z.B. RetroPad 'Select')."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_FAST_FORWARD_KEY,
-   "Zeitraffer ein-/ausschalten"
+   "Zeitraffer ein-/ausschalten (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_FAST_FORWARD_KEY,
+   "Wechselt zwischen Schnellvorwärts- und Normalgeschwindigkeit."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_FAST_FORWARD_HOLD_KEY,
    "Zeitraffer (halten)"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_FAST_FORWARD_HOLD_KEY,
+   "Aktiviert die schnelle Weiterleitung beim Halten. Inhalte laufen mit normaler Geschwindigkeit, wenn Taste losgelassen wird."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_SLOWMOTION_KEY,
+   "Zeitlupe (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SLOWMOTION_KEY,
+   "Wechselt zwischen Zeitlupe und Normalgeschwindigkeit."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_SLOWMOTION_HOLD_KEY,
-   "Zeitlupe"
+   "Zeitlupe (halten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SLOWMOTION_HOLD_KEY,
+   "Aktiviert Zeitlupe beim Halten. Inhalte laufen mit normaler Geschwindigkeit, wenn Taste losgelassen wird."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_LOAD_STATE_KEY,
    "Spielstand laden"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_LOAD_STATE_KEY,
+   "Lade einen Save-State aus dem aktuellen Speicherplatz."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_SAVE_STATE_KEY,
    "Zustand (Savestate) abspeichern"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SAVE_STATE_KEY,
+   "Speichere einen Save-State in dem aktuellen Speicherplatz."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_FULLSCREEN_TOGGLE_KEY,
-   "Vollbildmodus ein-/ausschalten"
+   "Vollbildmodus (Ein-/Ausschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_FULLSCREEN_TOGGLE_KEY,
+   "Wechselt zwischen Vollbild- und Fensteranzeigemodus."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_QUIT_KEY,
    "RetroArch beenden"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_QUIT_KEY,
+   "Schließt RetroArch und stellt sicher, dass alle Speicherdaten und Konfigurationsdateien auf die Festplatte übertragen werden."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_STATE_SLOT_PLUS,
    "Zustands-Speicherplatz +"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_STATE_SLOT_PLUS,
+   "Erhöht die aktuell ausgewählte Save-State Anzahl."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_STATE_SLOT_MINUS,
    "Zustands-Speicherplatz -"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_STATE_SLOT_MINUS,
+   "Verringert die aktuell ausgewählte Save-State Anzahl."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_REWIND,
    "Zurückspulen"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_REWIND_HOTKEY,
+   "Spult den aktuellen Inhalt zurück, wenn eine Taste gedrückt wird. Rückspulen Unterstützung muss aktiviert sein."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_BSV_RECORD_TOGGLE,
-   "Videoaufzeichnung starten/beenden"
+   "Aufnahme Replay (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_BSV_RECORD_TOGGLE,
+   "Schaltet die Aufnahme von Gameplay-Eingaben im .bsv-Format ein/aus."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_PAUSE_TOGGLE,
-   "Pause/weiter"
+   "Pause (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_PAUSE_TOGGLE,
+   "Schaltet den Inhalt zwischen pausierten und nicht-pausierten States um."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_FRAMEADVANCE,
    "Einzelbildvorlauf"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_FRAMEADVANCE,
+   "Beim Pausieren wird der Inhalt um einen Frame erweitert."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_RESET,
    "Spiel zurücksetzen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_RESET,
+   "Starte den aktuellen Inhalt neu."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_SHADER_NEXT,
    "Nächster Shader"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SHADER_NEXT,
+   "Lädt und wendet die nächste Shader-Preset-Datei im Stammverzeichnis des 'Video Shader'-Verzeichnisses an."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_SHADER_PREV,
    "Vorheriger Shader"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SHADER_PREV,
+   "Lädt und wendet die vorherige Shader-Preset-Datei im Stammverzeichnis des 'Video Shader'-Verzeichnisses an."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_CHEAT_INDEX_PLUS,
-   "Cheat-Index +"
+   "Nächster Cheat-Index"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_CHEAT_INDEX_PLUS,
+   "Erhöht den aktuellen ausgewählten Cheat-Index."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_CHEAT_INDEX_MINUS,
-   "Cheat-Index -"
+   "Vorheriger Cheat-Index"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_CHEAT_INDEX_MINUS,
+   "Verringert den aktuell ausgewählten Cheat-Index."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_CHEAT_TOGGLE,
-   "Cheat ein-/ausschalten"
+   "Cheats (Ein-/Ausschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_CHEAT_TOGGLE,
+   "Schaltet Cheats ein/aus."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_SCREENSHOT,
    "Erstelle Bildschirmfoto"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SCREENSHOT,
+   "Fertigt ein Foto des Bildschirms an."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_MUTE,
-   "Audio stumm-/lautschalten"
+   "Audio (Stumm-/Lautschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_MUTE,
+   "Schaltet die Audioausgabe ein/aus."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_OSK,
-   "Bildschirmtastatur ein-/ausschalten"
+   "Bildschirmtastatur (Ein-/Ausschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_OSK,
+   "Schaltet Bildschirmtastatur ein / aus"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_FPS_TOGGLE,
+   "FPS anzeigen (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_FPS_TOGGLE,
+   "Schaltet 'Bilder pro Sekunde' Statusanzeige ein/aus."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_SEND_DEBUG_INFO,
+   "Sende Debug Infomationen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_SEND_DEBUG_INFO,
+   "Sendet diagnostische Informationen über Ihr Gerät und die RetroArch-Konfiguration an unsere Server zur Analyse."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_NETPLAY_HOST_TOGGLE,
+   "Netplay Hosting (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_NETPLAY_HOST_TOGGLE,
+   "Schaltet Netplay-Hosting ein/aus."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_NETPLAY_GAME_WATCH,
-   "Zwischen Spieler- und Beobachter-Modus wechseln"
+   "Netplay Play/Zuschauermodus (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_NETPLAY_GAME_WATCH,
+   "Schaltet die aktuelle Netzspielsitzung zwischen 'Wiedergabe' und 'Zuschauer' um."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_ENABLE_HOTKEY,
    "Hotkeys aktivieren"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_ENABLE_HOTKEY,
+   "Bei der Zuweisung muss die Taste 'Hotkey einschalten' gedrückt (und gehalten) werden, bevor andere Hotkeys erkannt werden. Ermöglicht die Zuordnung von Controller-Schaltflächen zu Hotkey-Funktionen ohne die normale Eingabe zu beeinflussen."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_VOLUME_UP,
-   "Lautstärke +"
+   "Lautstärke erhöhen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_VOLUME_UP,
+   "Erhöht Audio-Lautstärkepegel."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_VOLUME_DOWN,
-   "Lautstärke -"
+   "Lautstärke reduzieren"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_VOLUME_DOWN,
+   "Verringert die Lautstärke der Ausgabe."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_OVERLAY_NEXT,
-   "Nächstes Overlay"
+   "Nächster Overlay"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_OVERLAY_NEXT,
+   "Wechselt zum nächsten verfügbaren Layout des aktuell aktiven Overlay."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_DISK_EJECT_TOGGLE,
    "Datenträger einlegen/auswerfen"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_DISK_EJECT_TOGGLE,
+   "Wenn die virtuelle Disc Tray geschlossen ist, öffnet sie und entfernt die geladene Disc. Andernfalls fügt die aktuell ausgewählte Disc ein und schließt das Tray."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_DISK_NEXT,
-   "Nächster Datenträger"
+   "Nächste Disc"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_DISK_NEXT,
+   "Erhöht den aktuell ausgewählten Disc Index. Hinweis: Virtuelle Disc Tray muss geöffnet sein."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_DISK_PREV,
-   "Vorheriger Datenträger"
+   "Vorherige Disc"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_DISK_PREV,
+   "Verringert den aktuell ausgewählten Disc Index. Hinweis: Virtuelle Disc Tray muss geöffnet sein."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_GRAB_MOUSE_TOGGLE,
-   "Mauszeiger einfangen/loslassen"
+   "Mauszeiger nehmen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_GRAB_MOUSE_TOGGLE,
+   "Greift oder löst die Maus, wenn der Mauszeiger ausgeblendet wird, wird der System-Cursor versteckt und beschränkt auf das RetroArch-Anzeigefenster, wodurch die relative Maustaste verbessert wird."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_GAME_FOCUS_TOGGLE,
-   "Spielfokus ein-/ausschalten"
+   "Spielfokus (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_GAME_FOCUS_TOGGLE,
+   "Aktiviert oder deaktiviert den \"Spielfokus\"-Modus. Wenn der Inhalt fokussiert ist, sind Hotkeys deaktiviert (volle Tastatureingabe wird an den laufenden Kern übergeben) und die Maus wird angegriffen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_UI_COMPANION_TOGGLE,
+   "Desktop-Menü (umschalten)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_UI_COMPANION_TOGGLE,
+   "Öffnet den Begleiter WIMP (Windows, Icons, Menüs, Pointer) Desktop-Benutzeroberfläche."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_MENU_TOGGLE,
    "Menü aufrufen"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_MENU_TOGGLE,
+   "Wechselt die aktuelle Anzeige zwischen dem Menü und dem laufenden Content."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_RECORDING_TOGGLE,
-   "Aufnahme starten/stoppen"
+   "Aufnahme (starten/stoppen)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_RECORDING_TOGGLE,
+   "Start/stoppt die Aufzeichnung der aktuellen Sitzung in einer lokalen Videodatei."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_STREAMING_TOGGLE,
-   "Streamen starten/stoppen"
+   "Streaming (starten/stoppen)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_STREAMING_TOGGLE,
+   "Startet/stoppt die Aufzeichnung der aktuellen Sitzung in einer lokalen Videodatei."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_AI_SERVICE,
+   "KI-Service"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_AI_SERVICE,
+   "Erfasst ein Bild des aktuellen Inhalts und übersetzt und/oder liest einen Text auf dem Bildschirm voraus. Hinweis: 'KI Service' muss aktiviert und konfiguriert sein."
    )
 
 /* Settings > Input > Port # Binds */
@@ -1904,15 +2408,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_BIND_ALL,
-   "Alle zuordnen"
+   "Alle Steuerelemente festlegen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_BIND_DEFAULT_ALL,
-   "Standard-Belegung wiederherstellen"
+   "Standardeinstellungen der Steuerung zurücksetzen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_SAVE_AUTOCONFIG,
-   "Speichere Autokonfiguration"
+   "Controller-Profil speichern"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_MOUSE_INDEX,
@@ -1936,19 +2440,19 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_JOYPAD_UP,
-   "Steuerkreuz nach oben"
+   "Steuerkreuz hoch"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_JOYPAD_DOWN,
-   "Steuerkreuz nach unten"
+   "Steuerkreuz runter"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_JOYPAD_LEFT,
-   "Steuerkreuz nach links"
+   "Steuerkreuz links"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_JOYPAD_RIGHT,
-   "Steuerkreuz nach rechts"
+   "Steuerkreuz rechts"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_JOYPAD_A,
@@ -2015,6 +2519,30 @@ MSG_HASH(
    "Rechter Analogstick Y- (nach oben)"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_TRIGGER,
+   "Gun auslösen"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_RELOAD,
+   "Gun nachladen"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_UP,
+   "Gun D-Pad hoch"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_DOWN,
+   "Gun D-Pad runter"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_LEFT,
+   "Gun D-Pad links"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_LIGHTGUN_DPAD_RIGHT,
+   "Gun D-Pad rechts"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_TURBO_ENABLE,
    "Autofeuer aktivieren"
    )
@@ -2037,10 +2565,6 @@ MSG_HASH(
    "Leeren Core laden, wenn Core beendet wird"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_DUMMY_ON_CORE_SHUTDOWN,
-   "Einige Cores haben eine eigene Abschalt-Funktion. Wenn aktiviert, wird der Core daran gehindert, RetroArch zu beenden. Stattdessen wird ein Dummy-Core geladen."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CORE_SET_SUPPORTS_NO_CONTENT_ENABLE,
    "Cores automatisch starten"
    )
@@ -2052,25 +2576,15 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_CHECK_FOR_MISSING_FIRMWARE,
    "Überprüft, ob eventuell benötigte Firmware vorhanden ist, bevor versucht wird, Inhalte zu laden."
    )
+#ifndef HAVE_DYNAMIC
+#endif
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_ALLOW_ROTATE,
    "Erlaube Bildrotation"
    )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_VIDEO_ALLOW_ROTATE,
-   "Erlaubt Cores, die Bildrotation zu setzen. Wenn deaktiviert, werden Anfragen nach der Bildrotation deaktiviert. Nützlich für Bildschirme, die manuell gedreht werden sollen."
-   )
 
 /* Settings > Configuration */
 
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_CONFIG_SAVE_ON_EXIT,
-   "Einstellungen beim Beenden speichern"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_CONFIG_SAVE_ON_EXIT,
-   "Speichere Änderungen an der Konfigurationsdatei beim Beenden."
-   )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_GAME_SPECIFIC_OPTIONS,
    "Lädt inhaltsspezifische Core-Einstellungen automatisch"
@@ -2103,18 +2617,6 @@ MSG_HASH(
 /* Settings > Saving */
 
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SORT_SAVEFILES_ENABLE,
-   "Sortiere Speicherdaten in Ordnern"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SORT_SAVEFILES_ENABLE,
-   "Speichere Speicherdaten in Ordnern ab, die nach dem verwendeten Core benannt sind."
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SORT_SAVESTATES_ENABLE,
-   "Sortiere Zustandsdaten in Ordnern"
-   )
-MSG_HASH(
    MENU_ENUM_SUBLABEL_SORT_SAVESTATES_ENABLE,
    "Speichere Spielstände in Ordnern ab, die nach dem verwendeten Core benannt sind."
    )
@@ -2131,28 +2633,8 @@ MSG_HASH(
    "Intervall für automatisches Speichern des SaveRAM"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_AUTOSAVE_INTERVAL,
-   "Speichere den Inhalt des nicht-flüchtigen Save-RAM in regelmäßigen Abständen. Diese Einstellung ist standardmäßig deaktiviert. Das Speicherintervall wird in Sekunden angegeben. Ein Wert von 0 deaktiviert das automatische Speichern."
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SAVESTATE_AUTO_INDEX,
-   "Automatische Indexierung von Spielständen"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SAVESTATE_AUTO_INDEX,
-   "Wenn ein Zustand (Savestate) gespeichert wird, wird der Zustands-Index automatisch erhöht, bevor der Spielstand gespeichert wird. Wenn Inhalt geladen wird, wird automatisch der höchste existierende Spielstand-Index gewählt."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SAVESTATE_AUTO_SAVE,
    "Zustand automatisch speichern"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SAVESTATE_AUTO_SAVE,
-   "Speichere den aktuellen Zustand automatisch, wenn RetroArch beendet wird. RetroArch wird diesen Spielstand automatisch laden, wenn 'Spielstand automatisch laden' aktiviert ist."
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SAVESTATE_AUTO_LOAD,
-   "Zustand automatisch laden"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SAVESTATE_AUTO_LOAD,
@@ -2163,8 +2645,20 @@ MSG_HASH(
    "Zustands-Miniaturansichten"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_SAVESTATE_THUMBNAIL_ENABLE,
-   "Zeige Miniaturansichten von Spielständen im Menü an."
+   MENU_ENUM_LABEL_VALUE_SAVE_FILE_COMPRESSION,
+   "SaveRAM Kompression"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SAVE_FILE_COMPRESSION,
+   "Schreiben Sie nicht-volatile SaveRAM Dateien in einem archivierten Format. Reduziert die Dateigröße auf Kosten von erhöhten Speicherzeiten/Ladezeiten. Hinweis: Nur für Cores, die das Speichern über die Standard-libretro SaveRAM Schnittstelle aktivieren."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SAVESTATE_FILE_COMPRESSION,
+   "SaveRAM Kompression"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SAVESTATE_FILE_COMPRESSION,
+   "Schreiben Sie States Dateien in einem archivierten Format und reduzieren Sie die Dateigröße drastisch auf Kosten erhöhter Speicher- und Ladezeiten."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SAVEFILES_IN_CONTENT_DIR_ENABLE,
@@ -2182,6 +2676,22 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SCREENSHOTS_IN_CONTENT_DIR_ENABLE,
    "Bildschirmfotos im Verzeichnis des Inhalts speichern"
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CONTENT_RUNTIME_LOG,
+   "Laufzeitprotokoll speichern (je Core)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CONTENT_RUNTIME_LOG,
+   "Hält den Überblick darüber, wie lange die einzelnen Inhalte gedauert hat, wobei die Datensätze durch den Core getrennt sind."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CONTENT_RUNTIME_LOG_AGGREGATE,
+   "Laufzeitprotokoll speichern (Aggregate)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CONTENT_RUNTIME_LOG_AGGREGATE,
+   "Hält den Überblick darüber, wie lange jedes Inhaltselement gedauert hat, als Gesamtsumme über alle Cores aufgezeichnet wurde."
+   )
 
 /* Settings > Logging */
 
@@ -2194,6 +2704,14 @@ MSG_HASH(
    "Aktiviere Logging im Terminal."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_FRONTEND_LOG_LEVEL,
+   "Frontend-Logging Level"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_FRONTEND_LOG_LEVEL,
+   "Setzt den Log-Level für Cores. Wenn der Log-Level, der von einem Core zurückgemeldet wird, unter diesem Wert liegt, wird er ignoriert."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LIBRETRO_LOG_LEVEL,
    "Core-Loglevel"
    )
@@ -2202,8 +2720,28 @@ MSG_HASH(
    "Setzt den Log-Level für Cores. Wenn der Log-Level, der von einem Core zurückgemeldet wird, unter diesem Wert liegt, wird er ignoriert."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_LOG_TO_FILE,
+   "In Datei protokollieren"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_LOG_TO_FILE,
+   "Leitet die Logmeldungen des Systems in die Datei um. Erfordert die Aktivierung der 'Protokollierung Verbots' des Systems."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_LOG_TO_FILE_TIMESTAMP,
+   "Zeitstempel Protokolldateien"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_LOG_TO_FILE_TIMESTAMP,
+   "Beim Loggen in die Datei wird die Ausgabe von jeder RetroArch Session in eine neue Zeitstempel umgeleitet. Wenn deaktiviert, wird das Log bei jedem Neustart von RetroArch überschrieben."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_PERFCNT_ENABLE,
    "Leistungsindikatoren"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_PERFCNT_ENABLE,
+   "Leistungszähler für RetroArch und Cores. Daten können zur Ermittlung von Systemengpässen und Feinabstimmung beitragen."
    )
 
 /* Settings > File Browser */
@@ -2244,8 +2782,16 @@ MSG_HASH(
    "Verwalte die Einstellungen für die Rückspul-Funktion."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_FRAME_TIME_COUNTER_SETTINGS,
+   "Frame-Zeitzähler"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_SETTINGS,
+   "Einstellungen, die den Zeitzähler des Frames beeinflussen (nur aktiv, wenn Threadd-Video deaktiviert ist)."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_FASTFORWARD_RATIO,
-   "Maximale Ausführgeschwindigkeit"
+   "Zeitraffer Rate"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_FASTFORWARD_RATIO,
@@ -2253,11 +2799,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SLOWMOTION_RATIO,
-   "Zeitlupen-Verhältnis"
+   "Zeitlupen Rate"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SLOWMOTION_RATIO,
-   "Im Zeitlupen-Modus wird der Inhalt um diesen Faktor verlangsamt."
+   "Der Rate, in der langsamere Bewegung abgespielt wird."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_ENUM_THROTTLE_FRAMERATE,
@@ -2275,16 +2821,60 @@ MSG_HASH(
    "Zurückspulen (Rewind) aktivieren"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_REWIND_ENABLE,
+   "Kehre zu einem vorherigen Punkt des letzten Spiels zurück. Dies verursacht einen schweren Performance-Einbruch beim Spielen."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_REWIND_GRANULARITY,
-   "Genauigkeit des Zurückspulens (Rewind)"
+   "Frames zurückspulen"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_REWIND_GRANULARITY,
-   "Wenn eine bestimmte Anzahl von Einzelbildern zurückgespult wird, kannst Du mehrere Einzelbilder auf einmal zurückspulen und damit die Zurückspul-Geschwindigkeit erhöhen."
+   "Die Anzahl der Frames, die pro Schritt zurückgezogen werden sollen, höhere Werte erhöhen die Geschwindigkeit des Zurückspulens."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_REWIND_BUFFER_SIZE,
+   "Wiederherstellen der Buffer Größe (MB)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_REWIND_BUFFER_SIZE,
+   "Die Menge des Arbeitsspeichers (in MB) für den Rewind-Puffer zu reservieren. Dies zu erhöhen erhöht die Anzahl der Rewind-Historie."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_REWIND_BUFFER_SIZE_STEP,
+   "Wiederherstellen der Buffer Größe (MB)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_REWIND_BUFFER_SIZE_STEP,
+   "Jedes Mal, wenn Sie die Rewind Puffergröße über dieses UI erhöhen oder verringern, ändert sich diese um diesen Betrag"
    )
 
 /* Settings > Frame Throttle > Frame Time Counter */
 
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_FRAME_TIME_COUNTER_RESET_AFTER_FASTFORWARDING,
+   "Zurücksetzen nach Fast-Forward"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_RESET_AFTER_FASTFORWARDING,
+   "Den Frame Zeitzähler nach dem schnellen Weiterleiten zurücksetzen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_FRAME_TIME_COUNTER_RESET_AFTER_LOAD_STATE,
+   "Nach Lade State zurücksetzen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_RESET_AFTER_LOAD_STATE,
+   "Den Frame Zeitzähler nach dem schnellen Weiterleiten zurücksetzen."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_FRAME_TIME_COUNTER_RESET_AFTER_SAVE_STATE,
+   "Nach Speicher State zurücksetzen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_FRAME_TIME_COUNTER_RESET_AFTER_SAVE_STATE,
+   "Den Frame Zeitzähler nach dem State speichern, zurücksetzen."
+   )
 
 /* Settings > Recording */
 
@@ -2294,7 +2884,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_RECORD_CONFIG,
-   "Lade Aufnahme-Konfiguration..."
+   "Bearbeite Aufnahme-Konfiguration"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_RECORD_THREADS,
+   "Threads aufzeichnen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_POST_FILTER_RECORD,
@@ -2318,7 +2912,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_STREAM_QUALITY,
-   "Streamingqualität"
+   "Streamqualität"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_STREAM_CONFIG,
+   "Bearbeite Streaming-Konfiguration"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_STREAMING_TITLE,
@@ -2332,8 +2930,32 @@ MSG_HASH(
    "Bildschirm-Overlay"
    )
 MSG_HASH(
+   MENU_ENUM_SUBLABEL_ONSCREEN_OVERLAY_SETTINGS,
+   "Bezels und Steuerung auf dem Bildschirm anpassen"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ONSCREEN_VIDEO_LAYOUT_SETTINGS,
+   "Video-Layout"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ONSCREEN_VIDEO_LAYOUT_SETTINGS,
+   "Video-Layout anpassen"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ONSCREEN_NOTIFICATIONS_SETTINGS,
    "Bildschirm-Benachrichtigungen"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ONSCREEN_NOTIFICATIONS_SETTINGS,
+   "Benachrichtigungen auf dem Bildschirm anpassen"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS,
+   "Benachrichtigungssichtbarkeit"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS,
+   "Die Sichtbarkeit bestimmter Benachrichtigungstypen umschalten."
    )
 
 /* Settings > On-Screen Display > On-Screen Overlay */
@@ -2403,6 +3025,8 @@ MSG_HASH(
    "Skalierung aller Bedienelemente des Overlays."
    )
 
+
+
 /* Settings > On-Screen Display > Video Layout */
 
 
@@ -2421,10 +3045,6 @@ MSG_HASH(
    "Bildwiederholrate anzeigen"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_FPS_SHOW,
-   "Zeigt die aktuelle Bildwiederholrate auf dem Bildschirm an."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_FRAMECOUNT_SHOW,
    "Zeige die aktuelle Anzahl an Einzelbildern an"
    )
@@ -2437,12 +3057,20 @@ MSG_HASH(
    "Technische Onscreen-Statistiken anzeigen."
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_VIDEO_FONT_PATH,
-   "Schriftart für Bildschirm-Benachrichtigungen"
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_VERY_FAST,
+   "Sehr schnell"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_VIDEO_FONT_PATH,
-   "Wähle eine andere Schriftart für Bildschirm-Benachrichtigungen."
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_INSTANT,
+   "Sofort"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_FLASH,
+   "Screenshot Blitzeffekt"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_FONT_PATH,
+   "Schriftart für Bildschirm-Benachrichtigungen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_FONT_SIZE,
@@ -2504,14 +3132,6 @@ MSG_HASH(
 /* Settings > User Interface */
 
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_MENU_VIEWS_SETTINGS,
-   "Menü bearbeiten"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_MENU_VIEWS_SETTINGS,
-   "Zeige/verberge Elemente auf dem Menübildschirm"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_SETTINGS,
    "Menü"
    )
@@ -2522,10 +3142,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SHOW_ADVANCED_SETTINGS,
    "Zeige erweiterte Einstellungen"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SHOW_ADVANCED_SETTINGS,
-   "Zeige erweiterte Einstellungen für erfahrene Benutzer (standardmäßig ausgeblendet)."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_ENABLE_KIOSK_MODE,
@@ -2552,10 +3168,6 @@ MSG_HASH(
    "Springe zum Anfang und/oder Ende, wenn die Grenzen einer Liste horizontal oder vertikal erreicht werden."
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_PAUSE_LIBRETRO,
-   "Pausiere, wenn das Menü aktiv ist"
-   )
-MSG_HASH(
    MENU_ENUM_SUBLABEL_PAUSE_LIBRETRO,
    "Wenn deaktiviert, wird der Inhalt im Hintergrund weiterlaufen, wenn das RetroArch-Menü aufgerufen wird."
    )
@@ -2564,16 +3176,8 @@ MSG_HASH(
    "Maus-Unterstützung"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_MOUSE_ENABLE,
-   "Aktiviere Maussteuerung im Menü."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_POINTER_ENABLE,
    "Touch-Unterstützung"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_POINTER_ENABLE,
-   "Aktiviere Touch-Steuerung im Menü."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_THREADED_DATA_RUNLOOP_ENABLE,
@@ -2582,10 +3186,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_THREADED_DATA_RUNLOOP_ENABLE,
    "Führe Aufgaben im Hintergrund aus."
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_PAUSE_NONACTIVE,
-   "Nicht im Hintergrund ausführen"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_PAUSE_NONACTIVE,
@@ -2604,10 +3204,6 @@ MSG_HASH(
    "UI-Companion aktivieren"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_UI_COMPANION_START_ON_BOOT,
-   "UI-Companion beim Hochfahren starten"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UI_MENUBAR_ENABLE,
    "Menüleiste"
    )
@@ -2617,10 +3213,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_QUICK_MENU_VIEWS_SETTINGS,
    "Spielmenü"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_QUICK_MENU_VIEWS_SETTINGS,
-   "Zeige oder verstecke Elemente aus dem Spielmenü."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_SHOW_LOAD_CORE,
@@ -2685,10 +3277,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CONTENT_SHOW_SETTINGS,
    "Zeige den Reiter 'Einstellungen' im Hauptmenü an"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_SETTINGS_PASSWORD,
-   "Passwort zum Aktivieren des Reiters 'Einstellungen' festlegen"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CONTENT_SHOW_SETTINGS_PASSWORD,
@@ -2908,20 +3496,8 @@ MSG_HASH(
    "Menü-Skalierungsfaktor"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_MENU_WALLPAPER,
-   "Menü-Hintergrundbild"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_MENU_WALLPAPER,
-   "Wähle ein Bild aus, das als Menü-Hintergrundbild verwendet werden soll."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_WALLPAPER_OPACITY,
    "Hintergrundbild-Transparenz"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_MENU_WALLPAPER_OPACITY,
-   "Ändere die Transparenz des Hintergrundbildes."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_FRAMEBUFFER_OPACITY,
@@ -3014,56 +3590,28 @@ MSG_HASH(
    "Server-Passwort"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_PASSWORD,
-   "Das Passwort, das für die Verbindung zum Netplay-Host verwendet werden soll. Wird nur im Host-Modus verwendet."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_SPECTATE_PASSWORD,
    "Server-Passwort für Beobachtermodus"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_SPECTATE_PASSWORD,
-   "Das Passwort, das für die Verbindung zum Netplay-Host mit Beobachter-Privilegien verwendet wird. Wird nur im Host-Modus verwendet."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_START_AS_SPECTATOR,
    "Im Beobachtermodus starten"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_START_AS_SPECTATOR,
-   "Lege fest, ob Netplay im Beobachtermodus starten soll."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_ALLOW_SLAVES,
    "Erlaube Slave-Modus für Clients"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_ALLOW_SLAVES,
-   "Lege fest, ob Verbindungen im Slave-Modus erlaubt werden. Clients im Slave-Modus benötigen zwar sehr wenig Rechenleistung, werden jedoch durch Netzwerk-Latenz erheblich beeinträchtigt."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_REQUIRE_SLAVES,
    "Verbiete Clients, die nicht im Slave-Modus laufen"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_REQUIRE_SLAVES,
-   "Lege fest, ob Verbindungen verboten werden, die nicht den Slave-Modus nutzen. Nicht empfohlen, außer für sehr schnelle Netzwerke mit sehr schwachen Geräten."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_STATELESS_MODE,
    "Netplay ohne Savestates"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_STATELESS_MODE,
-   "Lege fest, ob Netplay in einem Modus ohne Savestates läuft. Wenn aktiviert, ist ein sehr schnelles Netwerk nötig. Da kein Rücklauf erfolgt, läuft das Spiel flüssiger."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_CHECK_FRAMES,
    "Netplay-Synchronisation prüfen"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_CHECK_FRAMES,
-   "Die Häufigkeit in Einzelbildern, mit der Netplay überprüfen wird wird, ob der Host und der Client miteinander synchronisiert sind."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETPLAY_INPUT_LATENCY_FRAMES_MIN,
@@ -3096,18 +3644,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NETWORK_CMD_PORT,
    "Port für Netzwerk-Befehle"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_REMOTE_ENABLE,
-   "Netzwerk-Controller aktivieren"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_REMOTE_PORT,
-   "Netzwerk-Remote-Port"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETWORK_USER_REMOTE_ENABLE,
-   "Aktiviere Fernsteuerung für Benutzer %d"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_STDIN_CMD_ENABLE,
@@ -3151,10 +3687,6 @@ MSG_HASH(
 
 /* Settings > Playlists */
 
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_HISTORY_LIST_ENABLE,
-   "Verlaufliste aktivieren"
-   )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_HISTORY_LIST_ENABLE,
    "Aktiviere Playlist für kürzlich geöffnete Inhalte."
@@ -3225,10 +3757,6 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_USER_LANGUAGE,
    "Sprache"
    )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_USER_LANGUAGE,
-   "Legt die Sprache der Benutzeroberfläche fest."
-   )
 
 /* Settings > User > Privacy */
 
@@ -3259,20 +3787,12 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ACCOUNTS_RETRO_ACHIEVEMENTS,
    "Retro-Errungenschaften"
    )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_ACCOUNTS_RETRO_ACHIEVEMENTS,
-   "Retro Achievements (Errungenschaften-Dienst). Besuche http://retroachievements.org für weitere Informationen."
-   )
 
 /* Settings > User > Accounts > RetroAchievements */
 
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ACCOUNTS_CHEEVOS_USERNAME,
    "Benutzername"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_CHEEVOS_USERNAME,
-   "Gib den Benutzernamen deines Errungenschaften-Kontos ein."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ACCOUNTS_CHEEVOS_PASSWORD,
@@ -3300,10 +3820,6 @@ MSG_HASH(
    "Speichere alle heruntergeladenen Dateien in diesem Verzeichnis."
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_ASSETS_DIRECTORY,
-   "Dieser Ort wird standardmäßig durchsucht, wenn das Menü nach ladbaren Inhalten wie Assets sucht."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DYNAMIC_WALLPAPERS_DIRECTORY,
    "Dynamische Hintergrundbilder"
    )
@@ -3322,10 +3838,6 @@ MSG_HASH(
 MSG_HASH( /* FIXME Not RGUI specific */
    MENU_ENUM_LABEL_VALUE_RGUI_BROWSER_DIRECTORY,
    "Dateibrowser"
-   )
-MSG_HASH( /* FIXME Not RGUI specific */
-   MENU_ENUM_SUBLABEL_RGUI_BROWSER_DIRECTORY,
-   "Lege das Startverzeichnis für den Dateibrowser fest."
    )
 MSG_HASH( /* FIXME Not RGUI specific */
    MENU_ENUM_LABEL_VALUE_RGUI_CONFIG_DIRECTORY,
@@ -3412,16 +3924,8 @@ MSG_HASH(
    "Aufnahme-Konfigurationen"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_RECORDING_CONFIG_DIRECTORY,
-   "Aufnahme-Konfigurationen werden in diesem Verzeichnis abgelegt."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_OVERLAY_DIRECTORY,
    "Overlays"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_OVERLAY_DIRECTORY,
-   "Verzeichnis, in dem alle Overlays abgelegt werden."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SCREENSHOT_DIRECTORY,
@@ -3436,16 +3940,8 @@ MSG_HASH(
    "Automatische Konfiguration von Controllern"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_JOYPAD_AUTOCONFIG_DIR,
-   "Wenn ein Controller eingesteckt wird, wird er automatisch konfiguriert, sofern eine passende Konfigurationsdatei in diesem Verzeichnis vorhanden ist."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_REMAPPING_DIRECTORY,
    "Tastenbelegungen"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_INPUT_REMAPPING_DIRECTORY,
-   "Speichere alle wiederzugewiesenen Tastenbelegungen in diesem Verzeichnis."
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_PLAYLIST_DIRECTORY,
@@ -3511,14 +4007,6 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_NETPLAY_DISCONNECT,
    "Beendet eine aktive Netplay-Verbindung."
    )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_NETPLAY_REFRESH_ROOMS,
-   "Aktualisieren"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_NETPLAY_REFRESH_ROOMS,
-   "Suche nach neuen Räumen."
-   )
 
 /* Netplay > Host */
 
@@ -3563,10 +4051,8 @@ MSG_HASH(
 
 /* Import content > Manual Scan */
 
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_MANUAL_CONTENT_SCAN_CORE_NAME,
-   "Cores"
-   )
+
+/* Explore tab */
 
 /* Playlist > Playlist Item */
 
@@ -3609,10 +4095,6 @@ MSG_HASH(
 
 /* Playlist Item > Set Core Association */
 
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_DETECT_CORE_LIST_OK_CURRENT_CORE,
-   "Aktueller Core"
-   )
 
 /* Playlist Item > Information */
 
@@ -3918,10 +4400,6 @@ MSG_HASH(
    "Shader-Durchläufe"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_VIDEO_SHADER_NUM_PASSES,
-   "Erhöhe oder verringere die Anzahl der Shader-Durchläufe. Du kannst für jeden Shader-Durchlauf einen eigenen Shader festlegen und dessen Skalierung und Filterung ändern."
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SCALE,
    "Skalierung"
    )
@@ -3939,10 +4417,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_CORE,
    "Core-Voreinstellung speichern"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_VIDEO_SHADER_PRESET_SAVE_CORE,
-   "Speichere die aktuellen Shader-Einstellungen als Standard-Einstellung für diesen Core."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_GAME,
@@ -4082,10 +4556,6 @@ MSG_HASH(
    "Entlädt"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SYSTEM_INFO_POWER_SOURCE_NO_SOURCE,
-   "Keine Stromquelle"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_USE_THIS_DIRECTORY,
    "<Dieses Verzeichnis verwenden>"
    )
@@ -4100,10 +4570,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_DIRECTORY_NONE,
    "<Keins>"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_RETROPAD_WITH_ANALOG,
-   "RetroPad mit Analogsticks"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_THUMBNAIL_MODE_SCREENSHOTS,
@@ -4282,20 +4748,12 @@ MSG_HASH( /* FIXME Unused? */
    MENU_ENUM_LABEL_VALUE_XMB_MAIN_MENU_ENABLE_SETTINGS,
    "Aktiviere den Reiter 'Einstellungen'"
    )
-MSG_HASH( /* FIXME Unused? */
-   MENU_ENUM_SUBLABEL_XMB_MAIN_MENU_ENABLE_SETTINGS,
-   "Aktiviert den Reiter 'Einstellungen'. Ein Neustart wird benötigt, damit der Reiter angezeigt wird."
-   )
 
 /* XMB: Settings Options */
 
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SHADER_PIPELINE_RIBBON,
    "Band"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_SHADER_PIPELINE_RIBBON_SIMPLIFIED,
-   "Band (vereinfacht)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SHADER_PIPELINE_SIMPLE_SNOW,
@@ -4322,10 +4780,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MATERIALUI_ICONS_ENABLE,
    "Menü-Icons"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_MATERIALUI_ICONS_ENABLE,
-   "Aktiviere/deaktiviere die Menü-Icons, die auf der linken Seite der Menü-Einträge angezeigt werden."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MATERIALUI_MENU_COLOR_THEME,
@@ -4537,10 +4991,6 @@ MSG_HASH(
    "Benutzer"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_USE_BUILTIN_IMAGE_VIEWER,
-   "Verwende eingebauten Bildbetrachter"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_MAX_SWAPCHAIN_IMAGES,
    "Maximale Anzahl von Zwischenbildern"
    )
@@ -4654,10 +5104,6 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_HELP_AUDIO_VIDEO_TROUBLESHOOTING,
    "Audio/Video-Fehlerbehebung"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_HELP_CHANGE_VIRTUAL_GAMEPAD,
-   "Ändert virtuelles Controller-Overlay"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_HELP_LOADING_CONTENT,
@@ -4925,10 +5371,6 @@ MSG_HASH(
    "Portzuordnung fehlgeschlagen"
    )
 MSG_HASH(
-   MSG_NO_ARGUMENTS_SUPPLIED_AND_NO_MENU_BUILTIN,
-   "Es wurden keine Argumente übergeben, außerdem ist kein Menü vorhanden - zeige Hilfe an..."
-   )
-MSG_HASH(
    MSG_SETTING_DISK_IN_TRAY,
    "Lege Datenträger in Laufwerksschublade ein"
    )
@@ -5159,14 +5601,6 @@ MSG_HASH(
 MSG_HASH(
    MSG_DISCONNECT_DEVICE_FROM_A_VALID_PORT,
    "Gerät von einem gültigen Anschluss trennen."
-   )
-MSG_HASH(
-   MSG_DISK_CLOSED,
-   "Geschlossen"
-   )
-MSG_HASH(
-   MSG_DISK_EJECTED,
-   "Ausgeworfen"
    )
 MSG_HASH(
    MSG_DOWNLOADING,
@@ -5781,10 +6215,6 @@ MSG_HASH(
    "Berechnung der Bildgröße fehlgeschlagen! Wird unter Verwendung von Rohdaten fortfahren. Dies wird wahrscheinlich nicht richtig funktionieren ..."
    )
 MSG_HASH(
-   MSG_VIRTUAL_DISK_TRAY,
-   "Virtuelle Laufwerksschublade."
-   )
-MSG_HASH(
    MSG_FAILED,
    "fehlgeschlagen"
    )
@@ -5935,14 +6365,6 @@ MSG_HASH(
    "Touch-Eingabe aktivieren"
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_INPUT_ICADE_ENABLE,
-   "Controller-Eingabe auf Tastatur legen"
-   )
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_INPUT_KEYBOARD_GAMEPAD_MAPPING_TYPE,
-   "Typ der Keyboard-Controller-Abbildung"
-   )
-MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_SMALL_KEYBOARD_ENABLE,
    "Kleine Tastatur aktivieren"
    )
@@ -5968,19 +6390,11 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SWITCH_BACKLIGHT_CONTROL,
    "Bildschirmhelligkeit"
    )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SWITCH_BACKLIGHT_CONTROL,
-   "Anpassen der Switch Bildschirmhelligkeit"
-   )
 #endif
 #if defined(HAVE_LAKKA_SWITCH) || defined(HAVE_LIBNX)
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SWITCH_CPU_PROFILE,
    "CPU Übertakten"
-   )
-MSG_HASH(
-   MENU_ENUM_SUBLABEL_SWITCH_CPU_PROFILE,
-   "Übertakten der Switch CPU"
    )
 #endif
 #ifdef HAVE_LAKKA

@@ -61,9 +61,6 @@ void input_event_set_osk_idx(enum osk_type idx);
 // MG 九宫格
 enum osk_type input_event_get_osk_idx(void);
 
-void input_event_osk_append(enum osk_type *osk_idx, int ptr, bool is_rgui,
-      const char *word);
-
 char **input_event_get_osk_grid(void);
 
 RETRO_END_DECLS

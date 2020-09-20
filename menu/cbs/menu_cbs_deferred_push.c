@@ -185,6 +185,7 @@ GENERIC_DEFERRED_PUSH(deferred_push_cheat_details_settings_list,    DISPLAYLIST_
 GENERIC_DEFERRED_PUSH(deferred_push_cheat_search_settings_list,     DISPLAYLIST_CHEAT_SEARCH_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_onscreen_display_settings_list, DISPLAYLIST_ONSCREEN_DISPLAY_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_onscreen_notifications_settings_list, DISPLAYLIST_ONSCREEN_NOTIFICATIONS_SETTINGS_LIST)
+GENERIC_DEFERRED_PUSH(deferred_push_onscreen_notifications_views_settings_list, DISPLAYLIST_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_onscreen_overlay_settings_list, DISPLAYLIST_ONSCREEN_OVERLAY_SETTINGS_LIST)
 #ifdef HAVE_VIDEO_LAYOUT
 GENERIC_DEFERRED_PUSH(deferred_push_onscreen_video_layout_settings_list, DISPLAYLIST_ONSCREEN_VIDEO_LAYOUT_SETTINGS_LIST)
@@ -198,6 +199,7 @@ GENERIC_DEFERRED_PUSH(deferred_push_user_interface_settings_list,   DISPLAYLIST_
 GENERIC_DEFERRED_PUSH(deferred_push_power_management_settings_list, DISPLAYLIST_POWER_MANAGEMENT_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_retro_achievements_settings_list,DISPLAYLIST_RETRO_ACHIEVEMENTS_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_updater_settings_list,          DISPLAYLIST_UPDATER_SETTINGS_LIST)
+GENERIC_DEFERRED_PUSH(deferred_push_bluetooth_settings_list,        DISPLAYLIST_BLUETOOTH_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_wifi_settings_list,             DISPLAYLIST_WIFI_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_network_settings_list,          DISPLAYLIST_NETWORK_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_subsystem_settings_list,          DISPLAYLIST_SUBSYSTEM_SETTINGS_LIST)
@@ -267,35 +269,36 @@ static int deferred_push_cursor_manager_list_deferred(
       menu_displaylist_info_t *info)
 {
    char rdb_path[PATH_MAX_LENGTH];
-   int ret                        = -1;
-   char *query                    = NULL;
-   char *rdb                      = NULL;
    const char *path               = info->path;
+   settings_t *settings           = NULL;
    config_file_t *conf            = NULL;
+   struct config_entry_list 
+      *query_entry                = NULL;
+   struct config_entry_list 
+      *rdb_entry                  = NULL;
    
    if (!(conf = config_file_new_from_path_to_string(path)))
       return -1;
 
-   if (!config_get_string(conf, "query", &query))
-      goto end;
+   if (     
+            !(query_entry  = config_get_entry(conf, "query"))
+         ||  (string_is_empty(query_entry->value))
+         || !(rdb_entry    = config_get_entry(conf, "rdb"))
+         ||  (string_is_empty(rdb_entry->value))
+      )
+   {
+      config_file_free(conf);
+      return -1;
+   }
 
-   if (!config_get_string(conf, "rdb", &rdb))
-      goto end;
+   config_file_free(conf);
 
    rdb_path[0] = '\0';
 
-   {
-      settings_t *settings                 = config_get_ptr();
-      if (settings)
-      {
-         const char *path_content_database = 
-            settings->paths.path_content_database;
-
-         fill_pathname_join(rdb_path,
-               path_content_database,
-               rdb, sizeof(rdb_path));
-      }
-   }
+   settings = config_get_ptr();
+   fill_pathname_join(rdb_path,
+         settings->paths.path_content_database,
+         rdb_entry->value, sizeof(rdb_path));
 
    if (!string_is_empty(info->path_b))
       free(info->path_b);
@@ -308,16 +311,10 @@ static int deferred_push_cursor_manager_list_deferred(
    if (!string_is_empty(info->path))
       free(info->path);
 
-   info->path_c    = strdup(query);
+   info->path_c    = strdup(query_entry->value);
    info->path      = strdup(rdb_path);
 
-   ret             = deferred_push_dlist(info, DISPLAYLIST_DATABASE_QUERY);
-
-end:
-   config_file_free(conf);
-   free(rdb);
-   free(query);
-   return ret;
+   return deferred_push_dlist(info, DISPLAYLIST_DATABASE_QUERY);
 }
 
 #ifdef HAVE_LIBRETRODB
@@ -327,14 +324,18 @@ static int deferred_push_cursor_manager_list_generic(
    char query[PATH_MAX_LENGTH];
    int ret                       = -1;
    const char *path              = info->path;
-   struct string_list *str_list  = path ? string_split(path, "|") : NULL;
-
-   if (!str_list)
+   struct string_list str_list   = {0};
+   
+   if (!path)
       goto end;
+
+   string_list_initialize(&str_list);
+   string_split_noalloc(&str_list, path, "|");
 
    query[0] = '\0';
 
-   database_info_build_query_enum(query, sizeof(query), type, str_list->elems[0].data);
+   database_info_build_query_enum(query, sizeof(query), type,
+         str_list.elems[0].data);
 
    if (string_is_empty(query))
       goto end;
@@ -346,14 +347,14 @@ static int deferred_push_cursor_manager_list_generic(
    if (!string_is_empty(info->path))
       free(info->path);
 
-   info->path   = strdup(str_list->elems[1].data);
-   info->path_b = strdup(str_list->elems[0].data);
+   info->path   = strdup(str_list.elems[1].data);
+   info->path_b = strdup(str_list.elems[0].data);
    info->path_c = strdup(query);
 
    ret = deferred_push_dlist(info, DISPLAYLIST_DATABASE_QUERY);
 
 end:
-   string_list_free(str_list);
+   string_list_deinitialize(&str_list);
    return ret;
 }
 
@@ -373,49 +374,12 @@ GENERIC_DEFERRED_CURSOR_MANAGER(deferred_push_cursor_manager_list_deferred_query
 GENERIC_DEFERRED_CURSOR_MANAGER(deferred_push_cursor_manager_list_deferred_query_rdb_entry_origin, DATABASE_QUERY_ENTRY_ORIGIN)
 GENERIC_DEFERRED_CURSOR_MANAGER(deferred_push_cursor_manager_list_deferred_query_rdb_entry_releasemonth, DATABASE_QUERY_ENTRY_RELEASEDATE_MONTH)
 GENERIC_DEFERRED_CURSOR_MANAGER(deferred_push_cursor_manager_list_deferred_query_rdb_entry_releaseyear, DATABASE_QUERY_ENTRY_RELEASEDATE_YEAR)
-
-#endif
-
-#if 0
-static int deferred_push_cursor_manager_list_deferred_query_subsearch(
-      menu_displaylist_info_t *info)
-{
-   int ret                       = -1;
-#ifdef HAVE_LIBRETRODB
-   char query[PATH_MAX_LENGTH];
-   struct string_list *str_list  = string_split(info->path, "|");
-
-   query[0] = '\0';
-
-   database_info_build_query(query, sizeof(query),
-         info->label, str_list->elems[0].data);
-
-   if (string_is_empty(query))
-      goto end;
-
-   if (!string_is_empty(info->path))
-      free(info->path);
-   if (!string_is_empty(info->path_b))
-      free(info->path_b);
-   if (!string_is_empty(info->path_c))
-      free(info->path_c);
-   info->path   = strdup(str_list->elems[1].data);
-   info->path_b = strdup(str_list->elems[0].data);
-   info->path_c = strdup(query);
-
-   ret = deferred_push_dlist(info, DISPLAYLIST_DATABASE_QUERY);
-
-end:
-   string_list_free(str_list);
-#endif
-   return ret;
-}
 #endif
 
 static int general_push(menu_displaylist_info_t *info,
       unsigned id, enum menu_displaylist_ctl_state state)
 {
-   char                      *newstring2      = NULL;
+   char newstring2[PATH_MAX_LENGTH];
    core_info_list_t           *list           = NULL;
    settings_t                  *settings      = config_get_ptr();
    menu_handle_t                  *menu       = menu_driver_get_ptr();
@@ -471,8 +435,6 @@ static int general_push(menu_displaylist_info_t *info,
          break;
    }
 
-   newstring2                     = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
-
    newstring2[0]                  = '\0';
 
    switch (id)
@@ -482,11 +444,9 @@ static int general_push(menu_displaylist_info_t *info,
             struct retro_system_info *system = 
                runloop_get_libretro_system_info();
             if (system)
-            {
                if (!string_is_empty(system->valid_extensions))
                   strlcpy(newstring2, system->valid_extensions,
-                        PATH_MAX_LENGTH * sizeof(char));
-            }
+                        sizeof(newstring2));
          }
          break;
       case PUSH_DEFAULT:
@@ -494,9 +454,8 @@ static int general_push(menu_displaylist_info_t *info,
             bool new_exts_allocated               = false;
             char *new_exts                        = NULL;
 
-            if (menu_setting_get_browser_selection_type(info->setting) == ST_DIR)
-            {
-            }
+            if (menu_setting_get_browser_selection_type(info->setting) 
+                  == ST_DIR) { }
             else
             {
                struct retro_system_info *system = 
@@ -513,22 +472,22 @@ static int general_push(menu_displaylist_info_t *info,
 
             if (!string_is_empty(new_exts))
             {
-               size_t path_size               = PATH_MAX_LENGTH * sizeof(char);
-               struct string_list *str_list3  = string_split(new_exts, "|");
+               struct string_list str_list3   = {0};
+               string_list_initialize(&str_list3);
+               string_split_noalloc(&str_list3, new_exts, "|");
 
 #ifdef HAVE_IBXM
                {
                   union string_list_elem_attr attr;
                   attr.i = 0;
-                  string_list_append(str_list3, "s3m", attr);
-                  string_list_append(str_list3, "mod", attr);
-                  string_list_append(str_list3, "xm", attr);
+                  string_list_append(&str_list3, "s3m", attr);
+                  string_list_append(&str_list3, "mod", attr);
+                  string_list_append(&str_list3, "xm", attr);
                }
 #endif
-               string_list_join_concat(newstring2, path_size,
-                     str_list3, "|");
-               string_list_free(str_list3);
-
+               string_list_join_concat(newstring2, sizeof(newstring2),
+                     &str_list3, "|");
+               string_list_deinitialize(&str_list3);
             }
 
             if (new_exts_allocated)
@@ -544,28 +503,33 @@ static int general_push(menu_displaylist_info_t *info,
       case PUSH_DETECT_CORE_LIST:
          {
             union string_list_elem_attr attr;
-            size_t path_size                 = PATH_MAX_LENGTH * sizeof(char);
-            char *newstring                  = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
-            struct string_list *str_list2    = string_list_new();
+            char newstring[PATH_MAX_LENGTH];
+            struct string_list str_list2     = {0};
             struct retro_system_info *system = runloop_get_libretro_system_info();
 
             newstring[0]                     = '\0';
             attr.i                           = 0;
+
+            string_list_initialize(&str_list2);
 
             if (system)
             {
                if (!string_is_empty(system->valid_extensions))
                {
                   unsigned x;
-                  struct string_list *str_list    = string_split(system->valid_extensions, "|");
+                  struct string_list  str_list    = {0};
 
-                  for (x = 0; x < str_list->size; x++)
+                  string_list_initialize(&str_list);
+                  string_split_noalloc(&str_list,
+                        system->valid_extensions, "|");
+
+                  for (x = 0; x < str_list.size; x++)
                   {
-                     const char *elem = str_list->elems[x].data;
-                     string_list_append(str_list2, elem, attr);
+                     const char *elem = str_list.elems[x].data;
+                     string_list_append(&str_list2, elem, attr);
                   }
 
-                  string_list_free(str_list);
+                  string_list_deinitialize(&str_list);
                }
             }
 
@@ -574,44 +538,48 @@ static int general_push(menu_displaylist_info_t *info,
                if (list && !string_is_empty(list->all_ext))
                {
                   unsigned x;
-                  struct string_list *str_list = string_split(
+                  struct string_list str_list  = {0};
+                  string_list_initialize(&str_list);
+
+                  string_split_noalloc(&str_list, 
                         list->all_ext, "|");
 
-                  for (x = 0; x < str_list->size; x++)
+                  for (x = 0; x < str_list.size; x++)
                   {
-                     if (!string_list_find_elem(str_list2,
-                              str_list->elems[x].data))
+                     if (!string_list_find_elem(&str_list2,
+                              str_list.elems[x].data))
                      {
-                        const char *elem = str_list->elems[x].data;
-                        string_list_append(str_list2, elem, attr);
+                        const char *elem = str_list.elems[x].data;
+                        string_list_append(&str_list2, elem, attr);
                      }
                   }
 
-                  string_list_free(str_list);
+                  string_list_deinitialize(&str_list);
                }
             }
 
-            string_list_join_concat(newstring, path_size,
-                  str_list2, "|");
+            string_list_join_concat(newstring, sizeof(newstring),
+                  &str_list2, "|");
 
             {
-               struct string_list *str_list3  = string_split(newstring, "|");
+               struct string_list  str_list3  = {0};
+               string_list_initialize(&str_list3);
+               string_split_noalloc(&str_list3, newstring, "|");
 
 #ifdef HAVE_IBXM
                {
                   union string_list_elem_attr attr;
                   attr.i = 0;
-                  string_list_append(str_list3, "s3m", attr);
-                  string_list_append(str_list3, "mod", attr);
-                  string_list_append(str_list3, "xm", attr);
+                  string_list_append(&str_list3, "s3m", attr);
+                  string_list_append(&str_list3, "mod", attr);
+                  string_list_append(&str_list3, "xm", attr);
                }
 #endif
-               string_list_join_concat(newstring2, path_size,
-                     str_list3, "|");
-               string_list_free(str_list3);
+               string_list_join_concat(newstring2, sizeof(newstring2),
+                     &str_list3, "|");
+               string_list_deinitialize(&str_list3);
             }
-            free(newstring);
-            string_list_free(str_list2);
+            string_list_deinitialize(&str_list2);
          }
          break;
    }
@@ -630,18 +598,17 @@ static int general_push(menu_displaylist_info_t *info,
 #elif defined(HAVE_MPV)
          libretro_mpv_retro_get_system_info(&sysinfo);
 #endif
-         strlcat(newstring2, "|", PATH_MAX_LENGTH * sizeof(char));
-         strlcat(newstring2, sysinfo.valid_extensions,
-               PATH_MAX_LENGTH * sizeof(char));
+         strlcat(newstring2, "|", sizeof(newstring2));
+         strlcat(newstring2, sysinfo.valid_extensions, sizeof(newstring2));
       }
 #endif
 #ifdef HAVE_IMAGEVIEWER
       if (multimedia_builtin_imageviewer_enable)
       {
          libretro_imageviewer_retro_get_system_info(&sysinfo);
-         strlcat(newstring2, "|", PATH_MAX_LENGTH * sizeof(char));
+         strlcat(newstring2, "|", sizeof(newstring2));
          strlcat(newstring2, sysinfo.valid_extensions,
-               PATH_MAX_LENGTH * sizeof(char));
+               sizeof(newstring2));
       }
 #endif
    }
@@ -652,7 +619,6 @@ static int general_push(menu_displaylist_info_t *info,
          free(info->exts);
       info->exts = strdup(newstring2);
    }
-   free(newstring2);
 
    return deferred_push_dlist(info, state);
 }
@@ -667,6 +633,7 @@ GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_playlist_list, PUSH_DEFAULT, DISPLA
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_music_history_list, PUSH_DEFAULT, DISPLAYLIST_MUSIC_HISTORY)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_image_history_list, PUSH_DEFAULT, DISPLAYLIST_IMAGES_HISTORY)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_video_history_list, PUSH_DEFAULT, DISPLAYLIST_VIDEO_HISTORY)
+GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_explore_list, PUSH_DEFAULT, DISPLAYLIST_EXPLORE)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_special, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_SPECIAL)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_resolution, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_RESOLUTION)
@@ -681,6 +648,8 @@ GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_playlist_sor
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_manual_content_scan_system_name, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_SYSTEM_NAME)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_manual_content_scan_core_name, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_MANUAL_CONTENT_SCAN_CORE_NAME)
 GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_disk_index, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_DISK_INDEX)
+GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_input_description, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_INPUT_DESCRIPTION)
+GENERIC_DEFERRED_PUSH_CLEAR_GENERAL(deferred_push_dropdown_box_list_input_description_kbd, PUSH_DEFAULT, DISPLAYLIST_DROPDOWN_LIST_INPUT_DESCRIPTION_KBD)
 
 static int menu_cbs_init_bind_deferred_push_compare_label(
       menu_file_list_cbs_t *cbs,
@@ -709,6 +678,8 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_PLAYLIST_LEFT_THUMBNAIL_MODE, deferred_push_dropdown_box_list_playlist_left_thumbnail_mode},
       {MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_PLAYLIST_SORT_MODE, deferred_push_dropdown_box_list_playlist_sort_mode},
       {MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_DISK_INDEX, deferred_push_dropdown_box_list_disk_index},
+      {MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_INPUT_DESCRIPTION, deferred_push_dropdown_box_list_input_description},
+      {MENU_ENUM_LABEL_DEFERRED_DROPDOWN_BOX_LIST_INPUT_DESCRIPTION_KBD, deferred_push_dropdown_box_list_input_description_kbd},
       {MENU_ENUM_LABEL_DEFERRED_BROWSE_URL_LIST, deferred_push_browse_url_list},
       {MENU_ENUM_LABEL_DEFERRED_BROWSE_URL_START, deferred_push_browse_url_start},
       {MENU_ENUM_LABEL_DEFERRED_CORE_SETTINGS_LIST, deferred_push_core_settings_list},
@@ -724,6 +695,7 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_DEFERRED_CHEAT_SEARCH_SETTINGS_LIST, deferred_push_cheat_search_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_ONSCREEN_DISPLAY_SETTINGS_LIST, deferred_push_onscreen_display_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_ONSCREEN_NOTIFICATIONS_SETTINGS_LIST, deferred_push_onscreen_notifications_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS_LIST, deferred_push_onscreen_notifications_views_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_ONSCREEN_OVERLAY_SETTINGS_LIST, deferred_push_onscreen_overlay_settings_list},
 #ifdef HAVE_VIDEO_LAYOUT
       {MENU_ENUM_LABEL_DEFERRED_ONSCREEN_VIDEO_LAYOUT_SETTINGS_LIST, deferred_push_onscreen_video_layout_settings_list},
@@ -741,6 +713,7 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_DEFERRED_NETWORK_SETTINGS_LIST, deferred_push_network_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_SUBSYSTEM_SETTINGS_LIST, deferred_push_subsystem_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_NETWORK_HOSTING_SETTINGS_LIST, deferred_push_network_hosting_settings_list},
+      {MENU_ENUM_LABEL_DEFERRED_BLUETOOTH_SETTINGS_LIST, deferred_push_bluetooth_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_WIFI_SETTINGS_LIST, deferred_push_wifi_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_LAKKA_SERVICES_LIST, deferred_push_lakka_services_list},
       {MENU_ENUM_LABEL_DEFERRED_USER_SETTINGS_LIST, deferred_push_user_settings_list},
@@ -760,6 +733,7 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_DEFERRED_PLAYLIST_LIST, deferred_playlist_list},
       {MENU_ENUM_LABEL_DEFERRED_IMAGES_LIST, deferred_image_history_list},
       {MENU_ENUM_LABEL_DEFERRED_VIDEO_LIST, deferred_video_history_list},
+      {MENU_ENUM_LABEL_DEFERRED_EXPLORE_LIST, deferred_explore_list},
       {MENU_ENUM_LABEL_DEFERRED_INPUT_SETTINGS_LIST, deferred_push_input_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_INPUT_MENU_SETTINGS_LIST, deferred_push_input_menu_settings_list},
       {MENU_ENUM_LABEL_DEFERRED_INPUT_HAPTIC_FEEDBACK_SETTINGS_LIST, deferred_push_input_haptic_feedback_settings_list},

@@ -31,10 +31,51 @@
 
 #include "../../quickkid/quickkid.h" // 九宫格搜索
 
+static bool file_list_deinitialize_internal(file_list_t *list)
+{
+   size_t i;
+   for (i = 0; i < list->size; i++)
+   {
+      file_list_free_userdata(list, i);
+      file_list_free_actiondata(list, i);
+
+      if (list->list[i].path)
+         free(list->list[i].path);
+      list->list[i].path = NULL;
+
+      if (list->list[i].label)
+         free(list->list[i].label);
+      list->list[i].label = NULL;
+
+      // MG 释放九宫格
+      if (list->list[i].ninenum)
+          free(list->list[i].ninenum);
+      list->list[i].ninenum = NULL;
+
+      if (list->list[i].alt)
+         free(list->list[i].alt);
+      list->list[i].alt = NULL;
+   }
+   if (list->list)
+      free(list->list);
+   list->list = NULL;
+   return true;
+}
+
+bool file_list_initialize(file_list_t *list)
+{
+   if (!list)
+      return false;
+
+   list->list     = NULL;
+   list->capacity = 0;
+   list->size     = 0;
+
+   return true;
+}
+
 bool file_list_reserve(file_list_t *list, size_t nitems)
 {
-   RARCH_LOG("file_list_reserve begin. nitems: %d, list_ptr: %d\n", nitems, list);
-
    const size_t item_size = sizeof(struct item_file);
    struct item_file *new_data;
 
@@ -50,7 +91,6 @@ bool file_list_reserve(file_list_t *list, size_t nitems)
 
    list->list     = new_data;
    list->capacity = nitems;
-   // list->select_ptr_old = 0;
 
    return true;
 }
@@ -116,7 +156,7 @@ bool file_list_insert(file_list_t *list,
    if (label)
       list->list[idx].label      = strdup(label);
 
-   // 初始化九宫格
+   // MG 初始化九宫格
    if (path)
    {
       list->list[idx].path       = strdup(path);
@@ -153,12 +193,12 @@ bool file_list_append(file_list_t *list,
    list->list[idx].entry_idx     = entry_idx;
    list->list[idx].userdata      = NULL;
    list->list[idx].actiondata    = NULL;
-   list->list[idx].ninenum       = NULL;
+   list->list[idx].ninenum       = NULL; // MG 九宫格初始化
 
    if (label)
       list->list[idx].label      = strdup(label);
 
-   // 初始化九宫格
+   // MG 初始化九宫格
    if (path)
    {
       list->list[idx].path       = strdup(path);
@@ -204,8 +244,8 @@ void file_list_pop(file_list_t *list, size_t *directory_ptr)
       if (list->list[list->size].label)
          free(list->list[list->size].label);
       list->list[list->size].label = NULL;
-	  
-      // 释放九宫格
+
+      // MG 释放九宫格
       if (list->list[list->size].ninenum)
          free(list->list[list->size].ninenum);
       list->list[list->size].ninenum = NULL;
@@ -222,33 +262,19 @@ void file_list_free(file_list_t *list)
 
    if (!list)
       return;
-
-   for (i = 0; i < list->size; i++)
-   {
-      file_list_free_userdata(list, i);
-      file_list_free_actiondata(list, i);
-
-      if (list->list[i].path)
-         free(list->list[i].path);
-      list->list[i].path = NULL;
-
-      if (list->list[i].label)
-         free(list->list[i].label);
-      list->list[i].label = NULL;
-
-      // 释放九宫格
-      if (list->list[i].ninenum)
-         free(list->list[i].ninenum);
-      list->list[i].ninenum = NULL;
-
-      if (list->list[i].alt)
-         free(list->list[i].alt);
-      list->list[i].alt = NULL;
-   }
-   if (list->list)
-      free(list->list);
-   list->list = NULL;
+   file_list_deinitialize_internal(list);
    free(list);
+}
+
+bool file_list_deinitialize(file_list_t *list)
+{
+   if (!list)
+      return false;
+   if (!file_list_deinitialize_internal(list))
+      return false;
+   list->capacity = 0;
+   list->size     = 0;
+   return true;
 }
 
 void file_list_clear(file_list_t *list)
@@ -268,7 +294,7 @@ void file_list_clear(file_list_t *list)
          free(list->list[i].label);
       list->list[i].label = NULL;
 
-      // 释放九宫格
+      // MG 释放九宫格
       if (list->list[i].ninenum)
          free(list->list[i].ninenum);
       list->list[i].ninenum = NULL;

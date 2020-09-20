@@ -34,7 +34,9 @@
 #include "../../configuration.h"
 #include "../../core.h"
 #include "../../core_info.h"
+#ifdef HAVE_CHEATS
 #include "../../managers/cheat_manager.h"
+#endif
 #include "../../file_path_special.h"
 #include "../../driver.h"
 #include "../../retroarch.h"
@@ -118,6 +120,7 @@ static int audio_mixer_stream_volume_left(unsigned type, const char *label,
 }
 #endif
 
+#ifdef HAVE_CHEATS
 static int action_left_cheat(unsigned type, const char *label,
       bool wraparound)
 {
@@ -125,6 +128,7 @@ static int action_left_cheat(unsigned type, const char *label,
    return generic_action_cheat_toggle(idx, type, label,
          wraparound);
 }
+#endif
 
 static int action_left_input_desc(unsigned type, const char *label,
    bool wraparound)
@@ -324,10 +328,11 @@ static int action_left_shader_filter_default(unsigned type, const char *label,
    if (!setting)
       return menu_cbs_exit();
    return menu_action_handle_setting(setting,
-         setting_get_type(setting), MENU_ACTION_LEFT, wraparound);
+         setting->type, MENU_ACTION_LEFT, wraparound);
 }
 #endif
 
+#ifdef HAVE_CHEATS
 static int action_left_cheat_num_passes(unsigned type, const char *label,
       bool wraparound)
 {
@@ -342,6 +347,7 @@ static int action_left_cheat_num_passes(unsigned type, const char *label,
 
    return 0;
 }
+#endif
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
 static int action_left_shader_num_passes(unsigned type, const char *label,
@@ -378,10 +384,8 @@ static int playlist_association_left(unsigned type, const char *label,
       bool wraparound)
 {
    char core_filename[PATH_MAX_LENGTH];
-   size_t i, next, current          = 0;
-   settings_t *settings             = config_get_ptr();
-   bool playlist_use_old_format     = settings->bools.playlist_use_old_format;
-   bool playlist_compression        = settings->bools.playlist_compression;
+   size_t i, current                = 0;
+   size_t next                      = 0;
    playlist_t *playlist             = playlist_get_cached();
    const char *default_core_path    = playlist_get_default_core_path(playlist);
    bool default_core_set            = false;
@@ -428,11 +432,8 @@ static int playlist_association_left(unsigned type, const char *label,
 
       /* ...then decrement it */
       if (current == 0)
-      {
          /* Unset core association (DETECT) */
-         next             = 0;
          default_core_set = false;
-      }
       else
          next = current - 1;
    }
@@ -453,7 +454,7 @@ static int playlist_association_left(unsigned type, const char *label,
    /* Update playlist */
    playlist_set_default_core_path(playlist, core_info ? core_info->path         : "DETECT");
    playlist_set_default_core_name(playlist, core_info ? core_info->display_name : "DETECT");
-   playlist_write_file(playlist, playlist_use_old_format, playlist_compression);
+   playlist_write_file(playlist);
 
    return 0;
 }
@@ -462,10 +463,7 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
       bool wraparound)
 {
    enum playlist_label_display_mode label_display_mode;
-   settings_t *settings             = config_get_ptr();
-   bool playlist_use_old_format     = settings->bools.playlist_use_old_format;
-   bool playlist_compression        = settings->bools.playlist_compression;
-   playlist_t *playlist             = playlist_get_cached();
+   playlist_t *playlist = playlist_get_cached();
 
    if (!playlist)
       return -1;
@@ -478,8 +476,7 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
       label_display_mode = LABEL_DISPLAY_MODE_KEEP_REGION_AND_DISC_INDEX;
 
    playlist_set_label_display_mode(playlist, label_display_mode);
-   playlist_write_file(
-         playlist, playlist_use_old_format, playlist_compression);
+   playlist_write_file(playlist);
 
    return 0;
 }
@@ -487,9 +484,6 @@ static int playlist_label_display_mode_left(unsigned type, const char *label,
 static void playlist_thumbnail_mode_left(playlist_t *playlist, enum playlist_thumbnail_id thumbnail_id,
       bool wraparound)
 {
-   settings_t *settings                        = config_get_ptr();
-   bool playlist_use_old_format                = settings->bools.playlist_use_old_format;
-   bool playlist_compression                   = settings->bools.playlist_compression;
    enum playlist_thumbnail_mode thumbnail_mode =
          playlist_get_thumbnail_mode(playlist, thumbnail_id);
 
@@ -499,8 +493,7 @@ static void playlist_thumbnail_mode_left(playlist_t *playlist, enum playlist_thu
       thumbnail_mode = PLAYLIST_THUMBNAIL_MODE_BOXARTS;
 
    playlist_set_thumbnail_mode(playlist, thumbnail_id, thumbnail_mode);
-   playlist_write_file(
-         playlist, playlist_use_old_format, playlist_compression);
+   playlist_write_file(playlist);
 }
 
 static int playlist_right_thumbnail_mode_left(unsigned type, const char *label,
@@ -533,10 +526,7 @@ static int playlist_sort_mode_left(unsigned type, const char *label,
       bool wraparound)
 {
    enum playlist_sort_mode sort_mode;
-   settings_t *settings             = config_get_ptr();
-   bool playlist_use_old_format     = settings->bools.playlist_use_old_format;
-   bool playlist_compression        = settings->bools.playlist_compression;
-   playlist_t *playlist             = playlist_get_cached();
+   playlist_t *playlist = playlist_get_cached();
 
    if (!playlist)
       return -1;
@@ -549,8 +539,7 @@ static int playlist_sort_mode_left(unsigned type, const char *label,
       sort_mode = PLAYLIST_SORT_MODE_OFF;
 
    playlist_set_sort_mode(playlist, sort_mode);
-   playlist_write_file(
-         playlist, playlist_use_old_format, playlist_compression);
+   playlist_write_file(playlist);
 
    return 0;
 }
@@ -835,8 +824,9 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
    {
       const char *parent_group   = cbs->setting->parent_group;
 
-      if (string_is_equal(parent_group, msg_hash_to_str(MENU_ENUM_LABEL_MAIN_MENU))
-               && (setting_get_type(cbs->setting) == ST_GROUP))
+      if (string_is_equal(parent_group,
+               msg_hash_to_str(MENU_ENUM_LABEL_MAIN_MENU))
+               && (cbs->setting->type == ST_GROUP))
       {
          BIND_ACTION_LEFT(cbs, action_left_mainmenu);
          return 0;
@@ -883,6 +873,7 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
             case MENU_ENUM_LABEL_SUBSYSTEM_ADD:
             case MENU_ENUM_LABEL_SUBSYSTEM_LOAD:
             case MENU_ENUM_LABEL_CONNECT_NETPLAY_ROOM:
+            case MENU_ENUM_LABEL_EXPLORE_ITEM:
                BIND_ACTION_LEFT(cbs, action_left_mainmenu);
                break;
             case MENU_ENUM_LABEL_VIDEO_SHADER_SCALE_PASS:
@@ -906,7 +897,9 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
 #endif
                break;
             case MENU_ENUM_LABEL_CHEAT_NUM_PASSES:
+#ifdef HAVE_CHEATS
                BIND_ACTION_LEFT(cbs, action_left_cheat_num_passes);
+#endif
                break;
             case MENU_ENUM_LABEL_SCREEN_RESOLUTION:
                BIND_ACTION_LEFT(cbs, action_left_video_resolution);
@@ -985,20 +978,22 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
 static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
       unsigned type, const char *menu_label)
 {
+#ifdef HAVE_CHEATS
    if (type >= MENU_SETTINGS_CHEAT_BEGIN
          && type <= MENU_SETTINGS_CHEAT_END)
    {
       BIND_ACTION_LEFT(cbs, action_left_cheat);
-   }
+   } else
+#endif
 #ifdef HAVE_AUDIOMIXER
-   else if (type >= MENU_SETTINGS_AUDIO_MIXER_STREAM_ACTIONS_VOLUME_BEGIN
+   if (type >= MENU_SETTINGS_AUDIO_MIXER_STREAM_ACTIONS_VOLUME_BEGIN
          && type <= MENU_SETTINGS_AUDIO_MIXER_STREAM_ACTIONS_VOLUME_END)
    {
       BIND_ACTION_LEFT(cbs, audio_mixer_stream_volume_left);
-   }
+   } else
 #endif
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_SLANG) || defined(HAVE_HLSL)
-   else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
+   if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
    {
       BIND_ACTION_LEFT(cbs, shader_action_parameter_left);
@@ -1007,9 +1002,9 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
          && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
    {
       BIND_ACTION_LEFT(cbs, shader_action_preset_parameter_left);
-   }
+   } else
 #endif
-   else if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
+   if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
          && type <= MENU_SETTINGS_INPUT_DESC_END)
    {
       BIND_ACTION_LEFT(cbs, action_left_input_desc);
@@ -1085,6 +1080,10 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_SETTING_ACTION_CORE_LOCK:
             BIND_ACTION_LEFT(cbs, action_left_core_lock);
+            break;
+         case MENU_SETTING_DROPDOWN_ITEM_INPUT_DESCRIPTION:
+         case MENU_SETTING_DROPDOWN_ITEM_INPUT_DESCRIPTION_KBD:
+            BIND_ACTION_LEFT(cbs, action_left_scroll);
             break;
          default:
             return -1;

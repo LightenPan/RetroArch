@@ -27,6 +27,8 @@
 #include "../../../cheevos/badges.h"
 #endif
 
+#include "../../../file_path_special.h"
+
 #include "../../../verbosity.h"
 
 static const char *OZONE_THEME_TEXTURES_FILES[OZONE_THEME_TEXTURE_LAST] = {
@@ -111,6 +113,8 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_MOVIE];
       case MENU_ENUM_LABEL_GOTO_MUSIC:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_MUSIC];
+      case MENU_ENUM_LABEL_GOTO_EXPLORE:
+         return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_RDB];
 
       /* Menu icons */
       case MENU_ENUM_LABEL_CONTENT_SETTINGS:
@@ -130,6 +134,7 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
       case MENU_ENUM_LABEL_CORE_SETTINGS:
       case MENU_ENUM_LABEL_CORE_UPDATER_LIST:
       case MENU_ENUM_LABEL_UPDATE_INSTALLED_CORES:
+      case MENU_ENUM_LABEL_SWITCH_INSTALLED_CORES_PFD:
       case MENU_ENUM_LABEL_VIDEO_SHADER_PRESET_SAVE_CORE:
       case MENU_ENUM_LABEL_SAVE_CURRENT_CONFIG_OVERRIDE_CORE:
       case MENU_ENUM_LABEL_REMAP_FILE_SAVE_CORE:
@@ -171,6 +176,7 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
       case MENU_ENUM_LABEL_SYSTEM_INFORMATION:
       case MENU_ENUM_LABEL_UPDATE_CORE_INFO_FILES:
             return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_INFO];
+      case MENU_ENUM_LABEL_EXPLORE_TAB:
       case MENU_ENUM_LABEL_UPDATE_DATABASES:
       case MENU_ENUM_LABEL_DATABASE_MANAGER_LIST:
             return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_RDB];
@@ -273,11 +279,14 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
       case MENU_ENUM_LABEL_NETWORK_INFO_ENTRY:
       case MENU_ENUM_LABEL_NETWORK_HOSTING_SETTINGS:
             return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_NETWORK];
+      case MENU_ENUM_LABEL_BLUETOOTH_SETTINGS:
+            return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_BLUETOOTH];
       case MENU_ENUM_LABEL_PLAYLIST_SETTINGS:
             return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_PLAYLIST];
       case MENU_ENUM_LABEL_USER_SETTINGS:
             return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_USER];
       case MENU_ENUM_LABEL_DIRECTORY_SETTINGS:
+      case MENU_ENUM_LABEL_ADD_CONTENT_LIST:
       case MENU_ENUM_LABEL_SCAN_DIRECTORY:
       case MENU_ENUM_LABEL_MANUAL_CONTENT_SCAN_LIST:
       case MENU_ENUM_LABEL_REMAP_FILE_SAVE_CONTENT_DIR:
@@ -343,6 +352,14 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_RESUME];
       case MENU_ENUM_LABEL_START_VIDEO_PROCESSOR:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_MOVIE];
+#ifdef HAVE_LIBRETRODB
+      case MENU_ENUM_LABEL_EXPLORE_ITEM:
+      {
+         uintptr_t icon = menu_explore_get_entry_icon(type);
+         if (icon) return icon;
+         break;
+      }
+#endif
       default:
             break;
    }
@@ -419,6 +436,8 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
 #endif
       case MENU_INFO_MESSAGE:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_CORE_INFO];
+      case MENU_BLUETOOTH:
+         return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_BLUETOOTH];
       case MENU_WIFI:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_WIFI];
 #ifdef HAVE_NETWORKING
@@ -431,6 +450,8 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
 #endif
       case MENU_SETTING_ACTION:
          return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_SETTING];
+      case MENU_SETTINGS_INPUT_ANALOG_DPAD_MODE:
+         return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_INPUT_ADC];
    }
 
 #ifdef HAVE_CHEEVOS
@@ -439,7 +460,7 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
          (type < MENU_SETTINGS_NETPLAY_ROOMS_START)
       )
    {
-      int index = type - MENU_SETTINGS_CHEEVOS_START;
+      int               index = type - MENU_SETTINGS_CHEEVOS_START;
       uintptr_t badge_texture = cheevos_get_menu_badge_texture(index);
       if (badge_texture)
          return badge_texture;
@@ -450,7 +471,7 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
 
    if (
          (type >= MENU_SETTINGS_INPUT_BEGIN) &&
-         (type <= MENU_SETTINGS_INPUT_DESC_END)
+         (type <= MENU_SETTINGS_INPUT_DESC_KBD_END)
       )
       {
          /* This part is only utilized by Input User # Binds */
@@ -460,6 +481,10 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
             input_id = MENU_SETTINGS_INPUT_BEGIN;
             if (type == input_id + 1)
                return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_INPUT_ADC];
+#ifdef HAVE_LIBNX
+            // account for the additional split joycon option in Input User # Binds
+            input_id++;
+#endif
             if (type == input_id + 2)
                return ozone->icons_textures[OZONE_ENTRIES_ICONS_TEXTURE_INPUT_SETTINGS];
             if (type == input_id + 3)
@@ -480,9 +505,18 @@ uintptr_t ozone_entries_icon_get_texture(ozone_handle_t *ozone,
          else
          {
             /* Quickmenu controls repeats the same icons for all users*/
-            input_id = MENU_SETTINGS_INPUT_DESC_BEGIN;
-            while (type > (input_id + 23))
-               input_id = (input_id + 24);
+            if (type < MENU_SETTINGS_INPUT_DESC_KBD_BEGIN)
+            {
+               input_id = MENU_SETTINGS_INPUT_DESC_BEGIN;
+               while (type > (input_id + 23))
+                  input_id = (input_id + 24);
+            }
+            else
+            {
+               input_id = MENU_SETTINGS_INPUT_DESC_KBD_BEGIN;
+               while (type > (input_id + 15))
+                  input_id = (input_id + 16);
+            }
          }
          /* This is utilized for both Input Binds and Quickmenu controls*/
          if (type == input_id )
@@ -601,6 +635,8 @@ switch (id)
          return "undo.png";
       case OZONE_ENTRIES_ICONS_TEXTURE_CORE_INFO:
          return "core-infos.png";
+      case OZONE_ENTRIES_ICONS_TEXTURE_BLUETOOTH:
+         return "bluetooth.png";
       case OZONE_ENTRIES_ICONS_TEXTURE_WIFI:
          return "wifi.png";
       case OZONE_ENTRIES_ICONS_TEXTURE_CORE_OPTIONS:
@@ -821,14 +857,10 @@ bool ozone_reset_theme_textures(ozone_handle_t *ozone)
          char filename[PATH_MAX_LENGTH];
          strlcpy(filename, OZONE_THEME_TEXTURES_FILES[i],
                sizeof(filename));
-         strlcat(filename, ".png", sizeof(filename));
+         strlcat(filename, FILE_PATH_PNG_EXTENSION, sizeof(filename));
 
          if (!gfx_display_reset_textures_list(filename, theme_path, &theme->textures[i], TEXTURE_FILTER_MIPMAP_LINEAR, NULL, NULL))
-         {
-            RARCH_WARN("[OZONE] Asset missing: %s%s%s\n", theme_path,
-                  PATH_DEFAULT_SLASH(), filename);
             result = false;
-         }
       }
    }
 

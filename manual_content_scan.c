@@ -191,7 +191,8 @@ void manual_content_scan_scrub_system_name_custom(void)
     * and/or violate the No-Intro filename standard:
     * http://datomatic.no-intro.org/stuff/The%20Official%20No-Intro%20Convention%20(20071030).zip
     * Replace these characters with underscores */
-   while((scrub_char_pointer = strpbrk(scan_settings.system_name_custom, "&*/:`\"<>?\\|")))
+   while ((scrub_char_pointer = 
+            strpbrk(scan_settings.system_name_custom, "&*/:`\"<>?\\|")))
       *scrub_char_pointer = '_';
 }
 
@@ -796,7 +797,7 @@ bool manual_content_scan_get_task_config(
 
    strlcat(
          task_config->database_name,
-         file_path_str(FILE_PATH_LPL_EXTENSION),
+         FILE_PATH_LPL_EXTENSION,
          sizeof(task_config->database_name));
 
    /* ...which can in turn be used to generate the
@@ -1103,8 +1104,7 @@ static bool manual_content_scan_get_playlist_content_label(
 void manual_content_scan_add_content_to_playlist(
       manual_content_scan_task_config_t *task_config,
       playlist_t *playlist, const char *content_path,
-      int content_type, logiqx_dat_t *dat_file,
-      bool fuzzy_archive_match)
+      int content_type, logiqx_dat_t *dat_file)
 {
    char playlist_content_path[PATH_MAX_LENGTH];
 
@@ -1122,7 +1122,7 @@ void manual_content_scan_add_content_to_playlist(
 
    /* Check whether content is already included
     * in playlist */
-   if (!playlist_entry_exists(playlist, playlist_content_path, fuzzy_archive_match))
+   if (!playlist_entry_exists(playlist, playlist_content_path))
    {
       struct playlist_entry entry = {0};
       char label[PATH_MAX_LENGTH];
@@ -1147,6 +1147,6 @@ void manual_content_scan_add_content_to_playlist(
       entry.db_name   = task_config->database_name;
 
       /* Add entry to playlist */
-      playlist_push(playlist, &entry, fuzzy_archive_match);
+      playlist_push(playlist, &entry);
    }
 }

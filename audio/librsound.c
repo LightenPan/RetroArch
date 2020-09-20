@@ -700,11 +700,11 @@ static ssize_t rsnd_recv_chunk(int socket, void *buf, size_t size, int blocking)
 
 static int rsnd_poll(struct pollfd *fd, int numfd, int timeout)
 {
-   for(;;)
+   for (;;)
    {
-      if ( socketpoll(fd, numfd, timeout) < 0 )
+      if (socketpoll(fd, numfd, timeout) < 0)
       {
-         if ( errno == EINTR )
+         if (errno == EINTR)
             continue;
 
          perror("poll");
@@ -765,13 +765,13 @@ static void rsnd_drain(rsound_t *rd)
       delta /= 1000000;
       /* Calculates the amount of data we have in our virtual buffer. Only used to calculate delay. */
       slock_lock(rd->thread.mutex);
-      rd->bytes_in_buffer = (int)((int64_t)rd->total_written + (int64_t)fifo_read_avail(rd->fifo_buffer) - delta);
+      rd->bytes_in_buffer = (int)((int64_t)rd->total_written + (int64_t)FIFO_READ_AVAIL(rd->fifo_buffer) - delta);
       slock_unlock(rd->thread.mutex);
    }
    else
    {
       slock_lock(rd->thread.mutex);
-      rd->bytes_in_buffer = fifo_read_avail(rd->fifo_buffer);
+      rd->bytes_in_buffer = FIFO_READ_AVAIL(rd->fifo_buffer);
       slock_unlock(rd->thread.mutex);
    }
 }
@@ -789,7 +789,7 @@ static size_t rsnd_fill_buffer(rsound_t *rd, const char *buf, size_t size)
          return 0;
 
       slock_lock(rd->thread.mutex);
-      if ( fifo_write_avail(rd->fifo_buffer) >= size )
+      if (FIFO_WRITE_AVAIL(rd->fifo_buffer) >= size)
       {
          slock_unlock(rd->thread.mutex);
          break;
@@ -886,7 +886,7 @@ static size_t rsnd_get_ptr(rsound_t *rd)
 {
    int ptr;
    slock_lock(rd->thread.mutex);
-   ptr = fifo_read_avail(rd->fifo_buffer);
+   ptr = FIFO_READ_AVAIL(rd->fifo_buffer);
    slock_unlock(rd->thread.mutex);
 
    return ptr;
@@ -938,15 +938,15 @@ static int rsnd_close_ctl(rsound_t *rd)
    int index = 0;
    char buf[RSD_PROTO_MAXSIZE*2] = {0};
 
-   for(;;)
+   for (;;)
    {
-      if ( rsnd_poll(&fd, 1, 2000) < 0 )
+      if (rsnd_poll(&fd, 1, 2000) < 0)
          return -1;
 
-      if ( fd.revents & POLLHUP )
+      if (fd.revents & POLLHUP)
          break;
 
-      else if ( fd.revents & POLLIN )
+      if (fd.revents & POLLIN)
       {
          const char *subchar;
 
@@ -1060,7 +1060,7 @@ static int rsnd_update_server_info(rsound_t *rd)
       int delay = rsd_delay(rd);
       int delta = (int)(client_ptr - serv_ptr);
       slock_lock(rd->thread.mutex);
-      delta += fifo_read_avail(rd->fifo_buffer);
+      delta += FIFO_READ_AVAIL(rd->fifo_buffer);
       slock_unlock(rd->thread.mutex);
 
       RSD_DEBUG("[RSound] Delay: %d, Delta: %d.\n", delay, delta);
@@ -1102,7 +1102,7 @@ static void rsnd_thread ( void * thread_data )
    /* Two (;;) for loops! :3 Beware! */
    for (;;)
    {
-      for(;;)
+      for (;;)
       {
          _TEST_CANCEL();
 
@@ -1116,7 +1116,7 @@ static void rsnd_thread ( void * thread_data )
 
          /* If the buffer is empty or we've stopped the stream, jump out of this for loop */
          slock_lock(rd->thread.mutex);
-         if ( fifo_read_avail(rd->fifo_buffer) < rd->backend_info.chunk_size || !rd->thread_active )
+         if (FIFO_READ_AVAIL(rd->fifo_buffer) < rd->backend_info.chunk_size || !rd->thread_active)
          {
             slock_unlock(rd->thread.mutex);
             break;
@@ -1382,11 +1382,10 @@ int rsd_exec(rsound_t *rsound)
    fcntl(rsound->conn.socket, F_SETFL, O_NONBLOCK);
 #endif
 
-   // Flush the buffer
-
-   if ( fifo_read_avail(rsound->fifo_buffer) > 0 )
+   /* Flush the buffer */
+   if (FIFO_READ_AVAIL(rsound->fifo_buffer) > 0 )
    {
-      char buffer[fifo_read_avail(rsound->fifo_buffer)];
+      char buffer[FIFO_READ_AVAIL(rsound->fifo_buffer)];
       fifo_read(rsound->fifo_buffer, buffer, sizeof(buffer));
       if ( rsnd_send_chunk(fd, buffer, sizeof(buffer), 1) != (ssize_t)sizeof(buffer) )
       {

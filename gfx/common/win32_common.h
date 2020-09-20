@@ -58,7 +58,9 @@ void win32_monitor_info(void *data, void *hm_data, unsigned *mon_id);
 int win32_change_display_settings(const char *str, void *devmode_data,
       unsigned flags);
 
-void create_graphics_context(HWND hwnd, bool *quit);
+void create_wgl_context(HWND hwnd, bool *quit);
+
+void create_vk_context(HWND hwnd, bool *quit);
 
 void create_gdi_context(HWND hwnd, bool *quit);
 
@@ -96,7 +98,8 @@ HWND win32_get_window(void);
 
 bool win32_has_focus(void *data);
 
-void win32_check_window(bool *quit,
+void win32_check_window(void *data,
+      bool *quit,
       bool *resize, unsigned *width, unsigned *height);
 
 void win32_set_window(unsigned *width, unsigned *height,
@@ -120,16 +123,29 @@ bool win32_taskbar_is_created(void);
 float win32_get_refresh_rate(void *data);
 
 #if defined(HAVE_D3D8) || defined(HAVE_D3D9) || defined (HAVE_D3D10) || defined (HAVE_D3D11) || defined (HAVE_D3D12)
-LRESULT CALLBACK WndProcD3D(HWND hwnd, UINT message,
+LRESULT CALLBACK wnd_proc_d3d_dinput(HWND hwnd, UINT message,
+      WPARAM wparam, LPARAM lparam);
+LRESULT CALLBACK wnd_proc_d3d_common(HWND hwnd, UINT message,
       WPARAM wparam, LPARAM lparam);
 #endif
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_OPENGL_CORE) || defined(HAVE_VULKAN)
-LRESULT CALLBACK WndProcWGL(HWND hwnd, UINT message,
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGL1) || defined(HAVE_OPENGL_CORE)
+LRESULT CALLBACK wnd_proc_wgl_dinput(HWND hwnd, UINT message,
+      WPARAM wparam, LPARAM lparam);
+LRESULT CALLBACK wnd_proc_wgl_common(HWND hwnd, UINT message,
       WPARAM wparam, LPARAM lparam);
 #endif
 
-LRESULT CALLBACK WndProcGDI(HWND hwnd, UINT message,
+#if defined(HAVE_VULKAN)
+LRESULT CALLBACK wnd_proc_vk_dinput(HWND hwnd, UINT message,
+      WPARAM wparam, LPARAM lparam);
+LRESULT CALLBACK wnd_proc_vk_common(HWND hwnd, UINT message,
+      WPARAM wparam, LPARAM lparam);
+#endif
+
+LRESULT CALLBACK wnd_proc_gdi_dinput(HWND hwnd, UINT message,
+      WPARAM wparam, LPARAM lparam);
+LRESULT CALLBACK wnd_proc_gdi_common(HWND hwnd, UINT message,
       WPARAM wparam, LPARAM lparam);
 
 #ifdef _XBOX
@@ -139,6 +155,10 @@ BOOL IsIconic(HWND hwnd);
 bool win32_load_content_from_gui(const char *szFilename);
 
 void win32_setup_pixel_format(HDC hdc, bool supports_gl);
+
+void win32_unset_input_userdata(void);
+
+void win32_set_input_userdata(void *data);
 
 RETRO_END_DECLS
 

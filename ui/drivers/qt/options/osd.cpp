@@ -34,6 +34,7 @@ QWidget *NotificationsPage::widget()
    notificationsGroup->add(MENU_ENUM_LABEL_FPS_UPDATE_INTERVAL);
    notificationsGroup->add(MENU_ENUM_LABEL_FRAMECOUNT_SHOW);
    notificationsGroup->add(MENU_ENUM_LABEL_MEMORY_SHOW);
+   notificationsGroup->add(MENU_ENUM_LABEL_MEMORY_UPDATE_INTERVAL);
    notificationsGroup->add(MENU_ENUM_LABEL_STATISTICS_SHOW);
    notificationsGroup->add(MENU_ENUM_LABEL_VIDEO_FONT_PATH);
    notificationsGroup->add(MENU_ENUM_LABEL_VIDEO_FONT_SIZE);
@@ -58,6 +59,16 @@ QWidget *NotificationsPage::widget()
 #if !(defined(RARCH_CONSOLE) || defined(RARCH_MOBILE))
    notificationsGroup->add(MENU_ENUM_LABEL_MENU_WIDGET_SCALE_FACTOR_WINDOWED);
 #endif
+   notificationsGroup->add(MENU_ENUM_LABEL_MENU_SHOW_LOAD_CONTENT_ANIMATION);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_AUTOCONFIG);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_REMAP_LOAD);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_CONFIG_OVERRIDE_LOAD);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_SET_INITIAL_DISK);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_FAST_FORWARD);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_CHEATS_APPLIED);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_SCREENSHOT);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_SCREENSHOT_DURATION);
+   notificationsGroup->add(MENU_ENUM_LABEL_NOTIFICATION_SHOW_SCREENSHOT_FLASH);
 
    layout->addWidget(notificationsGroup);
 
@@ -83,7 +94,9 @@ QWidget *OverlayPage::widget()
    CheckableSettingsGroup  *inputsGroup = new CheckableSettingsGroup(MENU_ENUM_LABEL_INPUT_OVERLAY_SHOW_PHYSICAL_INPUTS);
 
    overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_AUTOLOAD_PREFERRED);
+   overlayGroup->add(MENU_ENUM_LABEL_INPUT_OVERLAY_AUTO_ROTATE);
    overlayGroup->add(MENU_ENUM_LABEL_INPUT_OVERLAY_HIDE_IN_MENU);
+   overlayGroup->add(MENU_ENUM_LABEL_INPUT_OVERLAY_HIDE_WHEN_GAMEPAD_CONNECTED);
    overlayGroup->add(MENU_ENUM_LABEL_INPUT_OVERLAY_SHOW_MOUSE_CURSOR);
 
    inputsGroup->add(MENU_ENUM_LABEL_INPUT_OVERLAY_SHOW_PHYSICAL_INPUTS_PORT);
@@ -92,7 +105,17 @@ QWidget *OverlayPage::widget()
 
    overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_PRESET);
    overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_OPACITY);
-   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_SCALE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_SCALE_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_ASPECT_ADJUST_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_X_SEPARATION_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_Y_SEPARATION_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_X_OFFSET_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_Y_OFFSET_LANDSCAPE);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_SCALE_PORTRAIT);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_ASPECT_ADJUST_PORTRAIT);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_X_SEPARATION_PORTRAIT);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_X_OFFSET_PORTRAIT);
+   overlayGroup->add(MENU_ENUM_LABEL_OVERLAY_Y_OFFSET_PORTRAIT);
 
    layout->addWidget(overlayGroup);
 

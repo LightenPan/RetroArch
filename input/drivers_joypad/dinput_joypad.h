@@ -1,7 +1,6 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2011-2016 - Daniel De Matteis
- *  Copyright (C) 2016-2019 - Brad Parker
+ *  Copyright (C) 2011-2020 - Daniel De Matteis
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -22,9 +21,24 @@
 #include <boolean.h>
 #include <retro_common_api.h>
 
+#include <dinput.h>
+
+/* For DIJOYSTATE2 struct, rgbButtons will always have 128 elements */
+#define ARRAY_SIZE_RGB_BUTTONS 128
+
 RETRO_BEGIN_DECLS
 
-bool dinput_joypad_get_vidpid_from_xinput_index(int32_t index, int32_t *vid, int32_t *pid, int32_t *dinput_index);
+struct dinput_joypad_data
+{
+   LPDIRECTINPUTDEVICE8 joypad;
+   DIJOYSTATE2 joy_state;
+   char* joy_name;
+   char* joy_friendly_name;
+   int32_t vid;
+   int32_t pid;
+   LPDIRECTINPUTEFFECT rumble_iface[2];
+   DIEFFECT rumble_props;
+};
 
 RETRO_END_DECLS
 

@@ -157,7 +157,7 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
    /* HID API is available since Windows 2000 */
 #if defined(_WIN32) && !defined(_XBOX) && !defined(_MSC_VER) && _WIN32_WINNT >= 0x0500
    HDEVINFO hDeviceInfo;
-   SP_DEVINFO_DATA DeviceInfoData;
+   SP_DEVINFO_DATA device_info_data;
    SP_DEVICE_INTERFACE_DATA deviceInterfaceData;
    HANDLE hDeviceHandle                 = INVALID_HANDLE_VALUE;
    BOOL bResult                         = TRUE;
@@ -165,12 +165,10 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
    GUID guidDeviceInterface             = {0};
    PSP_DEVICE_INTERFACE_DETAIL_DATA
       pInterfaceDetailData              = NULL;
-   ULONG requiredLength                 = 0;
-   LPTSTR lpDevicePath                  = NULL;
-   char *devicePath                     = NULL;
+   ULONG required_length                = 0;
+   LPTSTR lp_device_path                = NULL;
+   char *device_path                    = NULL;
    DWORD index                          = 0;
-   DWORD intIndex                       = 0;
-   size_t nLength                       = 0;
    unsigned len                         = 0;
    unsigned i                           = 0;
    char vidPidString[32]                = {0};
@@ -189,10 +187,7 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
    HidD_GetHidGuid(&guidDeviceInterface);
 
    if (!memcmp(&guidDeviceInterface, &GUID_NULL, sizeof(GUID_NULL)))
-   {
-     RARCH_ERR("[Autoconf]: null guid\n");
      return NULL;
-   }
 
    /* Get information about all the installed devices for the specified
     * device interface class.
@@ -211,17 +206,17 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
    }
 
    /* Enumerate all the device interfaces in the device information set. */
-   DeviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+   device_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
 
    while (!success)
    {
-      success = SetupDiEnumDeviceInfo(hDeviceInfo, index, &DeviceInfoData);
+      success = SetupDiEnumDeviceInfo(hDeviceInfo, index, &device_info_data);
 
       /* Reset for this iteration */
-      if (lpDevicePath)
+      if (lp_device_path)
       {
-         LocalFree(lpDevicePath);
-         lpDevicePath = NULL;
+         LocalFree(lp_device_path);
+         lp_device_path = NULL;
       }
 
       if (pInterfaceDetailData)
@@ -237,12 +232,12 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
       deviceInterfaceData.cbSize = sizeof(SP_INTERFACE_DEVICE_DATA);
 
       /* Get information about the device interface. */
-      for (intIndex = 0; (bResult = SetupDiEnumDeviceInterfaces(
+      for (i = 0; (bResult = SetupDiEnumDeviceInterfaces(
          hDeviceInfo,
-         &DeviceInfoData,
+         &device_info_data,
          &guidDeviceInterface,
-         intIndex,
-         &deviceInterfaceData)); intIndex++)
+         i,
+         &deviceInterfaceData)); i++)
       {
          /* Check if this is the last item */
          if (GetLastError() == ERROR_NO_MORE_ITEMS)
@@ -265,16 +260,18 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
             hDeviceInfo,
             &deviceInterfaceData,
             NULL, 0,
-            &requiredLength,
+            &required_length,
             NULL);
 
          /* Check for some other error */
          if (!bResult)
          {
-            if ((ERROR_INSUFFICIENT_BUFFER == GetLastError()) && (requiredLength > 0))
+            if (     (ERROR_INSUFFICIENT_BUFFER == GetLastError()) 
+                  && (required_length > 0))
             {
                /* we got the size, now allocate buffer */
-               pInterfaceDetailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)LocalAlloc(LPTR, requiredLength);
+               pInterfaceDetailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)
+                  LocalAlloc(LPTR, required_length);
 
                if (!pInterfaceDetailData)
                {
@@ -297,28 +294,31 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
             hDeviceInfo,
             &deviceInterfaceData,
             pInterfaceDetailData,
-            requiredLength,
+            required_length,
             NULL,
-            &DeviceInfoData);
+            &device_info_data);
 
          /* Check for some other error */
          if (!bResult)
            goto done;
 
          /* copy device path */
-         nLength      = _tcslen(pInterfaceDetailData->DevicePath) + 1;
-         lpDevicePath = (TCHAR*)LocalAlloc(LPTR, nLength * sizeof(TCHAR));
+         {
+            size_t nLength = _tcslen(pInterfaceDetailData->DevicePath) + 1;
+            lp_device_path = (TCHAR*)LocalAlloc(LPTR, nLength * sizeof(TCHAR));
 
-         StringCchCopy(lpDevicePath, nLength, pInterfaceDetailData->DevicePath);
+            strlcpy(lp_device_path,
+                  pInterfaceDetailData->DevicePath, nLength);
 
-         devicePath   = (char*)malloc(nLength);
+            device_path    = (char*)malloc(nLength);
 
-         for (len = 0; len < nLength; len++)
-            devicePath[len] = lpDevicePath[len];
+            for (len = 0; len < nLength; len++)
+               device_path[len] = lp_device_path[len];
 
-         lpDevicePath[nLength - 1] = 0;
+            lp_device_path[nLength - 1] = 0;
+         }
 
-         if (strstr(devicePath, vidPidString))
+         if (strstr(device_path, vidPidString))
             goto found;
       }
 
@@ -326,7 +326,7 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
       index++;
    }
 
-   if (!lpDevicePath)
+   if (!lp_device_path)
    {
       RARCH_ERR("[Autoconf]: No devicepath. Error %d.", GetLastError());
       goto done;
@@ -335,7 +335,7 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_win3
 found:
    /* Open the device */
    hDeviceHandle = CreateFileA(
-      devicePath,
+      device_path,
       GENERIC_READ,  /* | GENERIC_WRITE,*/
       FILE_SHARE_READ,  /* | FILE_SHARE_WRITE,*/
       NULL,
@@ -352,7 +352,7 @@ found:
 
       /* Open the device */
       hDeviceHandle = CreateFileA(
-         devicePath,
+         device_path,
          GENERIC_READ | GENERIC_WRITE,
          FILE_SHARE_READ | FILE_SHARE_WRITE,
          NULL,
@@ -369,23 +369,20 @@ found:
    }
 
 done:
-   free(devicePath);
-   LocalFree(lpDevicePath);
+   free(device_path);
+   LocalFree(lp_device_path);
    LocalFree(pInterfaceDetailData);
    bResult              = SetupDiDestroyDeviceInfoList(hDeviceInfo);
-
-   devicePath           = NULL;
-   lpDevicePath         = NULL;
+   device_path          = NULL;
+   lp_device_path       = NULL;
    pInterfaceDetailData = NULL;
 
    if (!bResult)
       RARCH_ERR("[Autoconf]: Could not destroy device info list.\n");
 
+   /* Device is not connected */
    if (!hDeviceHandle || hDeviceHandle == INVALID_HANDLE_VALUE)
-   {
-      /* device is not connected */
       return NULL;
-   }
 
    report[0] = BLISSBOX_USB_FEATURE_REPORT_ID;
 
@@ -393,7 +390,7 @@ done:
 
    CloseHandle(hDeviceHandle);
 
-   for (i = 0; i < sizeof(blissbox_pad_types) / sizeof(blissbox_pad_types[0]); i++)
+   for (i = 0; i < ARRAY_SIZE(blissbox_pad_types); i++)
    {
       const blissbox_pad_type_t *pad = &blissbox_pad_types[i];
 
@@ -465,7 +462,7 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type_libu
    libusb_close(autoconfig_libusb_handle);
    libusb_exit(NULL);
 
-   for (i = 0; i < sizeof(blissbox_pad_types) / sizeof(blissbox_pad_types[0]); i++)
+   for (i = 0; i < ARRAY_SIZE(blissbox_pad_types); i++)
    {
       const blissbox_pad_type_t *pad = &blissbox_pad_types[i];
 
@@ -504,39 +501,36 @@ static const blissbox_pad_type_t* input_autoconfigure_get_blissbox_pad_type(int 
 #endif
 }
 
-void input_autoconfigure_override_handler(void *data)
+void input_autoconfigure_blissbox_override_handler(
+      int vid, int pid, char *device_name, size_t len)
 {
-   autoconfig_params_t *params = (autoconfig_params_t*)data;
-
-   if (params->pid == BLISSBOX_UPDATE_MODE_PID)
+   if (pid == BLISSBOX_UPDATE_MODE_PID)
       RARCH_LOG("[Autoconf]: Bliss-Box in update mode detected. Ignoring.\n");
-   else if (params->pid == BLISSBOX_OLD_PID)
+   else if (pid == BLISSBOX_OLD_PID)
       RARCH_LOG("[Autoconf]: Bliss-Box 1.0 firmware detected. Please update to 2.0 or later.\n");
-   else if (params->pid >= BLISSBOX_PID && params->pid <= BLISSBOX_PID + BLISSBOX_MAX_PAD_INDEX)
+   else if (pid >= BLISSBOX_PID && pid <= BLISSBOX_PID + BLISSBOX_MAX_PAD_INDEX)
    {
       const blissbox_pad_type_t *pad;
-      char name[255] = {0};
-      int index      = params->pid - BLISSBOX_PID;
+      int index      = pid - BLISSBOX_PID;
 
       RARCH_LOG("[Autoconf]: Bliss-Box detected. Getting pad type...\n");
 
       if (blissbox_pads[index])
          pad = blissbox_pads[index];
       else
-         pad = input_autoconfigure_get_blissbox_pad_type(params->vid, params->pid);
+         pad = input_autoconfigure_get_blissbox_pad_type(vid, pid);
 
       if (pad && !string_is_empty(pad->name))
       {
          RARCH_LOG("[Autoconf]: Found Bliss-Box pad type: %s (%d) in port#%d\n", pad->name, pad->index, index);
 
-         if (params->name)
-            free(params->name);
-
          /* override name given to autoconfig so it knows what kind of pad this is */
-         strlcat(name, "Bliss-Box 4-Play ", sizeof(name));
-         strlcat(name, pad->name, sizeof(name));
-
-         params->name = strdup(name);
+         if (len > 0)
+         {
+            device_name[0] = '\0';
+            strlcpy(device_name, "Bliss-Box 4-Play ", len);
+            strlcat(device_name, pad->name, len);
+         }
 
          blissbox_pads[index] = pad;
       }

@@ -65,14 +65,13 @@ enum thread_cmd
 
 struct thread_packet
 {
-   enum thread_cmd type;
    union
    {
-      bool b;
-      int i;
-      float f;
       const char *str;
       void *v;
+      int i;
+      float f;
+      bool b;
 
       struct
       {
@@ -146,10 +145,13 @@ struct thread_packet
          enum font_driver_render_api api;
       } font_init;
    } data;
+   enum thread_cmd type;
 };
 
 struct thread_video
 {
+   retro_time_t last_time;
+
    slock_t *lock;
    scond_t *cond_cmd;
    scond_t *cond_thread;
@@ -167,6 +169,10 @@ struct thread_video
    input_driver_t **input;
    void **input_data;
 
+   float *alpha_mod;
+   slock_t *alpha_lock;
+   void (*send_and_wait)(struct thread_video *, thread_packet_t*);
+
    struct
    {
       void *frame;
@@ -179,6 +185,37 @@ struct thread_video
       bool enable;
       bool full_screen;
    } texture;
+
+   unsigned hit_count;
+   unsigned miss_count;
+   unsigned alpha_mods;
+
+   struct video_viewport vp;
+   struct video_viewport read_vp; /* Last viewport reported to caller. */
+
+   thread_packet_t cmd_data;
+   video_driver_t video_thread;
+
+
+   enum thread_cmd send_cmd;
+   enum thread_cmd reply_cmd;
+
+   bool alpha_update;
+
+   struct
+   {
+      uint64_t count;
+      slock_t *lock;
+      uint8_t *buffer;
+      unsigned width;
+      unsigned height;
+      unsigned pitch;
+      char msg[255];
+      bool updated;
+      bool within_thread;
+   } frame;
+
+
    bool apply_state_changes;
 
    bool alive;
@@ -187,39 +224,6 @@ struct thread_video
    bool has_windowed;
    bool nonblock;
    bool is_idle;
-
-   retro_time_t last_time;
-   unsigned hit_count;
-   unsigned miss_count;
-
-   float *alpha_mod;
-   unsigned alpha_mods;
-   bool alpha_update;
-   slock_t *alpha_lock;
-
-   void (*send_and_wait)(struct thread_video *, thread_packet_t*);
-   enum thread_cmd send_cmd;
-   enum thread_cmd reply_cmd;
-   thread_packet_t cmd_data;
-
-   struct video_viewport vp;
-   struct video_viewport read_vp; /* Last viewport reported to caller. */
-
-   struct
-   {
-      slock_t *lock;
-      uint8_t *buffer;
-      unsigned width;
-      unsigned height;
-      unsigned pitch;
-      bool updated;
-      bool within_thread;
-      uint64_t count;
-      char msg[255];
-   } frame;
-
-   video_driver_t video_thread;
-
 };
 
 static void *video_thread_init_never_call(const video_info_t *video,
@@ -435,8 +439,6 @@ static bool video_thread_handle_packet(
 
       case CMD_OVERLAY_LOAD:
          {
-            float *tmp_alpha_mod = NULL;
-
             if (thr->overlay && thr->overlay->load)
                ret = thr->overlay->load(thr->driver_data,
                      pkt.data.image.data,
@@ -444,11 +446,21 @@ static bool video_thread_handle_packet(
 
             pkt.data.b         = ret;
             thr->alpha_mods    = pkt.data.image.num;
-            tmp_alpha_mod      = (float*)realloc(thr->alpha_mod,
-                  thr->alpha_mods * sizeof(float));
 
-            if (tmp_alpha_mod)
-               thr->alpha_mod  = tmp_alpha_mod;
+            if (thr->alpha_mods > 0)
+            {
+               float *tmp_alpha_mod = (float*)realloc(thr->alpha_mod,
+                     thr->alpha_mods * sizeof(float));
+
+               if (tmp_alpha_mod)
+                  thr->alpha_mod = tmp_alpha_mod;
+            }
+            else
+            {
+               if (thr->alpha_mod)
+                  free(thr->alpha_mod);
+               thr->alpha_mod = NULL;
+            }
 
             /* Avoid temporary garbage data. */
             for (i = 0; i < thr->alpha_mods; i++)
@@ -649,8 +661,9 @@ static bool video_thread_alive(void *data)
 
    if (rarch_ctl(RARCH_CTL_IS_PAUSED, NULL))
    {
-      thread_packet_t pkt = { CMD_ALIVE };
+      thread_packet_t pkt;
 
+      pkt.type            = CMD_ALIVE;
       video_thread_send_and_wait_user_to_thread(thr, &pkt);
       return pkt.data.b;
    }
@@ -804,7 +817,9 @@ static bool video_thread_init(thread_video_t *thr,
       input_driver_t **input, void **input_data)
 {
    size_t max_size;
-   thread_packet_t pkt = {CMD_INIT};
+   thread_packet_t pkt;
+
+   pkt.type                  = CMD_INIT;
 
    thr->lock                 = slock_new();
    thr->alpha_lock           = slock_new();
@@ -822,7 +837,11 @@ static bool video_thread_init(thread_video_t *thr,
    max_size                  = info.input_scale * RARCH_SCALE_BASE;
    max_size                 *= max_size;
    max_size                 *= info.rgb32 ? sizeof(uint32_t) : sizeof(uint16_t);
+#ifdef _3DS
+   thr->frame.buffer         = linearMemAlign(max_size, 0x80);
+#else
    thr->frame.buffer         = (uint8_t*)malloc(max_size);
+#endif
 
    if (!thr->frame.buffer)
       return false;
@@ -844,11 +863,12 @@ static bool video_thread_init(thread_video_t *thr,
 static bool video_thread_set_shader(void *data,
       enum rarch_shader_type type, const char *path)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = {CMD_SET_SHADER};
    if (!thr)
       return false;
 
+   pkt.type                 = CMD_SET_SHADER;
    pkt.data.set_shader.type = type;
    pkt.data.set_shader.path = path;
 
@@ -875,13 +895,14 @@ static void video_thread_set_viewport(void *data, unsigned width,
 
 static void video_thread_set_rotation(void *data, unsigned rotation)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_SET_ROTATION };
 
    if (!thr)
       return;
 
-   pkt.data.i = rotation;
+   pkt.type            = CMD_SET_ROTATION;
+   pkt.data.i          = rotation;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
@@ -906,16 +927,18 @@ static void video_thread_viewport_info(void *data, struct video_viewport *vp)
    slock_unlock(thr->lock);
 }
 
-static bool video_thread_read_viewport(void *data, uint8_t *buffer, bool is_idle)
+static bool video_thread_read_viewport(void *data,
+      uint8_t *buffer, bool is_idle)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_READ_VIEWPORT };
 
    if (!thr)
       return false;
 
-   pkt.data.v   = buffer;
-   thr->is_idle = is_idle;
+   pkt.type            = CMD_READ_VIEWPORT;
+   pkt.data.v          = buffer;
+   thr->is_idle        = is_idle;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 
@@ -924,12 +947,13 @@ static bool video_thread_read_viewport(void *data, uint8_t *buffer, bool is_idle
 
 static void video_thread_free(void *data)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_FREE };
 
    if (!thr)
       return;
 
+   pkt.type             = CMD_FREE;
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 
    sthread_join(thr->thread);
@@ -937,7 +961,11 @@ static void video_thread_free(void *data)
 #if defined(HAVE_MENU)
    free(thr->texture.frame);
 #endif
+#ifdef _3DS
+   linearFree(thr->frame.buffer);
+#else
    free(thr->frame.buffer);
+#endif
    slock_free(thr->frame.lock);
    slock_free(thr->lock);
    scond_free(thr->cond_cmd);
@@ -955,13 +983,14 @@ static void video_thread_free(void *data)
 #ifdef HAVE_OVERLAY
 static void thread_overlay_enable(void *data, bool state)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_OVERLAY_ENABLE };
 
    if (!thr)
       return;
 
-   pkt.data.b = state;
+   pkt.type            = CMD_OVERLAY_ENABLE;
+   pkt.data.b          = state;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
@@ -969,14 +998,15 @@ static void thread_overlay_enable(void *data, bool state)
 static bool thread_overlay_load(void *data,
       const void *image_data, unsigned num_images)
 {
-   thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_OVERLAY_LOAD };
+   thread_packet_t pkt;
+   thread_video_t *thr                = (thread_video_t*)data;
    const struct texture_image *images =
       (const struct texture_image*)image_data;
 
    if (!thr)
       return false;
 
+   pkt.type            = CMD_OVERLAY_LOAD;
    pkt.data.image.data = images;
    pkt.data.image.num  = num_images;
 
@@ -988,16 +1018,17 @@ static bool thread_overlay_load(void *data,
 static void thread_overlay_tex_geom(void *data,
       unsigned idx, float x, float y, float w, float h)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_OVERLAY_TEX_GEOM };
 
    if (!thr)
       return;
+   pkt.type            = CMD_OVERLAY_TEX_GEOM;
    pkt.data.rect.index = idx;
-   pkt.data.rect.x = x;
-   pkt.data.rect.y = y;
-   pkt.data.rect.w = w;
-   pkt.data.rect.h = h;
+   pkt.data.rect.x     = x;
+   pkt.data.rect.y     = y;
+   pkt.data.rect.w     = w;
+   pkt.data.rect.h     = h;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
@@ -1005,27 +1036,29 @@ static void thread_overlay_tex_geom(void *data,
 static void thread_overlay_vertex_geom(void *data,
       unsigned idx, float x, float y, float w, float h)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_OVERLAY_VERTEX_GEOM };
 
    if (!thr)
       return;
 
+   pkt.type            = CMD_OVERLAY_VERTEX_GEOM;
    pkt.data.rect.index = idx;
-   pkt.data.rect.x = x;
-   pkt.data.rect.y = y;
-   pkt.data.rect.w = w;
-   pkt.data.rect.h = h;
+   pkt.data.rect.x     = x;
+   pkt.data.rect.y     = y;
+   pkt.data.rect.w     = w;
+   pkt.data.rect.h     = h;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
 
 static void thread_overlay_full_screen(void *data, bool enable)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_OVERLAY_FULL_SCREEN };
 
-   pkt.data.b = enable;
+   pkt.type            = CMD_OVERLAY_FULL_SCREEN;
+   pkt.data.b          = enable;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
@@ -1067,12 +1100,13 @@ static void video_thread_get_overlay_interface(void *data,
 static void thread_set_video_mode(void *data, unsigned width, unsigned height,
       bool video_fullscreen)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_POKE_SET_VIDEO_MODE };
 
    if (!thr)
       return;
 
+   pkt.type                     = CMD_POKE_SET_VIDEO_MODE;
    pkt.data.new_mode.width      = width;
    pkt.data.new_mode.height     = height;
    pkt.data.new_mode.fullscreen = video_fullscreen;
@@ -1082,11 +1116,12 @@ static void thread_set_video_mode(void *data, unsigned width, unsigned height,
 
 static void thread_set_filtering(void *data, unsigned idx, bool smooth, bool ctx_scaling)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_POKE_SET_FILTERING };
 
    if (!thr)
       return;
+   pkt.type                  = CMD_POKE_SET_FILTERING;
    pkt.data.filtering.index  = idx;
    pkt.data.filtering.smooth = smooth;
 
@@ -1131,12 +1166,13 @@ static void thread_get_video_output_next(void *data)
 
 static void thread_set_aspect_ratio(void *data, unsigned aspectratio_idx)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_POKE_SET_ASPECT_RATIO };
 
    if (!thr)
       return;
-   pkt.data.i = aspectratio_idx;
+   pkt.type            = CMD_POKE_SET_ASPECT_RATIO;
+   pkt.data.i          = aspectratio_idx;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
@@ -1197,24 +1233,26 @@ static void thread_set_osd_msg(void *data,
 
 static void thread_show_mouse(void *data, bool state)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_POKE_SHOW_MOUSE };
 
    if (!thr)
       return;
-   pkt.data.b = state;
+   pkt.type            = CMD_POKE_SHOW_MOUSE;
+   pkt.data.b          = state;
 
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
 
 static void thread_grab_mouse_toggle(void *data)
 {
+   thread_packet_t pkt;
    thread_video_t *thr = (thread_video_t*)data;
-   thread_packet_t pkt = { CMD_POKE_GRAB_MOUSE_TOGGLE };
 
    if (!thr)
       return;
 
+   pkt.type                       = CMD_POKE_GRAB_MOUSE_TOGGLE;
    video_thread_send_and_wait_user_to_thread(thr, &pkt);
 }
 
@@ -1229,15 +1267,13 @@ static uintptr_t thread_load_texture(void *video_data, void *data,
    return thr->poke->load_texture(thr->driver_data, data, threaded, filter_type);
 }
 
-static void thread_unload_texture(void *video_data, uintptr_t id)
+static void thread_unload_texture(void *video_data, bool threaded,
+      uintptr_t id)
 {
    thread_video_t *thr = (thread_video_t*)video_data;
-
-   if (!thr)
-      return;
-
-   if (thr->poke && thr->poke->unload_texture)
-      thr->poke->unload_texture(thr->driver_data, id);
+   if (thr && thr->poke && thr->poke->unload_texture)
+      thr->poke->unload_texture(thr->driver_data, threaded,
+            id);
 }
 
 static void thread_apply_state_changes(void *data)
@@ -1479,12 +1515,13 @@ bool video_thread_font_init(const void **font_driver, void **font_handle,
 unsigned video_thread_texture_load(void *data,
       custom_command_method_t func)
 {
+   thread_packet_t pkt;
    thread_video_t *thr  = (thread_video_t*)video_driver_get_ptr(true);
-   thread_packet_t pkt  = { CMD_CUSTOM_COMMAND };
 
    if (!thr)
       return 0;
 
+   pkt.type                       = CMD_CUSTOM_COMMAND;
    pkt.data.custom_command.method = func;
    pkt.data.custom_command.data   = (void*)data;
 

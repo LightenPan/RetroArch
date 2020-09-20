@@ -28,16 +28,15 @@
 
 typedef struct
 {
-   uint32_t audio_port;
-   bool nonblock;
-   bool started;
-   volatile bool quit_thread;
    fifo_buffer_t *buffer;
-
    sys_ppu_thread_t thread;
    sys_lwmutex_t lock;
    sys_lwmutex_t cond_lock;
    sys_lwcond_t cond;
+   uint32_t audio_port;
+   bool nonblock;
+   bool started;
+   volatile bool quit_thread;
 } ps3_audio_t;
 
 #ifdef __PSL1GHT__
@@ -61,7 +60,7 @@ static void event_loop(uint64_t data)
       sys_event_queue_receive(id, &event, SYS_NO_TIMEOUT);
 
       sys_lwmutex_lock(&aud->lock, SYS_NO_TIMEOUT);
-      if (fifo_read_avail(aud->buffer) >= sizeof(out_tmp))
+      if (FIFO_READ_AVAIL(aud->buffer) >= sizeof(out_tmp))
          fifo_read(aud->buffer, out_tmp, sizeof(out_tmp));
       else
          memset(out_tmp, 0, sizeof(out_tmp));
@@ -152,11 +151,11 @@ static ssize_t ps3_audio_write(void *data, const void *buf, size_t size)
 
    if (aud->nonblock)
    {
-      if (fifo_write_avail(aud->buffer) < size)
+      if (FIFO_WRITE_AVAIL(aud->buffer) < size)
          return 0;
    }
 
-   while (fifo_write_avail(aud->buffer) < size)
+   while (FIFO_WRITE_AVAIL(aud->buffer) < size)
       sys_lwcond_wait(&aud->cond, 0);
 
    sys_lwmutex_lock(&aud->lock, SYS_NO_TIMEOUT);

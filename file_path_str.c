@@ -31,6 +31,10 @@ const char *file_path_str(enum file_path_enum enum_idx)
       case FILE_PATH_DETECT:
          str = "DETECT";
          break;
+         // MG 鍚屾OGA
+       case FILE_PATH_BUILTIN:
+           str = "builtin";
+           break;
       case FILE_PATH_CONTENT_BASENAME:
          str = "content.png";
          break;
@@ -152,15 +156,18 @@ const char *file_path_str(enum file_path_enum enum_idx)
          str = ".index-extended";
          break;
       case FILE_PATH_NETPLAY_ROOM_LIST_URL:
-         str = "registry.lpl";
+         str = "http://i.retroachievements.org";
          break;
+       case FILE_PATH_RETROACHIEVEMENTS_URL:
+           str = "registry.lpl";
+           break;
       case FILE_PATH_CORE_THUMBNAILS_URL:
          {
             str = "http://gindex.retrogame.workers.dev/thumbnails";
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
             {
-               // 替换成基础地址，方便国外用户使用
+                // MG 鐢ㄩ厤缃浛鎹RL鍓嶇紑
                char base_url[256] = "http://gindex.retrogame.workers.dev";
                str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
             }
@@ -172,7 +179,7 @@ const char *file_path_str(enum file_path_enum enum_idx)
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
             {
-               // 替换成基础地址，方便国外用户使用
+                // MG 鐢ㄩ厤缃浛鎹RL鍓嶇紑
                char base_url[256] = "http://gindex.retrogame.workers.dev";
                str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
             }
@@ -184,7 +191,7 @@ const char *file_path_str(enum file_path_enum enum_idx)
             const settings_t *settings = config_get_ptr();
             if (settings && !string_is_empty(settings->paths.network_wiki_api_url))
             {
-               // 替换成基础地址，方便国外用户使用
+               // MG 鐢ㄩ厤缃浛鎹RL鍓嶇紑
                str = strreplace(str, DEFAULT_NETWORK_WIKI_API_URL, settings->paths.network_wiki_api_url);
             }
          }
@@ -280,7 +287,9 @@ const char *file_path_str(enum file_path_enum enum_idx)
       case FILE_PATH_LOCK_EXTENSION:
          str = ".lck";
          break;
+          // MG 鍚屾OGA
       case FILE_PATH_UNKNOWN:
+          str = "null";
       default:
          break;
    }

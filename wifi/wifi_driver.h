@@ -50,16 +50,17 @@ typedef struct wifi_driver
    bool (*start)(void *data);
    void (*stop)(void *data);
 
-   void (*scan)(void);
-   void (*get_ssids)(struct string_list *list);
-   bool (*ssid_is_online)(unsigned i);
-   bool (*connect_ssid)(unsigned i, const char* passphrase);
-   void (*tether_start_stop)(bool start, char* configfile);
+   void (*scan)(void *data);
+   void (*get_ssids)(void *data, struct string_list *list);
+   bool (*ssid_is_online)(void *data, unsigned i);
+   bool (*connect_ssid)(void *data, unsigned i, const char* passphrase);
+   void (*tether_start_stop)(void *data, bool start, char* configfile);
 
    const char *ident;
 } wifi_driver_t;
 
 extern wifi_driver_t wifi_connmanctl;
+extern wifi_driver_t wifi_nmcli;
 
 /**
  * config_get_wifi_driver_options:

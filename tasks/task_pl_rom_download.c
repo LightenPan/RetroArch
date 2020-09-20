@@ -297,7 +297,7 @@ static bool get_rom_paths(
       if (string_is_equal(system, "history") ||
           string_is_equal(system, "favorites"))
       {
-         if (!menu_thumbnail_get_content_dir(
+         if (!gfx_thumbnail_get_content_dir(
                pl_thumb->thumbnail_path_data, content_dir, sizeof(content_dir)))
             return false;
 
@@ -595,10 +595,11 @@ void yun_load_rom_state_cb(retro_task_t *task, void *task_data, void *user_data,
       netplay_driver_ctl(RARCH_NETPLAY_CTL_LOAD_SAVESTATE, NULL);
 #endif
 
-      if (settings && settings->bools.menu_savestate_resume)
-      {
-         generic_action_ok_command(CMD_EVENT_RESUME);
-      }
+      // todo xxxxxxx
+//      if (settings && settings->bools.menu_savestate_resume)
+//      {
+//         generic_action_ok_command(CMD_EVENT_RESUME);
+//      }
 
       succ_msg_queue_push("加载云存档成功");
    }

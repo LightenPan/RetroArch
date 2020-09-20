@@ -73,7 +73,7 @@ extern bool nxlink_connected;
 
 void libnx_apply_overclock(void)
 {
-   const size_t profiles_count = sizeof(SWITCH_CPU_PROFILES)
+   const size_t profiles_count = sizeof(SWITCH_CPU_PROFILES) 
       / sizeof(SWITCH_CPU_PROFILES[1]);
    settings_t *settings        = config_get_ptr();
    unsigned libnx_overclock    = settings->uints.libnx_overclock;
@@ -272,10 +272,10 @@ static void frontend_switch_get_environment_settings(
          path_mkdir(dir_path);
    }
 
-   fill_pathname_join(g_defaults.path.config,
+   fill_pathname_join(g_defaults.path_config,
          g_defaults.dirs[DEFAULT_DIR_PORT],
          file_path_str(FILE_PATH_MAIN_CONFIG),
-         sizeof(g_defaults.path.config));
+         sizeof(g_defaults.path_config));
 }
 
 static void frontend_switch_deinit(void *data)
@@ -339,7 +339,7 @@ static void frontend_switch_exec(const char *path, bool should_load_game)
    args++;
 #endif
 
-   game_path[0]       = NULL;
+   game_path[0]       = '\0';
 
    RARCH_LOG("Attempt to load core: [%s].\n", path);
 
@@ -724,7 +724,7 @@ static void frontend_switch_init(void *data)
    bool recording_supported      = false;
 
    nifmInitialize(NifmServiceType_User);
-
+   
    if (hosversionBefore(8, 0, 0))
       pcvInitialize();
    else
@@ -772,8 +772,8 @@ static int frontend_switch_parse_drive_list(void *data, bool load_content)
 {
 #ifndef IS_SALAMANDER
    file_list_t *list = (file_list_t *)data;
-   enum msg_hash_enums enum_idx = load_content
-      ? MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR
+   enum msg_hash_enums enum_idx = load_content 
+      ? MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR 
       : MENU_ENUM_LABEL_FILE_BROWSER_DIRECTORY;
 
    if (!list)
@@ -800,7 +800,7 @@ static uint64_t frontend_switch_get_mem_total(void)
    return mem_info.usmblks;
 }
 
-static enum frontend_powerstate
+static enum frontend_powerstate 
 frontend_switch_get_powerstate(int *seconds, int *percent)
 {
    uint32_t pct;
