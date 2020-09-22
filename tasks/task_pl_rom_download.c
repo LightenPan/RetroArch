@@ -321,7 +321,7 @@ static bool get_rom_paths(
       return false;
 
    /* Generate remote path */
-   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -673,7 +673,7 @@ void task_push_rom_download_multi(rom_download_handle_t *pHandle, bool iszip, co
    char url_query[1024] = {0};
    clac_retrogame_allinone_sign(url_query, sizeof(url_query));
    char raw_url[1024] = {0};
-   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, pHandle->system, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -899,7 +899,7 @@ bool task_push_pl_entry_rom_download(
 
    // 获取正常rom下载地址
    char raw_url[1024] = {0};
-   strlcpy(raw_url, file_path_str(FILE_PATH_ROM_URL), sizeof(raw_url));
+   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -1596,7 +1596,7 @@ static void task_push_pl_entry_get_ext_game_info_handler(retro_task_t *task)
    char url[2048] = {0};
    snprintf(url, sizeof(url),
       "%s/api/RetroGameWiki/extGameInfo?platform=%s&crc32=%s",
-      file_path_str(FILE_PATH_WIKI_API_URL), handle->system, handle->crc32);
+				gen_wiki_api_url(), handle->system, handle->crc32);
    RARCH_LOG("task_push_pl_entry_get_ext_game_info log http transfer. url: %s\n", url);
 
    // 新建的http任务，需要透传get_ext_game_info_handle_t

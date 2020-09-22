@@ -8754,9 +8754,9 @@ static bool discord_download_avatar(
    if (string_is_empty(avatar_id))
       return false;
 
-   snprintf(url, sizeof(url), "%s/%s/%s" FILE_PATH_PNG_EXTENSION, CDN_URL, user_id, avatar_id);
+   snprintf(url, sizeof(url), "%s/%s/%s", FILE_PATH_PNG_EXTENSION, CDN_URL, user_id, avatar_id);
    net_http_urlencode_full(url_encoded, url, sizeof(url_encoded));
-   snprintf(buf, sizeof(buf), "%s" FILE_PATH_PNG_EXTENSION, avatar_id);
+   snprintf(buf, sizeof(buf), "%s", FILE_PATH_PNG_EXTENSION, avatar_id);
 
    transf           = (file_transfer_t*)malloc(sizeof(*transf));
 
@@ -8855,7 +8855,8 @@ finish:
 
 static void handle_discord_join(const char* secret)
 {
-   char url[2048]              = FILE_PATH_LOBBY_LIBRETRO_URL;
+   char url[2048]              = {0};
+   strlcpy(url, FILE_PATH_LOBBY_LIBRETRO_URL, sizeof(url));
    struct string_list    *list = string_split(secret, "|");
    struct rarch_state *p_rarch = &rarch_st;
    discord_state_t *discord_st = &p_rarch->discord_st;

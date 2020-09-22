@@ -3265,7 +3265,7 @@ static unsigned menu_displaylist_parse_playlists(
                string_ends_with_size(path, "_history.lpl",
                   strlen(path), STRLEN_CONST("_history.lpl"))
             || string_is_equal(playlist_file,
-               file_path_str(FILE_PATH_CONTENT_FAVORITES)))
+               FILE_PATH_CONTENT_FAVORITES))
          continue;
 
       file_type = FILE_TYPE_PLAYLIST_COLLECTION;
@@ -3526,7 +3526,7 @@ static unsigned menu_displaylist_parse_playlist_manager_list(
                   string_ends_with_size(path, "_history.lpl",
                      strlen(path), STRLEN_CONST("_history.lpl"))
                || string_is_equal(playlist_file,
-                  file_path_str(FILE_PATH_CONTENT_FAVORITES)))
+                  FILE_PATH_CONTENT_FAVORITES))
             continue;
 
          menu_entries_append_enum(info->list,

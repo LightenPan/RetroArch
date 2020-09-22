@@ -269,17 +269,14 @@ OBJ += \
        led/led_driver.o \
        gfx/video_coord_array.o \
        gfx/video_crt_switch.o \
-		 gfx/gfx_display.o \
+       gfx/gfx_display.o \
        gfx/gfx_animation.o \
-		 gfx/gfx_thumbnail_path.o \
-		 gfx/gfx_thumbnail.o \
+       gfx/gfx_thumbnail_path.o \
+       gfx/gfx_thumbnail.o \
        configuration.o \
        $(LIBRETRO_COMM_DIR)/dynamic/dylib.o \
        cores/dynamic_dummy.o \
        $(LIBRETRO_COMM_DIR)/queues/message_queue.o
-
-# MG 字符串常量
-OBJ += file_path_str.o
 
 ifeq ($(HAVE_REWIND), 1)
 DEFINES += -DHAVE_REWIND

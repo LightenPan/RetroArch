@@ -67,6 +67,16 @@
 #include "paths.h"
 #include "verbosity.h"
 
+
+// MG 处理特殊路径
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "libretro-common/include/string/stdstring.h"
+#include "config.def.h"
+
+
 bool fill_pathname_application_data(char *s, size_t len)
 {
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__WINRT__)
@@ -459,4 +469,43 @@ void fill_pathname_application_special(char *s,
       default:
          break;
    }
+}
+
+
+const char *gen_core_thumbnails_url()
+{
+	const char *str = "http://gindex.retrogame.workers.dev/thumbnails";
+	const settings_t *settings = config_get_ptr();
+	if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
+	{
+		// MG 用配置替换URL前缀
+		char base_url[256] = "http://gindex.retrogame.workers.dev";
+		str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
+	}
+	return str;
+}
+
+const char *gen_rom_download_url()
+{
+	const char *str = "http://gindex.retrogame.workers.dev/roms";
+	const settings_t *settings = config_get_ptr();
+	if (settings && !string_is_empty(settings->paths.network_buildbot_base_url))
+	{
+		// MG 用配置替换URL前缀
+		char base_url[256] = "http://gindex.retrogame.workers.dev";
+		str = strreplace(str, base_url, settings->paths.network_buildbot_base_url);
+	}
+	return str;
+}
+
+const char *gen_wiki_api_url()
+{
+	const char *str = DEFAULT_NETWORK_WIKI_API_URL;
+	const settings_t *settings = config_get_ptr();
+	if (settings && !string_is_empty(settings->paths.network_wiki_api_url))
+	{
+		// MG 用配置替换URL前缀
+		str = strreplace(str, DEFAULT_NETWORK_WIKI_API_URL, settings->paths.network_wiki_api_url);
+	}
+	return str;
 }

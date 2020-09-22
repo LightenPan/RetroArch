@@ -338,8 +338,8 @@ static bool playlist_core_path_equal(const char *real_core_path, const char *ent
 
    /* Get entry 'real' core path */
    strlcpy(entry_real_core_path, entry_core_path, sizeof(entry_real_core_path));
-   if (!string_is_equal(entry_real_core_path, file_path_str(FILE_PATH_DETECT)) &&
-       !string_is_equal(entry_real_core_path, file_path_str(FILE_PATH_BUILTIN)))
+   if (!string_is_equal(entry_real_core_path, FILE_PATH_DETECT) &&
+       !string_is_equal(entry_real_core_path, FILE_PATH_BUILTIN))
       playlist_resolve_path(PLAYLIST_SAVE, true, entry_real_core_path,
             sizeof(entry_real_core_path));
 

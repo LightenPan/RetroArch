@@ -1861,12 +1861,12 @@ static int rcheevos_iterate(rcheevos_coro_t* coro)
                if (coro->j == 0)
                   snprintf(coro->badge_name,
                         sizeof(coro->badge_name),
-                        "%s", file_path_str(FILE_PATH_PNG_EXTENSION),
+                        "%s", FILE_PATH_PNG_EXTENSION,
                         coro->cheevo->info->badge);
                else
                   snprintf(coro->badge_name,
                         sizeof(coro->badge_name),
-                        "%s_lock", file_path_str(FILE_PATH_PNG_EXTENSION),
+                        "%s_lock", FILE_PATH_PNG_EXTENSION,
                         coro->cheevo->info->badge);
 
                fill_pathname_join(
@@ -1885,7 +1885,7 @@ static int rcheevos_iterate(rcheevos_coro_t* coro)
                   snprintf(coro->url,
                         sizeof(coro->url),
                         "%s/Badge/%s",
-                        file_path_str(FILE_PATH_RETROACHIEVEMENTS_URL),
+                        FILE_PATH_RETROACHIEVEMENTS_URL,
                         coro->badge_name);
 
                   CORO_GOSUB(RCHEEVOS_HTTP_GET);

@@ -287,10 +287,10 @@ bool gfx_thumbnail_set_system(gfx_thumbnail_path_data_t *path_data,
       playlist_valid =
             (string_is_equal(system, "history") &&
              string_is_equal(playlist_file,
-                file_path_str(FILE_PATH_CONTENT_HISTORY))) ||
+                FILE_PATH_CONTENT_HISTORY)) ||
             (string_is_equal(system, "favorites") &&
              string_is_equal(playlist_file,
-                file_path_str(FILE_PATH_CONTENT_FAVORITES)));
+                FILE_PATH_CONTENT_FAVORITES));
 
       if (!playlist_valid)
       {
@@ -817,4 +817,26 @@ bool gfx_thumbnail_get_content_dir(
    strlcpy(content_dir, path_basename(tmp_buf), len);
    
    return !string_is_empty(content_dir);
+}
+
+/* Fetches current database name.
+ * Returns true if database name is valid. */
+bool gfx_thumbnail_get_basename(
+		gfx_thumbnail_path_data_t *path_data, const char **img_name)
+{
+	if (!img_name)
+		return false;
+
+	if (!string_is_empty(path_data->content_path))
+	{
+		*img_name = path_basename(path_data->content_path);
+		return true;
+	}
+
+	if (string_is_empty(path_data->content_img))
+		return false;
+
+	*img_name = path_data->content_img;
+
+	return true;
 }

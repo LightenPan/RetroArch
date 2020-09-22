@@ -2812,7 +2812,7 @@ static config_file_t *open_default_config_file(void)
    if (!conf && getenv("HOME"))
    {
       fill_pathname_join(conf_path, getenv("HOME"),
-            "." FILE_PATH_MAIN_CONFIG, sizeof(conf_path));
+      		"." FILE_PATH_MAIN_CONFIG, sizeof(conf_path));
       RARCH_LOG("Looking for config in: \"%s\".\n", conf_path);
       conf = config_file_new_from_path_to_string(conf_path);
    }

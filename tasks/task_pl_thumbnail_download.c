@@ -152,7 +152,7 @@ static bool get_thumbnail_paths(
 
    /* Generate remote path */
    snprintf(raw_url, sizeof(raw_url), "%s/%s/%s/%s",
-         FILE_PATH_CORE_THUMBNAILS_URL,
+   		gen_core_thumbnails_url(),
          system_name,
          sub_dir,
          img_name
