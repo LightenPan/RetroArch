@@ -6223,6 +6223,8 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 	if (!cached_playlist)
       return;
 
+	if (cached_playlist->base_content_directory == NULL)
+
    // 计算路径HashId
    char *basename = path_basename(cached_playlist->base_content_directory);
    snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
