@@ -557,6 +557,12 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_take_screenshot,                    
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_close_content,                         MENU_ENUM_SUBLABEL_CLOSE_CONTENT)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_load_state,                            MENU_ENUM_SUBLABEL_LOAD_STATE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_save_state,                            MENU_ENUM_SUBLABEL_SAVE_STATE)
+// MG 云存档
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_yun_load_state,                        MENU_ENUM_SUBLABEL_YUN_LOAD_STATE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_yun_save_state,                        MENU_ENUM_SUBLABEL_YUN_SAVE_STATE)
+// MG SRM云存档
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_yun_load_srm_file,                     MENU_ENUM_SUBLABEL_YUN_LOAD_SRM_FILE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_yun_save_srm_file,                     MENU_ENUM_SUBLABEL_YUN_SAVE_SRM_FILE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_resume_content,                        MENU_ENUM_SUBLABEL_RESUME_CONTENT)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_state_slot,                            MENU_ENUM_SUBLABEL_STATE_SLOT)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_undo_load_state,                       MENU_ENUM_SUBLABEL_UNDO_LOAD_STATE)
@@ -2336,6 +2342,22 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_LOAD_STATE:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_load_state);
+            break;
+            // MG 保存云存档
+         case MENU_ENUM_LABEL_YUN_SAVE_STATE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_yun_save_state);
+            break;
+            // MG 加载云存档
+         case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_yun_load_state);
+            break;
+            // MG 保存SRM云存档
+         case MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_yun_save_srm_file);
+            break;
+            // MG 加载SRM云存档
+         case MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_yun_load_srm_file);
             break;
          case MENU_ENUM_LABEL_CLOSE_CONTENT:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_close_content);

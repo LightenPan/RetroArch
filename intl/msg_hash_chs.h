@@ -4957,6 +4957,36 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
    "读取云存档"
    )
+// MG SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_SRM_FILE,
+   "保存SRM云存档"
+   )
+// MG SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_LOAD_SRM_FILE,
+   "读取SRM云存档"
+   )
+// MG 加载云存档
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_STATE,
+   "从当前选定的卡槽加载云存档。"
+   )
+// MG 加载SRM云存档
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_SRM_FILE,
+   "从当前选定的卡槽加载云存档。"
+   )
+// MG 保存云存档
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_STATE,
+   "在当前选定的卡槽保存云存档。"
+   )
+// MG 保存SRM云存档
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_SRM_FILE,
+   "在当前选定的卡槽保存SRM云存档。"
+   )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LOAD_STATE,
    "从当前选定的卡槽加载状态。"

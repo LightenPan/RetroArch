@@ -832,17 +832,17 @@ static void task_load_handler(retro_task_t *task)
 
    if (!state->file)
    {
-#if defined(HAVE_ZLIB)
-      /* Always use RZIP interface when reading state
-       * files - this will automatically handle uncompressed
-       * data */
+ #if defined(HAVE_ZLIB)
+       /* Always use RZIP interface when reading state
+        * files - this will automatically handle uncompressed
+        * data */
       state->file = intfstream_open_rzip_file(state->path,
-            RETRO_VFS_FILE_ACCESS_READ);
-#else
-      state->file = intfstream_open_file(state->path,
-            RETRO_VFS_FILE_ACCESS_READ,
-            RETRO_VFS_FILE_ACCESS_HINT_NONE);
-#endif
+             RETRO_VFS_FILE_ACCESS_READ);
+ #else
+		state->file = intfstream_open_file(state->path,
+				 RETRO_VFS_FILE_ACCESS_READ,
+				 RETRO_VFS_FILE_ACCESS_HINT_NONE);
+ #endif
 
       if (!state->file)
          goto error;
@@ -955,14 +955,14 @@ static void content_load_state_cb(retro_task_t *task,
    settings_t *settings        = config_get_ptr();
    bool block_sram_overwrite   = settings->bools.block_sram_overwrite;
 
-   RARCH_LOG("%s: \"%s\".\n",
+   RARCH_LOG("content_load_state_cb %s: \"%s\".\n",
          msg_hash_to_str(MSG_LOADING_STATE),
          load_data->path);
 
    if (size < 0 || !buf)
       goto error;
 
-   RARCH_LOG("%s: %u %s.\n",
+   RARCH_LOG("content_load_state_cb %s: %u %s.\n",
          msg_hash_to_str(MSG_STATE_SIZE),
          (unsigned)size,
          msg_hash_to_str(MSG_BYTES));
@@ -995,7 +995,7 @@ static void content_load_state_cb(retro_task_t *task,
    if (block_sram_overwrite && task_save_files
          && task_save_files->size)
    {
-      RARCH_LOG("[SRAM]: %s.\n",
+      RARCH_LOG("content_load_state_cb [SRAM]: %s.\n",
             msg_hash_to_str(MSG_BLOCKING_SRAM_OVERWRITE));
       blocks = (struct sram_block*)
          calloc(task_save_files->size, sizeof(*blocks));
@@ -1080,7 +1080,7 @@ static void content_load_state_cb(retro_task_t *task,
    return;
 
 error:
-   RARCH_ERR("%s \"%s\".\n",
+   RARCH_ERR("content_load_state_cb %s \"%s\".\n",
          msg_hash_to_str(MSG_FAILED_TO_LOAD_STATE),
          load_data->path);
    if (buf)

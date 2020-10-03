@@ -2200,6 +2200,22 @@ static int menu_displaylist_parse_load_content_settings(
                   MENU_ENUM_LABEL_YUN_LOAD_STATE,
                   MENU_SETTING_ACTION_YUNLOADSTATE, 0, 0))
                count++;
+
+            // MG 保存SRM云存档
+            if (menu_entries_append_enum(list,
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_SAVE_SRM_FILE),
+                  msg_hash_to_str(MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE),
+                  MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE,
+                  MENU_SETTING_ACTION_YUN_SAVE_SRM_FILE, 0, 0))
+               count++;
+
+            // MG 加载SRM云存档
+            if (menu_entries_append_enum(list,
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_YUN_LOAD_SRM_FILE),
+                  msg_hash_to_str(MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE),
+                  MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE,
+                  MENU_SETTING_ACTION_YUN_LOAD_SRM_FILE, 0, 0))
+               count++;
          }
       }
 

@@ -297,7 +297,7 @@ static bool get_rom_paths(
       if (string_is_equal(system, "history") ||
           string_is_equal(system, "favorites"))
       {
-         if (!menu_thumbnail_get_content_dir(
+         if (!gfx_thumbnail_get_content_dir(
                pl_thumb->thumbnail_path_data, content_dir, sizeof(content_dir)))
             return false;
 
@@ -1741,3 +1741,171 @@ error:
    return false;
 }
 
+void yun_load_srm_file_cb(retro_task_t *task, void *task_data, void *user_data, const char *error)
+{
+   RARCH_LOG("yun_load_srm_file_cb bgein. error: %s\n", error);
+
+   char show_errmsg[1024] = {0};
+   struct sram_block *blocks = NULL;
+   settings_t *settings = config_get_ptr();
+   bool resume = false;
+   file_transfer_t *transf = (file_transfer_t*)user_data;
+   http_transfer_data_t *data = (http_transfer_data_t*)task_data;
+
+   if (!transf && !transf->path)
+      goto finish;
+
+   if (error && strlen(error) > 0 && transf->title)
+   {
+      snprintf(show_errmsg, sizeof(show_errmsg), "SRM云存档%s下载失败", transf->title);
+      goto finish;
+   }
+
+   if (!data || !data->data)
+      goto finish;
+
+   RARCH_LOG("yun_load_srm_file_cb begin. savepath: %s, data_len: %u\n", transf->path, data->len);
+
+   // 保存存档文件
+   if (!filestream_write_file(transf->path, data->data, data->len))
+   {
+      snprintf(show_errmsg, sizeof(show_errmsg), "保存SRM存档文件失败：%s", transf->path);
+      goto finish;
+   }
+   
+   if (event_load_save_files(false))
+   {
+      succ_msg_queue_push("下载SRM云存档并加载成功");
+   }
+
+finish:
+   if (strlen(show_errmsg) > 0)
+   {
+      runloop_msg_queue_push(show_errmsg,2, 180, true,
+         NULL, MESSAGE_QUEUE_ICON_DEFAULT, MESSAGE_QUEUE_CATEGORY_ERROR);
+   }
+
+   if (data)
+   {
+      if (data->data)
+         free(data->data);
+      free(data);
+   }
+
+   if (transf)
+      free(transf);
+}
+
+int yun_load_srm_file(char *path)
+{
+   char *loadname = path_basename(path);
+   RARCH_LOG("yun_load_srm_file begin. loadname: %s, path: %s\n", loadname, path);
+
+   file_transfer_t *transf = (file_transfer_t*)calloc(1, sizeof(file_transfer_t));
+   if (!transf)
+   {
+      RARCH_ERR("yun_load_srm_file calloc failed. loadname: %s\n", loadname);
+      return false;
+   }
+   // 设置存档文件的保存文件路径
+   snprintf(transf->title, sizeof(transf->title), "%s", loadname);
+   strlcpy(transf->path, path, sizeof(transf->path));
+
+   char *load_state_url = genYunLoadStateUrl(loadname);
+   {
+      RARCH_LOG("yun_load_srm_file log http info. url: %s, loadname: %s, path: %s\n", load_state_url, loadname, path);
+      task_push_http_transfer_file(load_state_url, false, NULL, yun_load_srm_file_cb, transf);
+   }
+   free(load_state_url);
+   return true;
+}
+
+
+// MG 云上传SRM存档文件
+// 内部逻辑复用分片上传逻辑
+int yun_save_srm_file(char *path)
+{
+   settings_t *settings = config_get_ptr();
+   char show_errmsg[1024] = {0};
+   const char *savename = path_basename(path);
+   RARCH_LOG("yun_save_srm_file begin. savename: %s, savepath: %s\n", savename, path);
+
+   char *save_state_buf = NULL;
+   int64_t save_state_buf_size = 0;
+   if (!path_is_valid(path))
+   {
+      snprintf(show_errmsg, sizeof(show_errmsg), "SRM存档文件无效：%s", path);
+      goto error;
+   }
+
+   filestream_read_file(path, (void**)&save_state_buf, &save_state_buf_size);
+   if (string_is_empty(save_state_buf) || save_state_buf_size == 0)
+   {
+      snprintf(show_errmsg, sizeof(show_errmsg), "读取SRM存档文件失败：%s", path);
+      goto error;
+   }
+   char save_state_buf_md5[64] = {0};
+   md5_hexdigest(save_state_buf, save_state_buf_size, save_state_buf_md5, sizeof(save_state_buf_md5));
+
+   // 后台任务变量
+   task_finder_data_t find_data;
+   retro_task_t *task = task_init();
+
+   /* Concurrent download of thumbnails for the same
+    * playlist is not allowed */
+   find_data.func                = task_push_yun_save_rom_state_finder;
+   find_data.userdata            = (void*)path;
+   if (task_queue_find(&find_data))
+      goto error;
+
+   // 分配任务上下文
+   yun_save_rom_state_handle_t *ysrsh = (yun_save_rom_state_handle_t*)malloc(sizeof(yun_save_rom_state_handle_t));
+   if (!ysrsh)
+   {
+      snprintf(show_errmsg, sizeof(show_errmsg), "分配任务上下文失败：%s", path);
+      goto error;
+   }
+   strncpy(ysrsh->save_state_path, path, sizeof(ysrsh->save_state_path) - 1);
+   strncpy(ysrsh->save_state_buf_md5, save_state_buf_md5, sizeof(ysrsh->save_state_buf_md5) - 1);
+   ysrsh->save_state_buf = save_state_buf;
+   ysrsh->save_state_buf_size = save_state_buf_size;
+   ysrsh->uploaded_file_size = 0;
+   ysrsh->seq = 0;
+   ysrsh->only_fragment_failed = false;
+   ysrsh->http_task = NULL;
+   ysrsh->fragment_buf_size = 100*1024;
+
+   /* Configure task */
+   task->handler                 = task_push_yun_save_rom_state_handler;
+   task->state                   = ysrsh;
+   task->title                   = strdup(savename);
+   task->alternative_look        = true;
+   task->progress                = 0;
+   task_queue_push(task);
+   return true;
+
+error:
+   if (task && task->title)
+   {
+      free(task->title);
+      task->title = NULL;
+   }
+
+   if (task)
+   {
+      free(task);
+      task = NULL;
+   }
+
+   if (ysrsh)
+   {
+      free(ysrsh);
+      ysrsh = NULL;
+   }
+
+   if (save_state_buf)
+   {
+      free(save_state_buf);
+   }
+   return false;
+}

@@ -1739,11 +1739,15 @@ int msg_hash_get_help_cht_enum(enum msg_hash_enums msg, char *s, size_t len)
       case MENU_ENUM_LABEL_LOAD_STATE:
          snprintf(s, len,
                "載入即時存檔.");
-			break;
-		case MENU_ENUM_LABEL_YUN_LOAD_STATE:
-			snprintf(s, len,
-				"載入雲存檔。");
-			break;
+         break;
+      case MENU_ENUM_LABEL_YUN_LOAD_STATE:
+         snprintf(s, len,
+               "載入雲存檔。");
+         break;
+      case MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE:
+         snprintf(s, len,
+               "載入SRM雲存檔。");
+         break;
       case MENU_ENUM_LABEL_SAVE_STATE:
          snprintf(s, len,
                "儲存即時存檔.");
@@ -1751,6 +1755,10 @@ int msg_hash_get_help_cht_enum(enum msg_hash_enums msg, char *s, size_t len)
       case MENU_ENUM_LABEL_YUN_SAVE_STATE:
          snprintf(s, len,
                "儲存云存檔.");
+         break;
+      case MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE:
+         snprintf(s, len,
+               "儲存SRM云存檔.");
          break;
       case MENU_ENUM_LABEL_CHEAT_INDEX_PLUS:
          snprintf(s, len,

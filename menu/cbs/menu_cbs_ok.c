@@ -3874,6 +3874,33 @@ static int action_ok_yun_save_state(const char *path,
    return 0;
 }
 
+// MG 保存SRM云存档调用入口
+static int action_ok_yun_save_srm_file(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   settings_t *settings = config_get_ptr();
+   bool resume          = settings->bools.menu_savestate_resume;
+
+   if (generic_action_ok_command(CMD_EVENT_YUN_SAVE_SRM_FILE) == -1)
+      return menu_cbs_exit();
+
+   if (resume)
+      return generic_action_ok_command(CMD_EVENT_RESUME);
+
+   return 0;
+}
+
+// MG 加载SRM云存档调用入口
+static int action_ok_yun_load_srm_file(
+   const char *path, const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   RARCH_LOG("action_ok_yun_load_srm_file begin. path: %s, label: %s\n", path, label);
+
+   if (generic_action_ok_command(CMD_EVENT_YUN_LOAD_SRM_FILE) == -1)
+      return menu_cbs_exit();
+   return 0;
+}
+
 static int action_ok_cheevos_toggle_hardcore_mode(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -6977,6 +7004,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          // MG 云存档
          {MENU_ENUM_LABEL_YUN_SAVE_STATE,                      action_ok_yun_save_state},
          {MENU_ENUM_LABEL_YUN_LOAD_STATE,                      action_ok_yun_load_state},
+         // MG SRM云存档
+         {MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE,                   action_ok_yun_save_srm_file},
+         {MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE,                   action_ok_yun_load_srm_file},
          {MENU_ENUM_LABEL_UNDO_LOAD_STATE,                     action_ok_undo_load_state},
          {MENU_ENUM_LABEL_UNDO_SAVE_STATE,                     action_ok_undo_save_state},
          {MENU_ENUM_LABEL_RESUME_CONTENT,                      action_ok_resume_content},

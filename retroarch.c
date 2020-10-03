@@ -2793,6 +2793,14 @@ static const char **input_keyboard_start_line(void *userdata,
 static bool input_keyboard_ctl(
       enum rarch_input_keyboard_ctl_state state, void *data);
 
+// MG 一些函数定义
+extern int yun_load_rom_state(char *path);
+extern int generic_action_ok_command(enum event_command cmd);
+
+extern int yun_save_srm_file(char *path);
+extern int yun_load_srm_file(char *path);
+
+
 // MG 九宫格键盘
 void input_event_set_osk_idx(enum osk_type idx)
 {
@@ -14902,6 +14910,24 @@ static bool command_event_main_state(
             }
             push_msg = false;
             break;
+            // MG 保存云存档SRM文件
+         case CMD_EVENT_YUN_SAVE_SRM_FILE:
+            RARCH_LOG("CMD_EVENT_YUN_SAVE_SRM_FILE\n");
+            if (yun_save_srm_file(global->name.savefile))
+            {
+               ret      = true;
+               push_msg = false;
+            }
+            break;
+            // MG 加载云存档SRM文件
+         case CMD_EVENT_YUN_LOAD_SRM_FILE:
+            RARCH_LOG("CMD_EVENT_YUN_SAVE_SRM_FILE\n");
+            if (yun_load_srm_file(global->name.savefile))
+            {
+               ret = true;
+               push_msg = false;
+            }
+            break;
          case CMD_EVENT_UNDO_LOAD_STATE:
             command_event_undo_load_state(msg, sizeof(msg));
             ret = true;
@@ -15346,6 +15372,16 @@ bool command_event(enum event_command cmd, void *data)
                configuration_set_int(settings, settings->ints.state_slot, new_state_slot);
             }
          }
+         if (!command_event_main_state(p_rarch, cmd))
+            return false;
+         break;
+         // MG 保存SRM云存档
+      case CMD_EVENT_YUN_SAVE_SRM_FILE:
+         if (!command_event_main_state(p_rarch, cmd))
+            return false;
+         break;
+         // MG 加载SRM云存档
+      case CMD_EVENT_YUN_LOAD_SRM_FILE:
          if (!command_event_main_state(p_rarch, cmd))
             return false;
          break;

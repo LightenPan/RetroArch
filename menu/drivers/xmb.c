@@ -2256,8 +2256,8 @@ static void xmb_context_reset_horizontal_list(
             free(console_content_logo_name);
          }
 
-         RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
-            conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
+         // RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
+         //    conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
       }
       free(conf);
       /////////////////////////////////////////////////////////////////////////////
@@ -2601,12 +2601,14 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
       case MENU_ENUM_LABEL_ACHIEVEMENT_LIST_HARDCORE:
          return xmb->textures.list[XMB_TEXTURE_ACHIEVEMENT_LIST];
       case MENU_ENUM_LABEL_SAVE_STATE:
-      case MENU_ENUM_LABEL_YUN_SAVE_STATE:
+      case MENU_ENUM_LABEL_YUN_SAVE_STATE: // MG 保存云存档
+      case MENU_ENUM_LABEL_YUN_SAVE_SRM_FILE: // MG 保存SRM云存档
       case MENU_ENUM_LABEL_SAVESTATE_AUTO_SAVE:
       case MENU_ENUM_LABEL_CORE_CREATE_BACKUP:
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
       case MENU_ENUM_LABEL_LOAD_STATE:
-      case MENU_ENUM_LABEL_YUN_LOAD_STATE: // 云存档
+      case MENU_ENUM_LABEL_YUN_LOAD_STATE: // MG 加载云存档
+      case MENU_ENUM_LABEL_YUN_LOAD_SRM_FILE: // MG 加载SRM云存档
       case MENU_ENUM_LABEL_CONFIGURATIONS:
       case MENU_ENUM_LABEL_GAME_SPECIFIC_OPTIONS:
       case MENU_ENUM_LABEL_REMAP_FILE_LOAD:
@@ -2932,9 +2934,11 @@ static uintptr_t xmb_icon_get_id(xmb_handle_t *xmb,
          return xmb->textures.list[XMB_TEXTURE_CLOSE];
       case MENU_SETTING_ACTION_SAVESTATE:
       case MENU_SETTING_ACTION_YUNSAVESTATE: // MG 保存云存档
+      case MENU_SETTING_ACTION_YUN_SAVE_SRM_FILE: // MG 保存SRM云存档
          return xmb->textures.list[XMB_TEXTURE_SAVESTATE];
       case MENU_SETTING_ACTION_LOADSTATE:
       case MENU_SETTING_ACTION_YUNLOADSTATE: // MG 加载云存档
+      case MENU_SETTING_ACTION_YUN_LOAD_SRM_FILE: // MG 加载SRM云存档
          return xmb->textures.list[XMB_TEXTURE_LOADSTATE];
       case FILE_TYPE_RDB_ENTRY:
          return xmb->textures.list[XMB_TEXTURE_CORE_INFO];

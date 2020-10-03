@@ -52,6 +52,8 @@ enum event_command
    CMD_EVENT_LOAD_STATE,
    CMD_EVENT_YUN_SAVE_STATE, // MG 保存云存档
    CMD_EVENT_YUN_LOAD_STATE, // MG 读取云存档
+   CMD_EVENT_YUN_SAVE_SRM_FILE, // MG 保存云存档SRM文件
+   CMD_EVENT_YUN_LOAD_SRM_FILE, // MG 读取云存档SRM文件
    /* Swaps the current state with what's on the undo load buffer */
    CMD_EVENT_UNDO_LOAD_STATE,
    /* Rewrites a savestate on disk */
