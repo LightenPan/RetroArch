@@ -6219,22 +6219,27 @@ size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t play
 // MG 设置列表最近位置
 void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 {
-   // RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %d\n", select_ptr_old);=
    char calc_hashid_key[256] = {0};
    struct rarch_state   *p_rarch  = &rarch_st;
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
    menu_list_t *menu_list         = menu_st->entries.list;
-	if (!menu_list)
+	if (!menu_list) {
+		RARCH_LOG("menu_entries_set_selection_ptr_old menu_list null. select_ptr_old: %u\n",
+			select_ptr_old);
 		return;
+	}
 
 	playlist_t *cached_playlist = playlist_get_cached();
-	if (!cached_playlist)
+	if (!cached_playlist) {
+		RARCH_LOG("menu_entries_set_selection_ptr_old no cached playlist. select_ptr_old: %u\n",
+			select_ptr_old);
       return;
-
-	if (cached_playlist->base_content_directory == NULL)
+	}
 
    // 计算路径HashId
-   char *basename = path_basename(cached_playlist->base_content_directory);
+	RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %u, path: %s, \n",
+			select_ptr_old, cached_playlist->config.path);
+   char *basename = path_basename(cached_playlist->config.path);
    snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
    uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
