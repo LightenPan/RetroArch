@@ -34,9 +34,9 @@
 /* Holds all entries in a core backup list */
 struct core_backup_list
 {
+   core_backup_list_entry_t *entries;
    size_t size;
    size_t capacity;
-   core_backup_list_entry_t *entries;
 };
 
 /*********************/
@@ -163,7 +163,7 @@ bool core_backup_get_backup_path(
          (unsigned)time_info.tm_sec,
          crc,
          (unsigned)backup_mode,
-         file_path_str(FILE_PATH_CORE_BACKUP_EXTENSION));
+         FILE_PATH_CORE_BACKUP_EXTENSION);
 
    if ((n < 0) || (n >= 128))
       n = 0; /* Silence GCC warnings... */
@@ -199,7 +199,7 @@ enum core_backup_type core_backup_get_backup_type(const char *backup_path)
 
    /* Check if this is an archived backup */
    if (string_is_equal_noncase(backup_ext,
-         file_path_str(FILE_PATH_CORE_BACKUP_EXTENSION_NO_DOT)))
+         FILE_PATH_CORE_BACKUP_EXTENSION_NO_DOT))
    {
       const char *backup_filename = NULL;
       const char *src_ext         = NULL;
@@ -293,9 +293,8 @@ bool core_backup_get_backup_crc(char *backup_path, uint32_t *crc)
             string_list_free(metadata_list);
             metadata_list = NULL;
 
-            return true;
          }
-         break;
+         return true;
       case CORE_BACKUP_TYPE_LIB:
          {
             intfstream_t *backup_file = NULL;
@@ -517,7 +516,7 @@ core_backup_list_t *core_backup_list_init(
    /* Get backup file list */
    dir_list = dir_list_new(
          backup_dir,
-         file_path_str(FILE_PATH_CORE_BACKUP_EXTENSION),
+         FILE_PATH_CORE_BACKUP_EXTENSION,
          false, /* include_dirs */
          false, /* include_hidden */
          false, /* include_compressed */
@@ -536,23 +535,27 @@ core_backup_list_t *core_backup_list_init(
    dir_list_sort(dir_list, true);
 
    /* Create core backup list */
-   backup_list = (core_backup_list_t*)calloc(1, sizeof(*backup_list));
+   backup_list = (core_backup_list_t*)malloc(sizeof(*backup_list));
 
    if (!backup_list)
       goto error;
+
+   backup_list->entries  = NULL;
+   backup_list->capacity = 0;
+   backup_list->size     = 0;
 
    /* Create entries array
     * (Note: Set this to the full size of the directory
     * list - this may be larger than we need, but saves
     * many inefficiencies later)   */
-   entries = (core_backup_list_entry_t*)calloc(dir_list->size, sizeof(*entries));
+   entries               = (core_backup_list_entry_t*)
+      calloc(dir_list->size, sizeof(*entries));
 
    if (!entries)
       goto error;
 
    backup_list->entries  = entries;
    backup_list->capacity = dir_list->size;
-   backup_list->size     = 0;
 
    /* Loop over backup files and parse file names */
    for (i = 0; i < dir_list->size; i++)

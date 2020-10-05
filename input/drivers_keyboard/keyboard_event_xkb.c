@@ -29,6 +29,7 @@
 
 #define MOD_MAP_SIZE 5
 
+/* TODO/FIXME - static globals */
 static struct xkb_context *xkb_ctx     = NULL;
 static struct xkb_keymap  *xkb_map     = NULL;
 static struct xkb_state   *xkb_state   = NULL;
@@ -57,7 +58,6 @@ void free_xkb(void)
 
 int init_xkb(int fd, size_t size)
 {
-   char *map_str        = NULL;
    mod_map_idx          = (xkb_mod_index_t *)calloc(
          MOD_MAP_SIZE, sizeof(xkb_mod_index_t));
 
@@ -76,7 +76,7 @@ int init_xkb(int fd, size_t size)
    {
       if (fd >= 0)
       {
-         map_str = (char*)mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+         char *map_str = (char*)mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
          if (map_str == MAP_FAILED)
             goto error;
 
@@ -86,30 +86,33 @@ int init_xkb(int fd, size_t size)
       }
       else
       {
-         struct string_list *list          = NULL;
          struct xkb_rule_names rule        = {0};
          settings_t *settings              = config_get_ptr();
-         const char *input_keyboard_layout = settings->arrays.input_keyboard_layout;
+         const char *input_keyboard_layout = 
+            settings->arrays.input_keyboard_layout;
 
          rule.rules = "evdev";
 
          if (*input_keyboard_layout)
          {
-            list = string_split(input_keyboard_layout, ":");
-            if (list)
+            struct string_list list        = {0};
+            string_list_initialize(&list);
+
+            if (string_split_noalloc(&list, input_keyboard_layout, ":"))
             {
-               if (list->size >= 2)
-                  rule.variant = list->elems[1].data;
-               if (list->size >= 1)
-                  rule.layout = list->elems[0].data;
+               if (list.size >= 1)
+               {
+                  rule.layout     = list.elems[0].data;
+                  if (list.size >= 2)
+                     rule.variant = list.elems[1].data;
+               }
             }
+
+            string_list_deinitialize(&list);
          }
 
          xkb_map = xkb_keymap_new_from_names(xkb_ctx,
                &rule, XKB_MAP_COMPILE_NO_FLAGS);
-
-         if (list)
-            string_list_free(list);
       }
    }
 
@@ -118,26 +121,31 @@ int init_xkb(int fd, size_t size)
       xkb_mod_index_t *map_idx = (xkb_mod_index_t*)&mod_map_idx[0];
       uint16_t        *map_bit = (uint16_t*)&mod_map_bit[0];
 
-      xkb_state = xkb_state_new(xkb_map);
+      xkb_state                = xkb_state_new(xkb_map);
 
-      *map_idx = xkb_keymap_mod_get_index(xkb_map, XKB_MOD_NAME_CAPS);
+      *map_idx                 = xkb_keymap_mod_get_index(
+            xkb_map, XKB_MOD_NAME_CAPS);
       map_idx++;
-      *map_bit = RETROKMOD_CAPSLOCK;
+      *map_bit                 = RETROKMOD_CAPSLOCK;
       map_bit++;
-      *map_idx = xkb_keymap_mod_get_index(xkb_map, XKB_MOD_NAME_SHIFT);
+      *map_idx                 = xkb_keymap_mod_get_index(
+            xkb_map, XKB_MOD_NAME_SHIFT);
       map_idx++;
-      *map_bit = RETROKMOD_SHIFT;
+      *map_bit                 = RETROKMOD_SHIFT;
       map_bit++;
-      *map_idx = xkb_keymap_mod_get_index(xkb_map, XKB_MOD_NAME_CTRL);
+      *map_idx                 = xkb_keymap_mod_get_index(
+            xkb_map, XKB_MOD_NAME_CTRL);
       map_idx++;
-      *map_bit = RETROKMOD_CTRL;
+      *map_bit                 = RETROKMOD_CTRL;
       map_bit++;
-      *map_idx = xkb_keymap_mod_get_index(xkb_map, XKB_MOD_NAME_ALT);
+      *map_idx                 = xkb_keymap_mod_get_index(
+            xkb_map, XKB_MOD_NAME_ALT);
       map_idx++;
-      *map_bit = RETROKMOD_ALT;
+      *map_bit                 = RETROKMOD_ALT;
       map_bit++;
-      *map_idx = xkb_keymap_mod_get_index(xkb_map, XKB_MOD_NAME_LOGO);
-      *map_bit = RETROKMOD_META;
+      *map_idx                 = xkb_keymap_mod_get_index(
+            xkb_map, XKB_MOD_NAME_LOGO);
+      *map_bit                 = RETROKMOD_META;
    }
 
    return 0;

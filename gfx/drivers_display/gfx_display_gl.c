@@ -31,7 +31,8 @@ static int scx0, scx1, scy0, scy1;
 /* This array contains problematic GPU drivers
  * that have problems when we draw outside the
  * bounds of the framebuffer */
-static const struct {
+static const struct
+{
    const char *str;
    int len;
 } scissor_device_strings[] = {
@@ -236,11 +237,11 @@ static void gfx_display_gl_draw(gfx_display_ctx_draw_t *draw,
 #endif
 
    if (!draw->coords->vertex)
-      draw->coords->vertex = gfx_display_gl_get_default_vertices();
+      draw->coords->vertex        = &gl_vertexes[0];
    if (!draw->coords->tex_coord)
-      draw->coords->tex_coord = gfx_display_gl_get_default_tex_coords();
+      draw->coords->tex_coord     = &gl_tex_coords[0];
    if (!draw->coords->lut_tex_coord)
-      draw->coords->lut_tex_coord = gfx_display_gl_get_default_tex_coords();
+      draw->coords->lut_tex_coord = &gl_tex_coords[0];
 
    gfx_display_gl_viewport(draw, gl);
    glBindTexture(GL_TEXTURE_2D, (GLuint)draw->texture);
@@ -248,7 +249,7 @@ static void gfx_display_gl_draw(gfx_display_ctx_draw_t *draw,
    gl->shader->set_coords(gl->shader_data, draw->coords);
    gl->shader->set_mvp(gl->shader_data,
          draw->matrix_data ? (math_matrix_4x4*)draw->matrix_data
-      : (math_matrix_4x4*)gfx_display_gl_get_default_mvp(gl));
+      : (math_matrix_4x4*)&gl->mvp_no_rot);
 
 
    glDrawArrays(gfx_display_prim_to_gl_enum(
@@ -274,7 +275,7 @@ static void gfx_display_gl_draw_pipeline(
    draw->coords                     = (struct video_coords*)(&ca->coords);
    draw->matrix_data                = NULL;
 
-   switch (draw->pipeline.id)
+   switch (draw->pipeline_id)
    {
       case VIDEO_SHADER_MENU:
       case VIDEO_SHADER_MENU_2:
@@ -285,7 +286,7 @@ static void gfx_display_gl_draw_pipeline(
          break;
    }
 
-   switch (draw->pipeline.id)
+   switch (draw->pipeline_id)
    {
       case VIDEO_SHADER_MENU:
       case VIDEO_SHADER_MENU_2:
@@ -293,7 +294,7 @@ static void gfx_display_gl_draw_pipeline(
       case VIDEO_SHADER_MENU_4:
       case VIDEO_SHADER_MENU_5:
       case VIDEO_SHADER_MENU_6:
-         gl->shader->use(gl, gl->shader_data, draw->pipeline.id,
+         gl->shader->use(gl, gl->shader_data, draw->pipeline_id,
                true);
 
          t += 0.01;
@@ -305,7 +306,7 @@ static void gfx_display_gl_draw_pipeline(
 
          uniform_param.lookup.type       = SHADER_PROGRAM_VERTEX;
          uniform_param.lookup.ident      = "time";
-         uniform_param.lookup.idx        = draw->pipeline.id;
+         uniform_param.lookup.idx        = draw->pipeline_id;
          uniform_param.lookup.add_prefix = true;
          uniform_param.lookup.enable     = true;
 
@@ -316,7 +317,7 @@ static void gfx_display_gl_draw_pipeline(
          break;
    }
 
-   switch (draw->pipeline.id)
+   switch (draw->pipeline_id)
    {
       case VIDEO_SHADER_MENU_3:
       case VIDEO_SHADER_MENU_4:

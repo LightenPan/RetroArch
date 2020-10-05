@@ -184,6 +184,10 @@ int msg_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
              snprintf(s, len,
                    "Toggles fullscreen.");
              break;
+          case RARCH_CLOSE_CONTENT_KEY:
+             snprintf(s, len,
+                   "Closes content.");
+             break;
           case RARCH_QUIT_KEY:
              snprintf(s, len,
                    "Key to exit RetroArch cleanly. \n"
@@ -292,6 +296,18 @@ int msg_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
         case MENU_ENUM_LABEL_SORT_SAVEFILES_ENABLE:
             snprintf(s, len, "Sort save files in folders \n"
                     "named after the libretro core used.");
+            break;
+        case MENU_ENUM_LABEL_SORT_SAVESTATES_BY_CONTENT_ENABLE:
+            snprintf(s, len, "Sort save states in folders named \n"
+                   "after the folder in which the content lives.");
+            break;
+        case MENU_ENUM_LABEL_SORT_SAVEFILES_BY_CONTENT_ENABLE:
+            snprintf(s, len, "Sort save files in folders named \n"
+                  "after the folder in which the content lives.");
+            break;
+        case MENU_ENUM_LABEL_SORT_SCREENSHOTS_BY_CONTENT_ENABLE:
+            snprintf(s, len, "Sort screenshots in folders named \n"
+                  "after the folder in which the content lives.");
             break;
         case MENU_ENUM_LABEL_RESUME_CONTENT:
             snprintf(s, len, "Exits from the menu and returns back \n"
@@ -663,18 +679,6 @@ int msg_hash_get_help_us_enum(enum msg_hash_enums msg, char *s, size_t len)
             snprintf(s, len,
                "Input bind hold time (in seconds). \n"
                "Amount of seconds to hold an input to bind it.");
-            break;
-        case MENU_ENUM_LABEL_OVERLAY_SCALE:
-            snprintf(s, len,
-                     "Overlay scale.");
-            break;
-        case MENU_ENUM_LABEL_OVERLAY_CENTER_X:
-            snprintf(s, len,
-                     "Overlay X offset.");
-            break;
-        case MENU_ENUM_LABEL_OVERLAY_CENTER_Y:
-            snprintf(s, len,
-                     "Overlay Y offset.");
             break;
         case MENU_ENUM_LABEL_AUDIO_OUTPUT_RATE:
             snprintf(s, len,

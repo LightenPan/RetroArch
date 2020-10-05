@@ -33,6 +33,7 @@
 #include "menu_networking.h"
 #include "menu_entries.h"
 
+#include "../file_path_special.h"
 #include "../msg_hash.h"
 #include "../tasks/task_file_transfer.h"
 #include "../tasks/tasks_internal.h"
@@ -56,7 +57,7 @@ unsigned print_buf_lines(file_list_t *list, char *buf,
       const char *core_date        = NULL;
       const char *core_crc         = NULL;
       const char *core_pathname    = NULL;
-      struct string_list *str_list = NULL;
+      struct string_list str_list  = {0};
 
       /* The end of the buffer, print the last bit */
       if (*(buf + i) == '\0')
@@ -77,14 +78,15 @@ unsigned print_buf_lines(file_list_t *list, char *buf,
       if (line_start[ln] == '\n')
          line_start[ln] = '\0';
 
-      str_list         = string_split(line_start, " ");
+      string_list_initialize(&str_list);
+      string_split_noalloc(&str_list, line_start, " ");
 
-      if (str_list->elems[0].data)
-         core_date     = str_list->elems[0].data;
-      if (str_list->elems[1].data)
-         core_crc      = str_list->elems[1].data;
-      if (str_list->elems[2].data)
-         core_pathname = str_list->elems[2].data;
+      if (str_list.elems[0].data)
+         core_date     = str_list.elems[0].data;
+      if (str_list.elems[1].data)
+         core_crc      = str_list.elems[1].data;
+      if (str_list.elems[2].data)
+         core_pathname = str_list.elems[2].data;
 
       (void)core_date;
       (void)core_crc;
@@ -120,7 +122,7 @@ unsigned print_buf_lines(file_list_t *list, char *buf,
          }
       }
 
-      string_list_free(str_list);
+      string_list_deinitialize(&str_list);
 
       /* Restore the saved char */
       *(buf + i + 1) = c;
@@ -140,10 +142,10 @@ void cb_net_generic_subdir(retro_task_t *task,
 {
 #ifdef HAVE_NETWORKING
    char subdir_path[PATH_MAX_LENGTH];
-   http_transfer_data_t *data        = (http_transfer_data_t*)task_data;
+   http_transfer_data_t *data   = (http_transfer_data_t*)task_data;
    file_transfer_t *state       = (file_transfer_t*)user_data;
 
-   subdir_path[0] = '\0';
+   subdir_path[0]               = '\0';
 
    if (!data || err)
       goto finish;
@@ -154,9 +156,9 @@ void cb_net_generic_subdir(retro_task_t *task,
 
 finish:
    if (!err && !string_ends_with_size(subdir_path,
-            file_path_str(FILE_PATH_INDEX_DIRS_URL),
+            FILE_PATH_INDEX_DIRS_URL,
             strlen(subdir_path),
-            strlen(file_path_str(FILE_PATH_INDEX_DIRS_URL))
+            STRLEN_CONST(FILE_PATH_INDEX_DIRS_URL)
             ))
    {
       char parent_dir[PATH_MAX_LENGTH];
@@ -226,35 +228,32 @@ finish:
 
    if (!err && 
          !string_ends_with_size(state->path,
-            file_path_str(FILE_PATH_INDEX_DIRS_URL),
+            FILE_PATH_INDEX_DIRS_URL,
             strlen(state->path),
-            strlen(file_path_str(FILE_PATH_INDEX_DIRS_URL))
+            STRLEN_CONST(FILE_PATH_INDEX_DIRS_URL)
             ))
    {
-      char *parent_dir                 = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
-      char *parent_dir_encoded         = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+      char parent_dir[PATH_MAX_LENGTH];
+      char parent_dir_encoded[PATH_MAX_LENGTH];
       file_transfer_t *transf     = NULL;
 
-      parent_dir[0]         = '\0';
-      parent_dir_encoded[0] = '\0';
+      parent_dir[0]               = '\0';
+      parent_dir_encoded[0]       = '\0';
 
       fill_pathname_parent_dir(parent_dir,
-            state->path, PATH_MAX_LENGTH * sizeof(char));
-      strlcat(parent_dir,
-            file_path_str(FILE_PATH_INDEX_DIRS_URL),
-            PATH_MAX_LENGTH * sizeof(char));
+            state->path, sizeof(parent_dir));
+      strlcat(parent_dir, FILE_PATH_INDEX_DIRS_URL,
+            sizeof(parent_dir));
 
       transf           = (file_transfer_t*)malloc(sizeof(*transf));
 
       transf->enum_idx = MSG_UNKNOWN;
       strlcpy(transf->path, parent_dir, sizeof(transf->path));
 
-      net_http_urlencode_full(parent_dir_encoded, parent_dir, PATH_MAX_LENGTH * sizeof(char));
+      net_http_urlencode_full(parent_dir_encoded, parent_dir,
+            sizeof(parent_dir_encoded));
       task_push_http_transfer_file(parent_dir_encoded, true,
             "index_dirs", cb_net_generic_subdir, transf);
-
-      free(parent_dir);
-      free(parent_dir_encoded);
    }
 
    if (state)

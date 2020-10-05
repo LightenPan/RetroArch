@@ -219,7 +219,7 @@ static bool disk_index_file_read(disk_index_file_t *disk_index_file)
       }
 
       /* Parse chunk */
-      if (!JSON_Parser_Parse(context.parser, chunk, length, JSON_False))
+      if (!JSON_Parser_Parse(context.parser, chunk, (size_t)length, JSON_False))
       {
          RARCH_ERR(
                "[disk index file] Error parsing chunk of disk index file: %s\n---snip---\n%s\n---snip---\n",
@@ -334,7 +334,7 @@ bool disk_index_file_init(
          content_name, sizeof(disk_index_file_path));
    strlcat(
          disk_index_file_path,
-         file_path_str(FILE_PATH_DISK_CONTROL_INDEX_EXTENSION),
+         FILE_PATH_DISK_CONTROL_INDEX_EXTENSION,
          sizeof(disk_index_file_path));
    if (string_is_empty(disk_index_file_path))
       goto error;

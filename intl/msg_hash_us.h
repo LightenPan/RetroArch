@@ -41,6 +41,10 @@ MSG_HASH(
    "Netplay"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_TAB,
+   "Explore"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ADD_TAB,
    "Import Content"
    )
@@ -97,11 +101,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ADD_CONTENT_LIST,
-   "Scan Content"
+   "Import Content"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_ADD_CONTENT_LIST,
-   "Scan content and add to database."
+   "Create and update playlists by scanning content."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SHOW_WIMP,
@@ -264,6 +268,14 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_GOTO_VIDEO,
    "Videos which have been previously played will appear here."
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_GOTO_EXPLORE,
+   "Explore"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_GOTO_EXPLORE,
+   "Browse all content matching the database via a categorized search interface."
+   )
 
 /* Main Menu > Online Updater */
 
@@ -278,6 +290,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_UPDATE_INSTALLED_CORES,
    "Update all installed cores to the latest version available."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SWITCH_INSTALLED_CORES_PFD,
+   "Switch Cores to Play Store Versions"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SWITCH_INSTALLED_CORES_PFD,
+   "Replace all legacy and manually installed cores with the latest versions from the Play Store, where available."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_THUMBNAILS_UPDATER_LIST,
@@ -1204,6 +1224,14 @@ MSG_HASH(
    "Camera driver to use."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_BLUETOOTH_DRIVER,
+   "Bluetooth"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_BLUETOOTH_DRIVER,
+   "Bluetooth driver to use."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_WIFI_DRIVER,
    "Wi-Fi"
    )
@@ -1350,6 +1378,10 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_VIDEO_FILTER,
    "Apply a CPU-powered video filter.\nNOTE: Might come at a high performance cost. Some video filters might only work for cores that use 32bit or 16bit color."
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_NOTCH_WRITE_OVER,
+   "Enable fullscreen over notch in Android devices"
+)
 
 /* Settings > Video > CRT SwitchRes */
 
@@ -1376,6 +1408,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CRT_SWITCH_X_AXIS_CENTERING,
    "Cycle through these options if the image is not centered properly on the display."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CRT_SWITCH_PORCH_ADJUST,
+   "Porch Adjust"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CRT_SWITCH_PORCH_ADJUST,
+   "Cycle through these options to adjust the porch settings to change the image size."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CRT_SWITCH_RESOLUTION_USE_CUSTOM_REFRESH_RATE,
@@ -2198,6 +2238,14 @@ MSG_HASH(
    "Switches between fullscreen and windowed display modes."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_META_CLOSE_CONTENT_KEY,
+   "Close Content"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_META_CLOSE_CONTENT_KEY,
+   "Closes the current content. Any unsaved changes might be lost."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_META_QUIT_KEY,
    "Quit RetroArch"
    )
@@ -2718,6 +2766,16 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_CHECK_FOR_MISSING_FIRMWARE,
    "Check if all the required firmware is present before attempting to load content."
    )
+#ifndef HAVE_DYNAMIC
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ALWAYS_RELOAD_CORE_ON_RUN_CONTENT,
+   "Always Reload Core on Run Content"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ALWAYS_RELOAD_CORE_ON_RUN_CONTENT,
+   "Restart RetroArch when launching content, even when the requested core is already loaded. This may improve system stability, at the expense of increased loading times."
+   )
+#endif
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_ALLOW_ROTATE,
    "Allow Rotation"
@@ -2786,7 +2844,7 @@ MSG_HASH(
 
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SORT_SAVEFILES_ENABLE,
-   "Sort Saves into Folders"
+   "Sort Saves into Folders by Core Name"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SORT_SAVEFILES_ENABLE,
@@ -2794,11 +2852,27 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SORT_SAVESTATES_ENABLE,
-   "Sort Save States into Folders"
+   "Sort Save States into Folders by Core Name"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SORT_SAVESTATES_ENABLE,
    "Sort save states in folders named after the core used."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SORT_SAVEFILES_BY_CONTENT_ENABLE,
+   "Sort Saves into Folders by Content Directory"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SORT_SAVEFILES_BY_CONTENT_ENABLE,
+   "Sort save files into folders named after the directory in which the content is located."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SORT_SAVESTATES_BY_CONTENT_ENABLE,
+   "Sort Save States into Folders by Content Directory"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SORT_SAVESTATES_BY_CONTENT_ENABLE,
+   "Sort save states in folders named after the directory in which the content is located."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_BLOCK_SRAM_OVERWRITE,
@@ -2863,6 +2937,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_SAVESTATE_FILE_COMPRESSION,
    "Write save state files in an archived format. Dramatically reduces file size at the expense of increased saving/loading times."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_SORT_SCREENSHOTS_BY_CONTENT_ENABLE,
+   "Sort Screenshots into Folders by Content Directory"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_SORT_SCREENSHOTS_BY_CONTENT_ENABLE,
+   "Sort screenshots in folders named after the directory in which the content is located."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_SAVEFILES_IN_CONTENT_DIR_ENABLE,
@@ -3161,6 +3243,14 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_ONSCREEN_NOTIFICATIONS_SETTINGS,
    "Adjust On-Screen Notifications"
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS,
+   "Notification Visibility"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_ONSCREEN_NOTIFICATIONS_VIEWS_SETTINGS,
+   "Toggle the visibility of specific types of notification."
+   )
 
 /* Settings > On-Screen Display > On-Screen Overlay */
 
@@ -3180,6 +3270,20 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_INPUT_OVERLAY_HIDE_IN_MENU,
    "Hide the overlay while inside the menu, and show it again when exiting the menu."
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_INPUT_OVERLAY_HIDE_WHEN_GAMEPAD_CONNECTED,
+   "Hide Overlay When Gamepad is Connected"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_OVERLAY_HIDE_WHEN_GAMEPAD_CONNECTED,
+   "Hide the overlay when a physical gamepad is connected in port 1, and show it again when the gamepad is disconnected."
+   )
+#if defined(ANDROID)
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_INPUT_OVERLAY_HIDE_WHEN_GAMEPAD_CONNECTED_ANDROID,
+   "Hide the overlay when a physical gamepad is connected in port 1. WARNING: Overlay will not be restored automatically when gamepad is disconnected."
+   )
+#endif
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_INPUT_OVERLAY_SHOW_PHYSICAL_INPUTS,
    "Show Inputs on Overlay"
@@ -3237,30 +3341,92 @@ MSG_HASH(
    "Select an overlay from the file browser."
    )
 MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_OVERLAY_SCALE,
-   "Overlay Scale"
+   MENU_ENUM_LABEL_VALUE_OVERLAY_SCALE_LANDSCAPE,
+   "(Landscape) Overlay Scale"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_OVERLAY_SCALE,
-   "Scale of all UI elements of the overlay."
-   )
-
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_OVERLAY_CENTER_X,
-   "Overlay Offset X"
+   MENU_ENUM_SUBLABEL_OVERLAY_SCALE_LANDSCAPE,
+   "Scale of all UI elements of the overlay when using landscape display orientations."
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_OVERLAY_CENTER_X,
-   "X offset of all UI elements of the overlay."
-   )
-
-MSG_HASH(
-   MENU_ENUM_LABEL_VALUE_OVERLAY_CENTER_Y,
-   "Overlay Offset Y"
+   MENU_ENUM_LABEL_VALUE_OVERLAY_ASPECT_ADJUST_LANDSCAPE,
+   "(Landscape) Overlay Aspect Adjustment"
    )
 MSG_HASH(
-   MENU_ENUM_SUBLABEL_OVERLAY_CENTER_Y,
-   "Y offset of all UI elements of the overlay."
+   MENU_ENUM_SUBLABEL_OVERLAY_ASPECT_ADJUST_LANDSCAPE,
+   "Apply an aspect ratio correction factor to the overlay when using landscape display orientations. Positive values increase (while negative values decrease) effective overlay width."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_X_SEPARATION_LANDSCAPE,
+   "(Landscape) Overlay Horizontal Separation"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_X_SEPARATION_LANDSCAPE,
+   "Adjust the spacing between UI elements in the left and right halves of an overlay when using landscape display orientations. Positive values increase (while negative values decrease) the separation of the two halves."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_Y_SEPARATION_LANDSCAPE,
+   "(Landscape) Overlay Vertical Separation"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_Y_SEPARATION_LANDSCAPE,
+   "Adjust the spacing between UI elements in the top and bottom halves of an overlay when using landscape display orientations. Positive values increase (while negative values decrease) the separation of the two halves."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_X_OFFSET_LANDSCAPE,
+   "(Landscape) Overlay X Offset"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_X_OFFSET_LANDSCAPE,
+   "Horizontal overlay offset when using landscape display orientations. Positive values shift overlay to the right; negative values to the left."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_Y_OFFSET_LANDSCAPE,
+   "(Landscape) Overlay Y Offset"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_Y_OFFSET_LANDSCAPE,
+   "Vertical overlay offset when using landscape display orientations. Positive values shift overlay upwards; negative values downwards."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_SCALE_PORTRAIT,
+   "(Portrait) Overlay Scale"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_SCALE_PORTRAIT,
+   "Scale of all UI elements of the overlay when using portrait display orientations."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_ASPECT_ADJUST_PORTRAIT,
+   "(Portrait) Overlay Aspect Adjustment"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_ASPECT_ADJUST_PORTRAIT,
+   "Apply an aspect ratio correction factor to the overlay when using portrait display orientations. Positive values increase (while negative values decrease) effective overlay height."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_X_SEPARATION_PORTRAIT,
+   "(Portrait) Overlay Horizontal Separation"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_X_SEPARATION_PORTRAIT,
+   "Adjust the spacing between UI elements in the left and right halves of an overlay when using portrait display orientations. Positive values increase (while negative values decrease) the separation of the two halves."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_X_OFFSET_PORTRAIT,
+   "(Portrait) Overlay X Offset"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_X_OFFSET_PORTRAIT,
+   "Horizontal overlay offset when using portrait display orientations. Positive values shift overlay to the right; negative values to the left."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OVERLAY_Y_OFFSET_PORTRAIT,
+   "(Portrait) Overlay Y Offset"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_OVERLAY_Y_OFFSET_PORTRAIT,
+   "Vertical overlay offset when using portrait display orientations. Positive values shift overlay upwards; negative values downwards."
    )
 
 /* Settings > On-Screen Display > Video Layout */
@@ -3369,8 +3535,120 @@ MSG_HASH(
    "Display Memory Usage"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MEMORY_UPDATE_INTERVAL,
+   "Memory Usage Update Interval (In Frames)"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MEMORY_UPDATE_INTERVAL,
+   "Memory usage display will be updated at the set interval (in frames)."
+   )
+MSG_HASH(
    MENU_ENUM_SUBLABEL_MEMORY_SHOW,
    "Displays the used and total amount of memory on the system."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_SHOW_LOAD_CONTENT_ANIMATION,
+   "\"Load Content\" Startup Notification"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MENU_SHOW_LOAD_CONTENT_ANIMATION,
+   "Show a brief launch feedback animation when loading content."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_AUTOCONFIG,
+   "Input (Autoconfig) Connection Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_CHEATS_APPLIED,
+   "Cheat Code Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_CHEATS_APPLIED,
+   "Display an on-screen message when cheat codes are applied"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_AUTOCONFIG,
+   "Display an on-screen message when connecting/disconnecting input devices."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_REMAP_LOAD,
+   "Input Remap Loaded Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_REMAP_LOAD,
+   "Display an on-screen message when loading input remap files."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_CONFIG_OVERRIDE_LOAD,
+   "Config Override Loaded Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_CONFIG_OVERRIDE_LOAD,
+   "Display an on-screen message when loading configuration override files."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SET_INITIAL_DISK,
+   "Initial Disc Restored Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_SET_INITIAL_DISK,
+   "Display an on-screen message when automatically restoring at launch the last used disc of multi-disc content loaded via M3U playlists."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_FAST_FORWARD,
+   "Fast-Forward Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_FAST_FORWARD,
+   "Display an on-screen indicator when fast-forwarding content."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT,
+   "Screenshot Notifications"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_SCREENSHOT,
+   "Display an on-screen message when taking a screenshot."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION,
+   "Screenshot Notification Persistence"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_SCREENSHOT_DURATION,
+   "Define the duration of the on-screen screenshot message."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_NORMAL,
+   "Normal"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_FAST,
+   "Fast"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_VERY_FAST,
+   "Very Fast"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_DURATION_INSTANT,
+   "Instant"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_FLASH,
+   "Screenshot Flash Effect"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_NOTIFICATION_SHOW_SCREENSHOT_FLASH,
+   "Display a white flashing effect on-screen with the desired duration when taking a screenshot."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_FLASH_NORMAL,
+   "ON (Normal)"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NOTIFICATION_SHOW_SCREENSHOT_FLASH_FAST,
+   "ON (Fast)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_FONT_PATH,
@@ -3445,7 +3723,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_MENU_VIEWS_SETTINGS,
-   "Toggle the visibility menu items in RetroArch."
+   "Toggle the visibility of menu items in RetroArch."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MENU_SETTINGS,
@@ -3767,12 +4045,36 @@ MSG_HASH(
    "Show the import content tab inside the main menu."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_ADD_ENTRY,
+   "Show Import Content"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CONTENT_SHOW_ADD_ENTRY,
+   "Show an import content entry inside the main menu or playlists tab/submenu."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_ADD_CONTENT_ENTRY_DISPLAY_MAIN_TAB,
+   "Main Menu"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_ADD_CONTENT_ENTRY_DISPLAY_PLAYLISTS_TAB,
+   "Playlists Menu"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_PLAYLISTS,
    "Show Playlist Tabs"
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CONTENT_SHOW_PLAYLISTS,
    "Show playlist tabs inside the main menu."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CONTENT_SHOW_EXPLORE,
+   "Show Explore Tab"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CONTENT_SHOW_EXPLORE,
+   "Show content explorer tab inside the main menu."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_TIMEDATE_ENABLE,
@@ -4387,6 +4689,14 @@ MSG_HASH(
    "Use unofficial achievements and/or beta features for testing purposes."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCK_SOUND_ENABLE,
+   "Unlock Sound"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_CHEEVOS_UNLOCK_SOUND_ENABLE,
+   "Plays a sound when an achievement is unlocked."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_CHEEVOS_VERBOSE_ENABLE,
    "Verbose Mode"
    )
@@ -4661,7 +4971,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_CONTENT_FAVORITES_SIZE,
-   "Limit the number of entries in the favorites playlist. Once limit is reached, new additions will be prevented until old entries are removed. Setting a value of -1 allows 'unlimited' (99999) entries. WARNING: Reducing the value will delete existing entries!"
+   "Limit the number of entries in the favorites playlist. Once limit is reached, new additions will be prevented until old entries are removed. Setting a value of -1 allows 'unlimited' entries. WARNING: Reducing the value will delete existing entries!"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_PLAYLIST_ENTRY_RENAME,
@@ -4770,6 +5080,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_PLAYLIST_MANAGER_LIST,
    "Perform maintenance tasks on playlists."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_PLAYLIST_PORTABLE_PATHS,
+   "Portable Playlists"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_PLAYLIST_PORTABLE_PATHS,
+   "When enabled, and 'File Browser' directory is also selected, the current value of parameter 'File Browser' is saved in the playlist. When the playlist is loaded on another system where the same option is enabled, the value of parameter 'File Browser' is compared with the playlist value; if different, the playlist entries' paths are automatically fixed."
    )
 
 /* Settings > Playlists > Playlist Management */
@@ -5389,6 +5707,88 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_SUBLABEL_MANUAL_CONTENT_SCAN_START,
    "Scan selected content."
+   )
+
+/* Explore tab */
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_CATEGORY_RELEASE_YEAR,
+   "Release Year"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_CATEGORY_PLAYER_COUNT,
+   "Player Count"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_CATEGORY_REGION,
+   "Region"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_CATEGORY_TAG,
+   "Tag"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_SEARCH_NAME,
+   "Search Name ..."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_SHOW_ALL,
+   "Show All"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_ADDITIONAL_FILTER,
+   "Additional Filter"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_ALL,
+   "All"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_ADD_ADDITIONAL_FILTER,
+   "Add Additional Filter"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_ITEMS_COUNT,
+   "%u Items"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_DEVELOPER,
+   "By Developer"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_PUBLISHER,
+   "By Publisher"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_RELEASE_YEAR,
+   "By Release Year"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_PLAYER_COUNT,
+   "By Player Count"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_GENRE,
+   "By Genre"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_ORIGIN,
+   "By Origin"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_REGION,
+   "By Region"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_FRANCHISE,
+   "By Franchise"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_TAG,
+   "By Tag"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_EXPLORE_BY_SYSTEM_NAME,
+   "By System Name"
    )
 
 /* Playlist > Playlist Item */
@@ -6155,6 +6555,14 @@ MSG_HASH(
    "Automatically apply changes made to shader files on disk."
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_REMEMBER_LAST_DIR,
+   "Remember Last Used Shader Directory"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_VIDEO_SHADER_REMEMBER_LAST_DIR,
+   "Open the file browser at the last used directory when loading shader presets and passes."
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SHADER_PRESET,
    "Load Shader Preset"
    )
@@ -6424,6 +6832,10 @@ MSG_HASH(
    "No Settings Found"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_NO_BT_DEVICES_FOUND,
+   "No Bluetooth Devices Found"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NO_NETWORKS_FOUND,
    "No Networks Found"
    )
@@ -6468,15 +6880,15 @@ MSG_HASH(
 
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_AFRIKAANS,
-   "Afrikaans"
+   "Afrikaans - Afrikaans"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ALBANIAN,
-   "Albanian"
+   "Albanian - Shqip"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ARABIC,
-   "Arabic - عربى (Restart Required)"
+   "Arabic -  اَلْعَرَبِيَّةُ  (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ASTURIAN,
@@ -6484,23 +6896,23 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_AZERBAIJANI,
-   "Azerbaijani"
+   "Azerbaijani - Azərbaycan dili"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_BASQUE,
-   "Basque"
+   "Basque - Euskara"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_BENGALI,
-   "Bengali"
+   "Bengali - বাংলা (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_BULGARIAN,
-   "Bulgarian"
+   "Bulgarian - Български"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_CATALAN,
-   "Catalan"
+   "Catalan - Català"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_CHINESE_SIMPLIFIED,
@@ -6512,15 +6924,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_CROATIAN,
-   "Croatian"
+   "Croatian - Hrvatski"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_CZECH,
-   "Czech"
+   "Czech - Čeština"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_DANISH,
-   "Danish"
+   "Danish - Dansk"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_DUTCH,
@@ -6536,15 +6948,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ESTONIAN,
-   "Estonian"
+   "Estonian - Eesti keel"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_FILIPINO,
-   "Filipino"
+   "Filipino - Wikang Filipino"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_FINNISH,
-   "Finnish"
+   "Finnish - Suomi"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_FRENCH,
@@ -6552,11 +6964,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_GALICIAN,
-   "Galician"
+   "Galician - Galego"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_GEORGIAN,
-   "Georgian"
+   "Georgian - ქართული ენა (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_GERMAN,
@@ -6568,35 +6980,35 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_GUJARATI,
-   "Gujarati"
+   "Gujarati - ગુજરાતી (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_HAITIAN_CREOLE,
-   "Haitian Creole"
+   "Haitian Creole - Kreyòl Ayisyen"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_HEBREW,
-   "Hebrew"
+   "Hebrew - עִבְרִית"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_HINDI,
-   "Hindi"
+   "Hindi - हिन्दी (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_HUNGARIAN,
-   "Hungarian"
+   "Hungarian - Magyar"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ICELANDIC,
-   "Icelandic"
+   "Icelandic - Íslenska"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_INDONESIAN,
-   "Indonesian"
+   "Indonesian - Bahasa Indonesia"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_IRISH,
-   "Irish"
+   "Irish - Gaeilge"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ITALIAN,
@@ -6608,7 +7020,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_KANNADA,
-   "Kannada"
+   "Kannada - ಕನ್ನಡ (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_KOREAN,
@@ -6616,35 +7028,35 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_LATIN,
-   "Latin"
+   "Latin - Lingua Latina"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_LATVIAN,
-   "Latvian"
+   "Latvian - Latviešu Valoda"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_LITHUANIAN,
-   "Lithuanian"
+   "Lithuanian - Lietuvių kalba"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_MACEDONIAN,
-   "Macedonian"
+   "Macedonian - македонски"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_MALAY,
-   "Malay"
+   "Malay - Bahasa Melayu"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_MALTESE,
-   "Maltese"
+   "Maltese - Malti"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_NORWEGIAN,
-   "Norwegian"
+   "Norwegian - Norsk"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_PERSIAN,
-   "Persian"
+   "Persian -  فارسی  (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_POLISH,
@@ -6660,23 +7072,23 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ROMANIAN,
-   "Romanian"
+   "Romanian - Limba Română"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_RUSSIAN,
-   "Russian - Русский"
+   "Russian - Русский язык"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SERBIAN,
-   "Serbian"
+   "Serbian - Cрпски / Srpski"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SLOVAK,
-   "Slovak - Slovenský"
+   "Slovak - Slovenčina"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SLOVENIAN,
-   "Slovenian"
+   "Slovenian - Slovenščina"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SPANISH,
@@ -6684,23 +7096,23 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SWAHILI,
-   "Swahili"
+   "Swahili - KiSwahili"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_SWEDISH,
-   "Swedish"
+   "Swedish - Svenska"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_TAMIL,
-   "Tamil"
+   "Tamil - தமிழ் (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_TELUGU,
-   "Telugu"
+   "Telugu - తెలుగు (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_THAI,
-   "Thai"
+   "Thai - ภาษาไทย (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_TURKISH,
@@ -6708,11 +7120,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_UKRAINIAN,
-   "Ukrainian"
+   "Ukrainian - Українська мова"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_URDU,
-   "Urdu"
+   "Urdu -  اُردُو  (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_VIETNAMESE,
@@ -6720,11 +7132,11 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_WELSH,
-   "Welsh"
+   "Welsh - Cymraeg"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_YIDDISH,
-   "Yiddish"
+   "Yiddish - ײִדיש"
    )
 MSG_HASH( /* FIXME Should be MENU_LABEL_VALUE */
    MSG_UNKNOWN_COMPILER,
@@ -7525,6 +7937,14 @@ MSG_HASH(
    MENU_ENUM_SUBLABEL_MENU_RGUI_EXTENDED_ASCII,
    "Enable display of non-standard ASCII characters. Required for compatibility with certain non-English Western languages. Has a moderate performance impact."
    )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MENU_RGUI_SWITCH_ICONS,
+   "Show Switch Icons"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MENU_RGUI_SWITCH_ICONS,
+   "Use icons instead of ON/OFF text to represent 'toggle switch' menu settings entries."
+   )
 
 /* RGUI: Settings Options */
 
@@ -8087,7 +8507,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_OZONE_TRUNCATE_PLAYLIST_NAME,
-   "Removes the system names from the playlists. For example, 'Sony - PlayStation' becomes 'PlayStation'. (Restart Required)"
+   "Removes the vendor names from the playlists. For example, 'Sony - PlayStation' becomes 'PlayStation'. (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_OZONE_SORT_AFTER_TRUNCATE_PLAYLIST_NAME,
@@ -8122,6 +8542,14 @@ MSG_HASH(
    "Gruvbox Dark"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OZONE_COLOR_THEME_BOYSENBERRY,
+   "Boysenberry"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_OZONE_COLOR_THEME_HACKING_THE_KERNEL,
+   "Hacking the Kernel"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LEFT_THUMBNAILS_OZONE,
    "Second Thumbnail"
    )
@@ -8146,7 +8574,15 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_MATERIALUI_ICONS_ENABLE,
-   "Show icons at the left of the menu entries."
+   "Show icons to the left of the menu entries."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MATERIALUI_PLAYLIST_ICONS_ENABLE,
+   "Playlist Icons"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_MATERIALUI_PLAYLIST_ICONS_ENABLE,
+   "Show system-specific icons in the playlists tab. (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MATERIALUI_LANDSCAPE_LAYOUT_OPTIMIZATION,
@@ -8322,6 +8758,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MATERIALUI_MENU_COLOR_THEME_VIRTUAL_BOY,
    "Virtual Boy"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_MATERIALUI_MENU_COLOR_THEME_HACKING_THE_KERNEL,
+   "Hacking the Kernel"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_MATERIALUI_MENU_TRANSITION_ANIM_AUTO,
@@ -9012,6 +9452,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_NO_PLAYLISTS,
    "No playlists."
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_BT_CONNECTED,
+   "Connected"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_ONLINE,
@@ -9770,6 +10214,10 @@ MSG_HASH(
    "Core installed: "
    )
 MSG_HASH(
+   MSG_CORE_INSTALL_FAILED,
+   "Failed to install core: "
+   )
+MSG_HASH(
    MSG_SCANNING_CORES,
    "Scanning cores..."
    )
@@ -9780,6 +10228,10 @@ MSG_HASH(
 MSG_HASH(
    MSG_ALL_CORES_UPDATED,
    "All installed cores at latest version"
+   )
+MSG_HASH(
+   MSG_ALL_CORES_SWITCHED_PFD,
+   "All supported cores switched to Play Store versions"
    )
 MSG_HASH(
    MSG_NUM_CORES_UPDATED,
@@ -10687,8 +11139,16 @@ MSG_HASH(
    "not configured, using fallback"
    )
 MSG_HASH(
+   MSG_BLUETOOTH_SCAN_COMPLETE,
+   "Bluetooth scan complete."
+   )
+MSG_HASH(
    MSG_WIFI_SCAN_COMPLETE,
    "Wi-Fi scan complete."
+   )
+MSG_HASH(
+   MSG_SCANNING_BLUETOOTH_DEVICES,
+   "Scanning bluetooth devices..."
    )
 MSG_HASH(
    MSG_SCANNING_WIRELESS_NETWORKS,
@@ -11099,6 +11559,14 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_VIDEO_SOFT_FILTER,
    "Soft Filter"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_BLUETOOTH_SETTINGS,
+   "Bluetooth"
+   )
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_BLUETOOTH_SETTINGS,
+   "Scans for bluetooth devices and connects them."
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_WIFI_SETTINGS,

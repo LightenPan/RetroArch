@@ -33,20 +33,19 @@
 
 typedef struct sdl_audio
 {
-   bool nonblock;
-   bool is_paused;
-
 #ifdef HAVE_THREADS
    slock_t *lock;
    scond_t *cond;
 #endif
    fifo_buffer_t *buffer;
+   bool nonblock;
+   bool is_paused;
 } sdl_audio_t;
 
 static void sdl_audio_cb(void *data, Uint8 *stream, int len)
 {
    sdl_audio_t  *sdl = (sdl_audio_t*)data;
-   size_t      avail = fifo_read_avail(sdl->buffer);
+   size_t      avail = FIFO_READ_AVAIL(sdl->buffer);
    size_t write_size = len > (int)avail ? avail : len;
 
    fifo_read(sdl->buffer, stream, write_size);
@@ -151,7 +150,7 @@ static ssize_t sdl_audio_write(void *data, const void *buf, size_t size)
       size_t avail, write_amt;
 
       SDL_LockAudio();
-      avail = fifo_write_avail(sdl->buffer);
+      avail = FIFO_WRITE_AVAIL(sdl->buffer);
       write_amt = avail > size ? size : avail;
       fifo_write(sdl->buffer, buf, write_amt);
       SDL_UnlockAudio();
@@ -166,7 +165,7 @@ static ssize_t sdl_audio_write(void *data, const void *buf, size_t size)
          size_t avail;
 
          SDL_LockAudio();
-         avail = fifo_write_avail(sdl->buffer);
+         avail = FIFO_WRITE_AVAIL(sdl->buffer);
 
          if (avail == 0)
          {

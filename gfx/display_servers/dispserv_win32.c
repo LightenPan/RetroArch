@@ -126,7 +126,7 @@ static void win32_display_server_destroy(void *data)
             dispserv->orig_height,
             dispserv->orig_refresh,
             (float)dispserv->orig_refresh,
-            dispserv->crt_center, 0, 0);
+            dispserv->crt_center, 0, 0, 0);
 
 #ifdef HAS_TASKBAR_EXT
    if (dispserv->taskbar_list)
@@ -220,7 +220,7 @@ static bool win32_display_server_set_window_decorations(void *data, bool on)
 }
 
 static bool win32_display_server_set_resolution(void *data,
-      unsigned width, unsigned height, int int_hz, float hz, int center, int monitor_index, int xoffset)
+      unsigned width, unsigned height, int int_hz, float hz, int center, int monitor_index, int xoffset, int padjust)
 {
    DEVMODE dm                = {0};
    LONG res                  = 0;
@@ -306,8 +306,8 @@ static bool win32_display_server_set_resolution(void *data,
    return true;
 }
 
-void *win32_display_server_get_resolution_list(void *data,
-      unsigned *len)
+static void *win32_display_server_get_resolution_list(
+      void *data, unsigned *len)
 {
    DEVMODE dm                        = {0};
    unsigned i, j, count              = 0;
@@ -320,13 +320,14 @@ void *win32_display_server_get_resolution_list(void *data,
 #endif
    struct video_display_config *conf = NULL;
 
-   if (win32_get_video_output(&dm, -1, sizeof(dm))) {
-      curr_width       = dm.dmPelsWidth;
-      curr_height      = dm.dmPelsHeight;
-      curr_bpp         = dm.dmBitsPerPel;
-      curr_refreshrate = dm.dmDisplayFrequency;
+   if (win32_get_video_output(&dm, -1, sizeof(dm)))
+   {
+      curr_width                     = dm.dmPelsWidth;
+      curr_height                    = dm.dmPelsHeight;
+      curr_bpp                       = dm.dmBitsPerPel;
+      curr_refreshrate               = dm.dmDisplayFrequency;
 #if _WIN32_WINNT >= 0x0500
-      curr_orientation = dm.dmDisplayOrientation;
+      curr_orientation               = dm.dmDisplayOrientation;
 #endif
    }
 

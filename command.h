@@ -29,14 +29,6 @@
 
 RETRO_BEGIN_DECLS
 
-typedef struct command command_t;
-
-typedef struct command_handle
-{
-   command_t *handle;
-   unsigned id;
-} command_handle_t;
-
 enum event_command
 {
    CMD_EVENT_NONE = 0,
@@ -48,7 +40,7 @@ enum event_command
    CMD_EVENT_LOAD_CORE,
    CMD_EVENT_LOAD_CORE_PERSIST,
    CMD_EVENT_UNLOAD_CORE,
-   CMD_EVENT_SAVE_STATE,
+   CMD_EVENT_CLOSE_CONTENT,
    CMD_EVENT_LOAD_STATE,
    CMD_EVENT_YUN_SAVE_STATE, // MG 保存云存档
    CMD_EVENT_YUN_LOAD_STATE, // MG 读取云存档
@@ -58,6 +50,7 @@ enum event_command
    CMD_EVENT_UNDO_LOAD_STATE,
    /* Rewrites a savestate on disk */
    CMD_EVENT_UNDO_SAVE_STATE,
+   CMD_EVENT_SAVE_STATE,
    CMD_EVENT_SAVE_STATE_DECREMENT,
    CMD_EVENT_SAVE_STATE_INCREMENT,
    /* Takes screenshot. */
@@ -217,6 +210,14 @@ enum event_command
    CMD_EVENT_AI_SERVICE_CALL,
    CMD_EVENT_SAVE_FILES
 };
+
+typedef struct command command_t;
+
+typedef struct command_handle
+{
+   command_t *handle;
+   unsigned id;
+} command_handle_t;
 
 /**
  * command_event:

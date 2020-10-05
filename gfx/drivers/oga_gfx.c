@@ -119,7 +119,7 @@ static void *oga_gfx_init(const video_info_t *video,
 
    if (input && input_data)
    {
-      void* udev = input_udev.init(settings->arrays.input_joypad_driver);
+      void* udev = input_driver_init_wrap(&input_udev, settings->arrays.input_joypad_driver);
       if (udev)
       {
          *input       = &input_udev;
@@ -190,7 +190,7 @@ static void render_msg(oga_video_t* vid,
 {
    const struct font_atlas* atlas = vid->font_driver->get_atlas(vid->font);
    int                  msg_width = get_message_width(vid, msg);
-   int                     dest_x = MAX(0, width - get_message_width(vid, msg));
+   int                     dest_x = MAX(0, width - msg_width);
    int                dest_stride = go2_surface_stride_get(surface);
    const char                 *c  = msg;
 
@@ -199,7 +199,7 @@ static void render_msg(oga_video_t* vid,
       const struct font_glyph* g = vid->font_driver->get_glyph(vid->font, *c);
       if (!g)
          continue;
-      if (dest_x + g->advance_x >= width)
+      if (dest_x >= width)
          break;
 
       const uint8_t* source = atlas->buffer + g->atlas_offset_y * atlas->width + g->atlas_offset_x;
@@ -249,12 +249,15 @@ static bool oga_gfx_frame(void *data, const void *frame, unsigned width,
    uint8_t                      *src  = (uint8_t*)frame;
    int                            bpp = go2_drm_format_get_bpp(
          go2_surface_format_get(dst_surface)) / 8;
+#ifdef HAVE_MENU
    bool                 menu_is_alive = video_info->menu_is_alive;
+#endif
+   bool input_driver_nonblock_state   = video_info->input_driver_nonblock_state;
 
    if (unlikely(!frame || width == 0 || height == 0))
       return true;
 
-   if (unlikely(video_info->input_driver_nonblock_state) && !vid->threaded)
+   if (unlikely(input_driver_nonblock_state) && !vid->threaded)
    {
       if (frame_count % 4 != 0)
           return true;
@@ -294,7 +297,7 @@ static bool oga_gfx_frame(void *data, const void *frame, unsigned width,
 
    if ((out_w != width || out_h != height))
    {
-      out_w = MIN(out_h * video_driver_get_aspect_ratio(), NATIVE_WIDTH);
+      out_w = MIN(out_h * video_driver_get_aspect_ratio() + 0.5, NATIVE_WIDTH);
       out_x = MAX((NATIVE_WIDTH - out_w) / 2, 0);
    }
 
@@ -318,13 +321,8 @@ static bool oga_gfx_frame(void *data, const void *frame, unsigned width,
 static void oga_set_texture_frame(void *data, const void *frame, bool rgb32,
         unsigned width, unsigned height, float alpha)
 {
-    oga_video_t *vid = (oga_video_t*)data;
-
-    vid->menu_width = width;
-    vid->menu_height = height;
-    vid->menu_pitch = width * 4;
-
-
+   unsigned i, j;
+   oga_video_t *vid             = (oga_video_t*)data;
    /* Borrowed from drm_gfx
     *
     * We have to go on a pixel format conversion adventure
@@ -336,64 +334,54 @@ static void oga_set_texture_frame(void *data, const void *frame, bool rgb32,
    uint32_t line[dst_width];
 
    /* The output pixel array with the converted pixels. */
-   char *frame_output = vid->menu_buf;
+   char *frame_output            = vid->menu_buf;
 
    /* Remember, memcpy() works with 8bits pointers for increments. */
    char *dst_base_addr           = frame_output;
 
-   for (int i = 0; i < height; i++)
+   vid->menu_width               = width;
+   vid->menu_height              = height;
+   vid->menu_pitch               = width * 4;
+
+   for (i = 0; i < height; i++)
    {
-      for (int j = 0; j < src_pitch / 2; j++)
+      for (j = 0; j < src_pitch / 2; j++)
       {
          uint16_t src_pix = *((uint16_t*)frame + (src_pitch / 2 * i) + j);
-         /* The hex AND is for keeping only the part we need for each component. */
-         uint32_t R = (src_pix << 8) & 0x00FF0000;
-         uint32_t G = (src_pix << 4) & 0x0000FF00;
-         uint32_t B = (src_pix << 0) & 0x000000FF;
-         line[j] = (0 | R | G | B);
+         /* The hex AND is for keeping only the part 
+          * we need for each component. */
+         uint32_t R       = (src_pix << 8) & 0x00FF0000;
+         uint32_t G       = (src_pix << 4) & 0x0000FF00;
+         uint32_t B       = (src_pix << 0) & 0x000000FF;
+         line[j]          = (0 | R | G | B);
       }
       memcpy(dst_base_addr + (dst_pitch * i), (char*)line, dst_pitch);
    }
 
-    if (unlikely(!vid->menu_frame))
-        vid->menu_frame = frame_output;
+   if (unlikely(!vid->menu_frame))
+      vid->menu_frame = frame_output;
 }
 
-static void oga_gfx_set_nonblock_state(void *a, bool b, bool c, unsigned d)
-{
-}
+static void oga_gfx_set_nonblock_state(void *a, bool b, bool c, unsigned d) { }
 
 static bool oga_gfx_alive(void *data)
 {
     return !frontend_driver_get_signal_handler_state();
 }
 
-static bool oga_gfx_focus(void *data)
-{
-    (void)data;
-    return true;
-}
-
-static bool oga_gfx_suppress_screensaver(void *data, bool enable)
-{
-    (void)data;
-    (void)enable;
-    return false;
-}
-
-static bool oga_gfx_has_windowed(void *data)
-{
-    (void)data;
-    return false;
-}
+static bool oga_gfx_focus(void *data) { return true; }
+static bool oga_gfx_suppress_screensaver(void *data, bool enable) { return false; }
+static bool oga_gfx_has_windowed(void *data) { return false; }
 
 static void oga_gfx_viewport_info(void *data, struct video_viewport *vp)
 {
     oga_video_t *vid = (oga_video_t*)data;
-    vp->x = 0;
-    vp->y = 0;
-    vp->width = vp->full_width = NATIVE_WIDTH;
-    vp->height = vp->full_height = NATIVE_HEIGHT;
+    vp->x            = 0;
+    vp->y            = 0;
+    vp->width        = NATIVE_WIDTH;
+    vp->full_width   = NATIVE_WIDTH;
+    vp->height       = NATIVE_HEIGHT;
+    vp->full_height  = NATIVE_HEIGHT;
 }
 
 static const video_poke_interface_t oga_poke_interface = {
@@ -423,7 +411,6 @@ static const video_poke_interface_t oga_poke_interface = {
 void oga_set_rotation(void *data, unsigned rotation)
 {
    /* called before init? */
-   (void)data;
    switch (rotation)
    {
       case 0:
@@ -444,9 +431,9 @@ void oga_set_rotation(void *data, unsigned rotation)
    }
 }
 
-static void oga_get_poke_interface(void *data, const video_poke_interface_t **iface)
+static void oga_get_poke_interface(void *data,
+      const video_poke_interface_t **iface)
 {
-    (void)data;
     *iface = &oga_poke_interface;
 }
 

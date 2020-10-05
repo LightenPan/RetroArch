@@ -101,7 +101,8 @@ static void *vita2d_gfx_init(const video_info_t *video,
    if (input && input_data)
    {
       settings_t *settings = config_get_ptr();
-      void *pspinput       = input_psp.init(settings->arrays.input_joypad_driver);
+      void *pspinput       = input_driver_init_wrap(&input_psp,
+            settings->arrays.input_joypad_driver);
       *input               = pspinput ? &input_psp : NULL;
       *input_data          = pspinput;
    }
@@ -144,8 +145,18 @@ static bool vita2d_gfx_frame(void *data, const void *frame,
       unsigned pitch, const char *msg, video_frame_info_t *video_info)
 {
    void *tex_p;
-   vita_video_t *vita = (vita_video_t *)data;
-   bool menu_is_alive = video_info->menu_is_alive;
+   vita_video_t *vita     = (vita_video_t *)data;
+#ifdef HAVE_MENU
+   bool menu_is_alive     = video_info->menu_is_alive;
+#endif
+#ifdef HAVE_GFX_WIDGETS
+   bool widgets_active    = video_info->widgets_active;
+#endif
+   bool statistics_show   = video_info->statistics_show;
+   struct font_params 
+      *osd_params         = (struct font_params*)
+      &video_info->osd_stat_params;
+
 
    if (frame)
    {
@@ -253,14 +264,11 @@ static bool vita2d_gfx_frame(void *data, const void *frame,
          }
       }
    }
-   else if (video_info->statistics_show)
+   else if (statistics_show)
    {
-      struct font_params *osd_params = (struct font_params*)
-         &video_info->osd_stat_params;
-
       if (osd_params)
          font_driver_render_msg(vita, video_info->stat_text,
-               (const struct font_params*)&video_info->osd_stat_params, NULL);
+               osd_params, NULL);
    }
 
 #ifdef HAVE_OVERLAY
@@ -269,7 +277,7 @@ static bool vita2d_gfx_frame(void *data, const void *frame,
 #endif
 
 #ifdef HAVE_GFX_WIDGETS
-   if (video_info->widgets_active)
+   if (widgets_active)
       gfx_widgets_frame(video_info);
 #endif
 
@@ -458,7 +466,6 @@ static void vita2d_gfx_update_viewport(vita_video_t* vita,
 static void vita2d_gfx_set_viewport(void *data, unsigned viewport_width,
       unsigned viewport_height, bool force_full, bool allow_rotate)
 {
-   gfx_ctx_aspect_t aspect_data;
    int x                     = 0;
    int y                     = 0;
    float device_aspect       = (float)viewport_width / viewport_height;
@@ -467,10 +474,6 @@ static void vita2d_gfx_set_viewport(void *data, unsigned viewport_width,
    vita_video_t *vita        = (vita_video_t*)data;
    bool video_scale_integer  = settings->bools.video_scale_integer;
    unsigned aspect_ratio_idx = settings->uints.video_aspect_ratio_idx;
-
-   aspect_data.aspect        = &device_aspect;
-   aspect_data.width         = viewport_width;
-   aspect_data.height        = viewport_height;
 
    if (video_scale_integer && !force_full)
    {
@@ -724,7 +727,8 @@ static uintptr_t vita_load_texture(void *video_data, void *data,
    return (uintptr_t)texture;
 }
 
-static void vita_unload_texture(void *data, uintptr_t handle)
+static void vita_unload_texture(void *data, 
+      bool threaded, uintptr_t handle)
 {
    struct vita2d_texture *texture = (struct vita2d_texture*)handle;
    if (!texture)
@@ -735,7 +739,9 @@ static void vita_unload_texture(void *data, uintptr_t handle)
    vita2d_wait_rendering_done();
    vita2d_free_texture(texture);
 
-   //free(texture);
+#if 0
+   free(texture);
+#endif
 }
 
 static bool vita_get_current_sw_framebuffer(void *data,
@@ -950,7 +956,6 @@ static const video_overlay_interface_t vita2d_overlay_interface = {
 
 static void vita2d_get_overlay_interface(void *data, const video_overlay_interface_t **iface)
 {
-   (void)data;
    *iface = &vita2d_overlay_interface;
 }
 #endif

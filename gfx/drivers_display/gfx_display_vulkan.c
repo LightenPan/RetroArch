@@ -61,20 +61,9 @@ static const float *gfx_display_vk_get_default_vertices(void)
    return &vk_vertexes[0];
 }
 
-static const float *gfx_display_vk_get_default_color(void)
-{
-   return &vk_colors[0];
-}
-
 static const float *gfx_display_vk_get_default_tex_coords(void)
 {
    return &vk_tex_coords[0];
-}
-
-static unsigned to_display_pipeline(
-      enum gfx_display_prim_type type, bool blend)
-{
-   return ((type == GFX_DISPLAY_PRIM_TRIANGLESTRIP) << 1) | (blend << 0);
 }
 
 #ifdef HAVE_SHADERPIPELINE
@@ -137,7 +126,7 @@ static void gfx_display_vk_draw_pipeline(gfx_display_ctx_draw_t *draw,
    output_size[0]                   = (float)vk->context->swapchain_width;
    output_size[1]                   = (float)vk->context->swapchain_height;
 
-   switch (draw->pipeline.id)
+   switch (draw->pipeline_id)
    {
       /* Ribbon */
       default:
@@ -145,8 +134,8 @@ static void gfx_display_vk_draw_pipeline(gfx_display_ctx_draw_t *draw,
       case VIDEO_SHADER_MENU_2:
          ca = gfx_display_get_coords_array();
          draw->coords                     = (struct video_coords*)&ca->coords;
-         draw->pipeline.backend_data      = ubo_scratch_data;
-         draw->pipeline.backend_data_size = 2 * sizeof(float);
+         draw->backend_data               = ubo_scratch_data;
+         draw->backend_data_size          = 2 * sizeof(float);
 
          /* Match UBO layout in shader. */
          yflip = 1.0f;
@@ -158,20 +147,20 @@ static void gfx_display_vk_draw_pipeline(gfx_display_ctx_draw_t *draw,
       case VIDEO_SHADER_MENU_3:
       case VIDEO_SHADER_MENU_4:
       case VIDEO_SHADER_MENU_5:
-         draw->pipeline.backend_data      = ubo_scratch_data;
-         draw->pipeline.backend_data_size = sizeof(math_matrix_4x4) 
+         draw->backend_data               = ubo_scratch_data;
+         draw->backend_data_size          = sizeof(math_matrix_4x4) 
             + 4 * sizeof(float);
 
          /* Match UBO layout in shader. */
          memcpy(ubo_scratch_data,
-               gfx_display_vk_get_default_mvp(vk),
+               &vk->mvp_no_rot,
                sizeof(math_matrix_4x4));
          memcpy(ubo_scratch_data + sizeof(math_matrix_4x4),
                output_size,
                sizeof(output_size));
 
          /* Shader uses FragCoord, need to fix up. */
-         if (draw->pipeline.id == VIDEO_SHADER_MENU_5)
+         if (draw->pipeline_id == VIDEO_SHADER_MENU_5)
             yflip = -1.0f;
          else
             yflip = 1.0f;
@@ -205,21 +194,21 @@ static void gfx_display_vk_draw(gfx_display_ctx_draw_t *draw,
    if (!vk || !draw)
       return;
 
-   texture            = (struct vk_texture*)draw->texture;
-   vertex             = draw->coords->vertex;
-   tex_coord          = draw->coords->tex_coord;
-   color              = draw->coords->color;
+   texture                        = (struct vk_texture*)draw->texture;
+   vertex                         = draw->coords->vertex;
+   tex_coord                      = draw->coords->tex_coord;
+   color                          = draw->coords->color;
 
    if (!vertex)
-      vertex          = gfx_display_vk_get_default_vertices();
+      vertex                      = &vk_vertexes[0];
    if (!tex_coord)
-      tex_coord       = gfx_display_vk_get_default_tex_coords();
+      tex_coord                   = &vk_tex_coords[0];
    if (!draw->coords->lut_tex_coord)
-      draw->coords->lut_tex_coord = gfx_display_vk_get_default_tex_coords();
+      draw->coords->lut_tex_coord = &vk_tex_coords[0];
    if (!texture)
-      texture         = &vk->display.blank_texture;
+      texture                     = &vk->display.blank_texture;
    if (!color)
-      color           = gfx_display_vk_get_default_color();
+      color                       = &vk_colors[0];
 
    gfx_display_vk_viewport(draw, vk);
 
@@ -245,7 +234,7 @@ static void gfx_display_vk_draw(gfx_display_ctx_draw_t *draw,
       pv->color.a = *color++;
    }
 
-   switch (draw->pipeline.id)
+   switch (draw->pipeline_id)
    {
 #ifdef HAVE_SHADERPIPELINE
       case VIDEO_SHADER_MENU:
@@ -257,11 +246,11 @@ static void gfx_display_vk_draw(gfx_display_ctx_draw_t *draw,
          struct vk_draw_triangles call;
 
          call.pipeline     = vk->display.pipelines[
-               to_menu_pipeline(draw->prim_type, draw->pipeline.id)];
+               to_menu_pipeline(draw->prim_type, draw->pipeline_id)];
          call.texture      = NULL;
          call.sampler      = VK_NULL_HANDLE;
-         call.uniform      = draw->pipeline.backend_data;
-         call.uniform_size = draw->pipeline.backend_data_size;
+         call.uniform      = draw->backend_data;
+         call.uniform_size = draw->backend_data_size;
          call.vbo          = &range;
          call.vertices     = draw->coords->vertices;
 
@@ -275,16 +264,18 @@ static void gfx_display_vk_draw(gfx_display_ctx_draw_t *draw,
       default:
       {
          struct vk_draw_triangles call;
-
-         call.pipeline     = vk->display.pipelines[
-               to_display_pipeline(draw->prim_type, vk->display.blend)];
+         unsigned 
+            disp_pipeline  = ((draw->prim_type == 
+                  GFX_DISPLAY_PRIM_TRIANGLESTRIP) << 1) | 
+            (vk->display.blend << 0);
+         call.pipeline     = vk->display.pipelines[disp_pipeline];
          call.texture      = texture;
          call.sampler      = texture->mipmap ?
             vk->samplers.mipmap_linear :
             (texture->default_smooth ? vk->samplers.linear
              : vk->samplers.nearest);
          call.uniform      = draw->matrix_data
-            ? draw->matrix_data : gfx_display_vk_get_default_mvp(vk);
+            ? draw->matrix_data : &vk->mvp_no_rot;
          call.uniform_size = sizeof(math_matrix_4x4);
          call.vbo          = &range;
          call.vertices     = draw->coords->vertices;
@@ -305,22 +296,23 @@ static void gfx_display_vk_clear_color(
 {
    VkClearRect rect;
    VkClearAttachment attachment;
-   vk_t *vk = (vk_t*)data;
+   vk_t *vk                               = (vk_t*)data;
    if (!vk || !clearcolor)
       return;
 
-   memset(&attachment, 0, sizeof(attachment));
-   memset(&rect, 0, sizeof(rect));
-
    attachment.aspectMask                  = VK_IMAGE_ASPECT_COLOR_BIT;
+   attachment.colorAttachment             = 0;
    attachment.clearValue.color.float32[0] = clearcolor->r;
    attachment.clearValue.color.float32[1] = clearcolor->g;
    attachment.clearValue.color.float32[2] = clearcolor->b;
    attachment.clearValue.color.float32[3] = clearcolor->a;
 
-   rect.rect.extent.width  = vk->context->swapchain_width;
-   rect.rect.extent.height = vk->context->swapchain_height;
-   rect.layerCount         = 1;
+   rect.rect.offset.x                     = 0;
+   rect.rect.offset.y                     = 0;
+   rect.rect.extent.width                 = vk->context->swapchain_width;
+   rect.rect.extent.height                = vk->context->swapchain_height;
+   rect.baseArrayLayer                    = 0;
+   rect.layerCount                        = 1;
 
    vkCmdClearAttachments(vk->cmd, 1, &attachment, 1, &rect);
 }

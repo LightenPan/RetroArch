@@ -36,6 +36,10 @@
 #include "../core_info.h"
 #include "../core_backup.h"
 
+#if defined(ANDROID)
+#include "../play_feature_delivery/play_feature_delivery.h"
+#endif
+
 #define CORE_BACKUP_CHUNK_SIZE 4096
 
 enum core_backup_status
@@ -138,6 +142,7 @@ static void free_core_backup_handle(core_backup_handle_t *backup_handle)
 
 /* Forward declarations, required for task_core_backup_finder() */
 static void task_core_backup_handler(retro_task_t *task);
+
 static void task_core_restore_handler(retro_task_t *task);
 
 static bool task_core_backup_finder(retro_task_t *task, void *user_data)
@@ -321,12 +326,11 @@ static void task_core_backup_handler(retro_task_t *task)
          break;
       case CORE_BACKUP_ITERATE:
          {
-            int64_t data_read    = 0;
             int64_t data_written = 0;
             uint8_t buffer[CORE_BACKUP_CHUNK_SIZE];
 
             /* Read a single chunk from the core file */
-            data_read = intfstream_read(backup_handle->core_file, buffer, sizeof(buffer));
+            int64_t data_read    = intfstream_read(backup_handle->core_file, buffer, sizeof(buffer));
 
             if (data_read < 0)
             {
@@ -376,7 +380,7 @@ static void task_core_backup_handler(retro_task_t *task)
 
             /* Update progress display */
             task_set_progress(task,
-                  (backup_handle->file_data_read * 100) / backup_handle->core_file_size);
+                  (int8_t)((backup_handle->file_data_read * 100) / backup_handle->core_file_size));
          }
          break;
       case CORE_BACKUP_CHECK_HISTORY:
@@ -645,41 +649,6 @@ error:
 /* Core Restore */
 /****************/
 
-/* Unloads core if it is currently loaded
- * > Returns true if core was unloaded */
-static bool task_core_restore_unload_core(const char *core_path)
-{
-   const char *core_filename        = NULL;
-   const char *loaded_core_path     = NULL;
-   const char *loaded_core_filename = NULL;
-
-   if (string_is_empty(core_path))
-      return false;
-
-   /* Get core file name */
-   core_filename = path_basename(core_path);
-   if (string_is_empty(core_filename))
-      return false;
-
-   /* Get loaded core file name */
-   loaded_core_path = path_get(RARCH_PATH_CORE);
-   if (string_is_empty(loaded_core_path))
-      return false;
-
-   loaded_core_filename = path_basename(loaded_core_path);
-   if (string_is_empty(loaded_core_filename))
-      return false;
-
-   /* Check if whether file names match */
-   if (string_is_equal(core_filename, loaded_core_filename))
-   {
-      command_event(CMD_EVENT_UNLOAD_CORE, NULL);
-      return true;
-   }
-
-   return false;
-}
-
 static void cb_task_core_restore(
       retro_task_t *task, void *task_data,
       void *user_data, const char *err)
@@ -813,6 +782,27 @@ static void task_core_restore_handler(retro_task_t *task)
                break;
             }
 
+#if defined(ANDROID)
+            /* If this is a Play Store build and the
+             * core is currently installed via
+             * play feature delivery, must delete
+             * the existing core before attempting
+             * to write any data */
+            if (play_feature_delivery_enabled())
+            {
+               const char *core_filename = path_basename(
+                     backup_handle->core_path);
+
+               if (play_feature_delivery_core_installed(core_filename) &&
+                   !play_feature_delivery_delete(core_filename))
+               {
+                  RARCH_ERR("[core restore] Failed to delete existing play feature delivery core: %s\n",
+                        backup_handle->core_path);
+                  backup_handle->status = CORE_RESTORE_END;
+                  break;
+               }
+            }
+#endif
             /* Open core file for writing */
             backup_handle->core_file = intfstream_open_file(
                   backup_handle->core_path, RETRO_VFS_FILE_ACCESS_WRITE,
@@ -890,7 +880,7 @@ static void task_core_restore_handler(retro_task_t *task)
 
             /* Update progress display */
             task_set_progress(task,
-                  (backup_handle->file_data_read * 100) / backup_handle->backup_file_size);
+                  (int8_t)((backup_handle->file_data_read * 100) / backup_handle->backup_file_size));
          }
          break;
       case CORE_RESTORE_END:
@@ -1085,7 +1075,13 @@ bool task_push_core_restore(const char *backup_path, const char *dir_libretro,
 
    /* If core to be restored is currently loaded, must
     * unload it before pushing the task */
-   *core_loaded = task_core_restore_unload_core(core_path);
+   if (rarch_ctl(RARCH_CTL_IS_CORE_LOADED, (void*)core_path))
+   {
+      command_event(CMD_EVENT_UNLOAD_CORE, NULL);
+      *core_loaded = true;
+   }
+   else
+      *core_loaded = false;
 
    /* Push task */
    task_queue_push(task);

@@ -793,7 +793,7 @@ static void *gx_init(const video_info_t *video,
    if (!gx)
       return NULL;
 
-   gxinput     = input_gx.init(input_joypad_driver);
+   gxinput     = input_driver_init_wrap(&input_gx, input_joypad_driver);
    *input      = gxinput ? &input_gx : NULL;
    *input_data = gxinput;
 
@@ -1574,7 +1574,10 @@ static bool gx_frame(void *data, const void *frame,
    unsigned overscan_corr_bottom      = settings->uints.video_overscan_correction_bottom;
    bool video_smooth                  = settings->bools.video_smooth;
    unsigned video_aspect_ratio_idx    = settings->uints.video_aspect_ratio_idx;
+#ifdef HAVE_MENU
    bool menu_is_alive                 = video_info->menu_is_alive;
+#endif
+   bool fps_show                      = video_info->fps_show;
 
    fps_text_buf[0]                    = '\0';
 
@@ -1683,7 +1686,7 @@ static bool gx_frame(void *data, const void *frame,
 
    GX_DrawDone();
 
-   if (video_info->fps_show)
+   if (fps_show)
    {
       char mem1_txt[128];
       char mem2_txt[128];

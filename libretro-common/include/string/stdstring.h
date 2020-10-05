@@ -70,7 +70,18 @@ static INLINE bool string_ends_with(const char *str, const char *suffix)
    return string_ends_with_size(str, suffix, strlen(str), strlen(suffix));
 }
 
-
+/* Returns the length of 'str' (c.f. strlen()), but only
+ * checks the first 'size' characters
+ * - If 'str' is NULL, returns 0
+ * - If 'str' is not NULL and no '\0' character is found
+ *   in the first 'size' characters, returns 'size' */
+static INLINE size_t strlen_size(const char *str, size_t size)
+{
+   size_t i = 0;
+   if (str)
+      while (i < size && str[i]) i++;
+   return i;
+}
 
 #define STRLEN_CONST(x)                   ((sizeof((x))-1))
 
@@ -98,23 +109,8 @@ static INLINE bool string_is_equal_case_insensitive(const char *a,
    return (result == 0);
 }
 
-static INLINE bool string_is_equal_noncase(const char *a, const char *b)
-{
-   int result              = 0;
-   const unsigned char *p1 = (const unsigned char*)a;
-   const unsigned char *p2 = (const unsigned char*)b;
-
-   if (!a || !b)
-      return false;
-   if (p1 == p2)
-      return false;
-
-   while ((result = tolower (*p1) - tolower (*p2++)) == 0)
-      if (*p1++ == '\0')
-         break;
-
-   return (result == 0);
-}
+/* Deprecated alias, all callers should use string_is_equal_case_insensitive instead */
+#define string_is_equal_noncase string_is_equal_case_insensitive
 
 char *string_to_upper(char *s);
 
@@ -148,7 +144,7 @@ char *word_wrap(char *buffer, const char *string,
  *    char *str      = "1,2,3,4,5,6,7,,,10,";
  *    char **str_ptr = &str;
  *    char *token    = NULL;
- *    while((token = string_tokenize(str_ptr, ",")))
+ *    while ((token = string_tokenize(str_ptr, ",")))
  *    {
  *        printf("%s\n", token);
  *        free(token);

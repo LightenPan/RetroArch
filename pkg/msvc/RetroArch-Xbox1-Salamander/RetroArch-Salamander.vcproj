@@ -279,9 +279,6 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\..\..\file_path_str.c">
-			</File>
-			<File
 				RelativePath="..\..\..\frontend\frontend_driver.c">
 			</File>
 			<File
@@ -367,6 +364,13 @@
 					Filter="">
 					<File
 						RelativePath="..\..\..\libretro-common\encodings\encoding_utf.c">
+					</File>
+				</Filter>
+				<Filter
+					Name="time"
+					Filter="">
+					<File
+						RelativePath="..\..\..\libretro-common\time\rtime.c">
 					</File>
 				</Filter>
 			</Filter>

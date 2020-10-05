@@ -35,26 +35,26 @@ typedef struct overlay_loader overlay_loader_t;
 
 struct overlay_loader
 {
-   bool driver_rgba_support;
-   bool overlay_enable;
-   bool overlay_hide_in_menu;
-
-   enum overlay_status state;
-   enum overlay_image_transfer_status loading_status;
+   config_file_t *conf;
+   char *overlay_path;
+   struct overlay *overlays;
+   struct overlay *active;
 
    size_t resolve_pos;
    unsigned size;
    unsigned pos;
    unsigned pos_increment;
-   float overlay_opacity;
-   float overlay_scale;
-   float overlay_center_x;
-   float overlay_center_y;
 
-   config_file_t *conf;
-   char *overlay_path;
-   struct overlay *overlays;
-   struct overlay *active;
+   float overlay_opacity;
+   overlay_layout_t layout;
+
+   enum overlay_status state;
+   enum overlay_image_transfer_status loading_status;
+
+   bool driver_rgba_support;
+   bool overlay_enable;
+   bool overlay_hide_in_menu;
+   bool overlay_hide_when_gamepad_connected;
 };
 
 static void task_overlay_image_done(struct overlay *overlay)
@@ -123,7 +123,7 @@ static bool task_overlay_load_desc(
    bool ret                             = true;
    bool by_pixel                        = false;
    char *key                            = NULL;
-   struct string_list *list             = NULL;
+   struct string_list list              = {0};
    const char *x                        = NULL;
    const char *y                        = NULL;
    const char *box                      = NULL;
@@ -156,26 +156,25 @@ static bool task_overlay_load_desc(
       goto end;
    }
 
-   list = string_split(overlay, ", ");
-
-   if (!list)
+   string_list_initialize(&list);
+   if (!string_split_noalloc(&list, overlay, ", "))
    {
       RARCH_ERR("[Overlay]: Failed to split overlay desc.\n");
       ret = false;
       goto end;
    }
 
-   if (list->size < 6)
+   if (list.size < 6)
    {
       RARCH_ERR("[Overlay]: Overlay desc is invalid. Requires at least 6 tokens.\n");
       ret = false;
       goto end;
    }
 
-   key            = list->elems[0].data;
-   x              = list->elems[1].data;
-   y              = list->elems[2].data;
-   box            = list->elems[3].data;
+   key            = list.elems[0].data;
+   x              = list.elems[1].data;
+   y              = list.elems[2].data;
+   box            = list.elems[3].data;
 
    desc->retro_key_idx = 0;
    BIT256_CLEAR_ALL(desc->button_mask);
@@ -222,8 +221,10 @@ static bool task_overlay_load_desc(
       height_mod /= height;
    }
 
-   desc->x = (float)strtod(x, NULL) * width_mod;
-   desc->y = (float)strtod(y, NULL) * height_mod;
+   desc->x       = (float)strtod(x, NULL) * width_mod;
+   desc->y       = (float)strtod(y, NULL) * height_mod;
+   desc->x_shift = desc->x;
+   desc->y_shift = desc->y;
 
    if (string_is_equal(box, "radial"))
       desc->hitbox = OVERLAY_HITBOX_RADIAL;
@@ -268,8 +269,8 @@ static bool task_overlay_load_desc(
          break;
    }
 
-   desc->range_x = (float)strtod(list->elems[4].data, NULL) * width_mod;
-   desc->range_y = (float)strtod(list->elems[5].data, NULL) * height_mod;
+   desc->range_x = (float)strtod(list.elems[4].data, NULL) * width_mod;
+   desc->range_y = (float)strtod(list.elems[5].data, NULL) * height_mod;
 
    desc->mod_x   = desc->x - desc->range_x;
    desc->mod_w   = 2.0f * desc->range_x;
@@ -303,8 +304,7 @@ static bool task_overlay_load_desc(
    input_overlay->pos ++;
 
 end:
-   if (list)
-      string_list_free(list);
+   string_list_deinitialize(&list);
    return ret;
 }
 
@@ -610,21 +610,25 @@ static void task_overlay_deferred_load(retro_task_t *task)
       if (config_get_array(conf, overlay->config.rect.key,
                overlay->config.rect.array, sizeof(overlay->config.rect.array)))
       {
-         struct string_list *list = string_split(overlay->config.rect.array, ", ");
+         struct string_list  list = {0};
 
-         if (!list || list->size < 4)
+         string_list_initialize(&list);
+
+         if (     !string_split_noalloc(
+                  &list, overlay->config.rect.array, ", ")  
+               || list.size < 4)
          {
             RARCH_ERR("[Overlay]: Failed to split rect \"%s\" into at least four tokens.\n",
                   overlay->config.rect.array);
-            string_list_free(list);
+            string_list_deinitialize(&list);
             goto error;
          }
 
-         overlay->x = (float)strtod(list->elems[0].data, NULL);
-         overlay->y = (float)strtod(list->elems[1].data, NULL);
-         overlay->w = (float)strtod(list->elems[2].data, NULL);
-         overlay->h = (float)strtod(list->elems[3].data, NULL);
-         string_list_free(list);
+         overlay->x = (float)strtod(list.elems[0].data, NULL);
+         overlay->y = (float)strtod(list.elems[1].data, NULL);
+         overlay->w = (float)strtod(list.elems[2].data, NULL);
+         overlay->h = (float)strtod(list.elems[3].data, NULL);
+         string_list_deinitialize(&list);
       }
 
       /* Assume for now that scaling center is in the middle.
@@ -701,15 +705,15 @@ static void task_overlay_handler(retro_task_t *task)
       overlay_task_data_t *data = (overlay_task_data_t*)
          calloc(1, sizeof(*data));
 
-      data->overlays         = loader->overlays;
-      data->size             = loader->size;
-      data->active           = loader->active;
-      data->hide_in_menu     = loader->overlay_hide_in_menu;
-      data->overlay_enable   = loader->overlay_enable;
-      data->overlay_opacity  = loader->overlay_opacity;
-      data->overlay_scale    = loader->overlay_scale;
-      data->overlay_center_x = loader->overlay_center_x;
-      data->overlay_center_y = loader->overlay_center_y;
+      data->overlays                    = loader->overlays;
+      data->active                      = loader->active;
+      data->size                        = loader->size;
+      data->overlay_opacity             = loader->overlay_opacity;
+      data->overlay_enable              = loader->overlay_enable;
+      data->hide_in_menu                = loader->overlay_hide_in_menu;
+      data->hide_when_gamepad_connected = loader->overlay_hide_when_gamepad_connected;
+
+      memcpy(&data->layout, &loader->layout, sizeof(overlay_layout_t));
 
       task_set_data(task, data);
    }
@@ -736,19 +740,18 @@ bool task_push_overlay_load_default(
       retro_task_callback_t cb,
       const char *overlay_path,
       bool overlay_hide_in_menu,
+      bool overlay_hide_when_gamepad_connected,
       bool input_overlay_enable,
       float input_overlay_opacity,
-      float input_overlay_scale,
-      float input_overlay_center_x,
-      float input_overlay_center_y,
+      overlay_layout_t *layout,
       void *user_data)
 {
    task_finder_data_t find_data;
    retro_task_t *t          = NULL;
    config_file_t *conf      = NULL;
    overlay_loader_t *loader = NULL;
-   
-   if (string_is_empty(overlay_path))
+
+   if (string_is_empty(overlay_path) || !layout)
       return false;
 
    /* Prevent overlay from being loaded if it already is being loaded */
@@ -787,19 +790,20 @@ bool task_push_overlay_load_default(
       return false;
    }
 
-   loader->overlay_hide_in_menu = overlay_hide_in_menu;
-   loader->overlay_enable       = input_overlay_enable;
-   loader->overlay_opacity      = input_overlay_opacity;
-   loader->overlay_scale        = input_overlay_scale;
-   loader->overlay_center_x     = input_overlay_center_x;
-   loader->overlay_center_y     = input_overlay_center_y;
-   loader->conf                 = conf;
-   loader->state                = OVERLAY_STATUS_DEFERRED_LOAD;
-   loader->pos_increment        = (loader->size / 4) ? (loader->size / 4) : 4;
+   loader->overlay_hide_in_menu                = overlay_hide_in_menu;
+   loader->overlay_hide_when_gamepad_connected = overlay_hide_when_gamepad_connected;
+   loader->overlay_enable                      = input_overlay_enable;
+   loader->overlay_opacity                     = input_overlay_opacity;
+   loader->conf                                = conf;
+   loader->state                               = OVERLAY_STATUS_DEFERRED_LOAD;
+   loader->pos_increment                       = (loader->size / 4) ? (loader->size / 4) : 4;
 #ifdef RARCH_INTERNAL
-   loader->driver_rgba_support  = video_driver_supports_rgba();
+   loader->driver_rgba_support                 = video_driver_supports_rgba();
 #endif
-   t                            = task_init();
+
+   memcpy(&loader->layout, layout, sizeof(overlay_layout_t));
+
+   t                                           = task_init();
 
    if (!t)
    {

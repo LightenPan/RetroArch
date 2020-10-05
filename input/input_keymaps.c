@@ -1,6 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2017 - Daniel De Matteis
+ *  Copyright (C) 2020      - neil4 (reverse LUT keyboard)
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -69,105 +70,6 @@
 
 #ifdef __APPLE__
 #include "drivers_keyboard/keyboard_event_apple.h"
-
-const struct apple_key_name_map_entry apple_key_name_map[] =
-{
-   { "left", KEY_Left },
-   { "right", KEY_Right },
-   { "up", KEY_Up },
-   { "down", KEY_Down },
-   { "enter", KEY_Enter },
-   { "kp_enter", KP_Enter },
-   { "space", KEY_Space },
-   { "tab", KEY_Tab },
-   { "shift", KEY_LeftShift },
-   { "rshift", KEY_RightShift },
-   { "ctrl", KEY_LeftControl },
-   { "alt", KEY_LeftAlt },
-   { "escape", KEY_Escape },
-   { "backspace", KEY_DeleteForward },
-   { "backquote", KEY_Grave },
-   { "pause", KEY_Pause },
-   { "f1", KEY_F1 },
-   { "f2", KEY_F2 },
-   { "f3", KEY_F3 },
-   { "f4", KEY_F4 },
-   { "f5", KEY_F5 },
-   { "f6", KEY_F6 },
-   { "f7", KEY_F7 },
-   { "f8", KEY_F8 },
-   { "f9", KEY_F9 },
-   { "f10", KEY_F10 },
-   { "f11", KEY_F11 },
-   { "f12", KEY_F12 },
-   { "num0", KEY_0 },
-   { "num1", KEY_1 },
-   { "num2", KEY_2 },
-   { "num3", KEY_3 },
-   { "num4", KEY_4 },
-   { "num5", KEY_5 },
-   { "num6", KEY_6 },
-   { "num7", KEY_7 },
-   { "num8", KEY_8 },
-   { "num9", KEY_9 },
-
-   { "insert", KEY_Insert },
-   { "del", KEY_DeleteForward },
-   { "home", KEY_Home },
-   { "end", KEY_End },
-   { "pageup", KEY_PageUp },
-   { "pagedown", KEY_PageDown },
-
-   { "add", KP_Add },
-   { "subtract", KP_Subtract },
-   { "multiply", KP_Multiply },
-   { "divide", KP_Divide },
-   { "keypad0", KP_0 },
-   { "keypad1", KP_1 },
-   { "keypad2", KP_2 },
-   { "keypad3", KP_3 },
-   { "keypad4", KP_4 },
-   { "keypad5", KP_5 },
-   { "keypad6", KP_6 },
-   { "keypad7", KP_7 },
-   { "keypad8", KP_8 },
-   { "keypad9", KP_9 },
-
-   { "period", KEY_Period },
-   { "capslock", KEY_CapsLock },
-   { "numlock", KP_NumLock },
-   { "print_screen", KEY_PrintScreen },
-   { "scroll_lock", KEY_ScrollLock },
-
-   { "a", KEY_A },
-   { "b", KEY_B },
-   { "c", KEY_C },
-   { "d", KEY_D },
-   { "e", KEY_E },
-   { "f", KEY_F },
-   { "g", KEY_G },
-   { "h", KEY_H },
-   { "i", KEY_I },
-   { "j", KEY_J },
-   { "k", KEY_K },
-   { "l", KEY_L },
-   { "m", KEY_M },
-   { "n", KEY_N },
-   { "o", KEY_O },
-   { "p", KEY_P },
-   { "q", KEY_Q },
-   { "r", KEY_R },
-   { "s", KEY_S },
-   { "t", KEY_T },
-   { "u", KEY_U },
-   { "v", KEY_V },
-   { "w", KEY_W },
-   { "x", KEY_X },
-   { "y", KEY_Y },
-   { "z", KEY_Z },
-
-   { "nul", 0x00},
-};
 #endif
 
 const struct input_key_map input_config_key_map[] = {
@@ -417,7 +319,7 @@ const struct rarch_key_map rarch_key_map_switch[] = {
 #endif
 
 #ifdef VITA
-// Vita scancodes are identical to USB 2.0 standard, e.g. SDL2
+/* Vita scancodes are identical to USB 2.0 standard, e.g. SDL2 */
 const struct rarch_key_map rarch_key_map_vita[] = {
    { 0x02A, RETROK_BACKSPACE },
    { 0x02B, RETROK_TAB },
@@ -1083,7 +985,10 @@ const struct rarch_key_map rarch_key_map_linux[] = {
    { KEY_BACKSPACE, RETROK_BACKSPACE },
    { KEY_TAB, RETROK_TAB },
    { KEY_CLEAR, RETROK_CLEAR },
+   { KEY_EXIT, RETROK_CLEAR },
    { KEY_ENTER, RETROK_RETURN },
+   { KEY_OK, RETROK_RETURN },
+   { KEY_SELECT, RETROK_RETURN },
    { KEY_PAUSE, RETROK_PAUSE },
    { KEY_ESC, RETROK_ESCAPE },
    { KEY_SPACE, RETROK_SPACE },
@@ -1902,7 +1807,12 @@ const struct rarch_key_map rarch_key_map_winraw[] = {
  * so they can't be placed in a C source file */
 #endif
 
+/* TODO/FIXME - global */
 enum retro_key rarch_keysym_lut[RETROK_LAST];
+
+/* TODO/FIXME - static globals */
+static unsigned *rarch_keysym_rlut           = NULL;
+static unsigned rarch_keysym_rlut_size       = 0;
 
 /**
  * input_keymaps_init_keyboard_lut:
@@ -1912,10 +1822,29 @@ enum retro_key rarch_keysym_lut[RETROK_LAST];
  **/
 void input_keymaps_init_keyboard_lut(const struct rarch_key_map *map)
 {
+   const struct rarch_key_map *map_start = map;
    memset(rarch_keysym_lut, 0, sizeof(rarch_keysym_lut));
+   rarch_keysym_rlut_size = 0;
 
    for (; map->rk != RETROK_UNKNOWN; map++)
+   {
       rarch_keysym_lut[map->rk] = (enum retro_key)map->sym;
+      if (map->sym > rarch_keysym_rlut_size)
+         rarch_keysym_rlut_size = map->sym;
+   }
+
+   if (rarch_keysym_rlut_size < 65536)
+   {
+      if (rarch_keysym_rlut)
+         free(rarch_keysym_rlut);
+
+      rarch_keysym_rlut = (unsigned*)calloc(++rarch_keysym_rlut_size, sizeof(unsigned));
+
+      for (map = map_start; map->rk != RETROK_UNKNOWN; map++)
+         rarch_keysym_rlut[map->sym] = (enum retro_key)map->rk;
+   }
+   else
+      rarch_keysym_rlut_size = 0;
 }
 
 /**
@@ -1931,6 +1860,11 @@ enum retro_key input_keymaps_translate_keysym_to_rk(unsigned sym)
 {
    unsigned i;
 
+   /* Fast path */
+   if (rarch_keysym_rlut && sym < rarch_keysym_rlut_size)
+      return (enum retro_key)rarch_keysym_rlut[sym];
+
+   /* Slow path */
    for (i = 0; i < ARRAY_SIZE(rarch_keysym_lut); i++)
    {
       if (rarch_keysym_lut[i] != sym)

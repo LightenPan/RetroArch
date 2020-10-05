@@ -24,7 +24,13 @@
 
 #include "joypad_connection.h"
 
-static bool joypad_is_end_of_list(joypad_connection_t *pad);
+static bool joypad_is_end_of_list(joypad_connection_t *pad)
+{
+  return pad 
+     && !pad->connected 
+     && !pad->iface 
+     &&  (pad->data == (void *)0xdeadbeef);
+}
 
 int pad_connection_find_vacant_pad(joypad_connection_t *joyconn)
 {
@@ -45,14 +51,11 @@ int pad_connection_find_vacant_pad(joypad_connection_t *joyconn)
 static void set_end_of_list(joypad_connection_t *list, unsigned end)
 {
   joypad_connection_t *entry = (joypad_connection_t *)&list[end];
-  entry->connected = false;
-  entry->iface = NULL;
-  entry->data = (void *)0xdeadbeef;
+  entry->connected           = false;
+  entry->iface               = NULL;
+  entry->data                = (void*)0xdeadbeef;
 }
 
-static bool joypad_is_end_of_list(joypad_connection_t *pad) {
-  return pad && !pad->connected && !pad->iface && pad->data == (void *)0xdeadbeef;
-}
 
 /**
  * Since the pad_connection_destroy() call needs to iterate through this
@@ -115,6 +118,7 @@ int32_t pad_connection_pad_init(joypad_connection_t *joyconn,
       { "PSX to PS3 Controller Adapter", 0,     0,  &pad_connection_psxadapter },
       { "Mayflash DolphinBar",           0,     0,  &pad_connection_wii },
       { "Retrode",                       0,     0,  &pad_connection_retrode },
+      { "HORI mini wired PS4",           0,     0,  &pad_connection_ps4_hori_mini },
       { 0, 0}
    };
    joypad_connection_t *s = NULL;
@@ -149,14 +153,18 @@ int32_t pad_connection_pad_init(joypad_connection_t *joyconn,
    pad_map[10].pid        = 774;
    pad_map[11].vid        = VID_RETRODE;
    pad_map[11].pid        = PID_RETRODE;
+   pad_map[12].vid        = VID_HORI_1;
+   pad_map[12].pid        = PID_HORI_MINI_WIRED_PS4;
 
    if (s)
    {
       unsigned i;
+      
+      const bool has_name = !string_is_empty(name);
 
       for (i = 0; name && pad_map[i].name; i++)
       {
-         const char *name_match = strstr(pad_map[i].name, name);
+         const char *name_match = has_name ? strstr(pad_map[i].name, name) : NULL;
 
          /* Never change, Nintendo. */
          if(pad_map[i].vid == 1406 && pad_map[i].pid == 816)
@@ -195,8 +203,8 @@ int32_t pad_connection_pad_init(joypad_connection_t *joyconn,
        * set up one without an interface */
       if (!s->connected)
       {
-         s->iface = NULL;
-         s->data = data;
+         s->iface     = NULL;
+         s->data      = data;
          s->connected = true;
       }
    }

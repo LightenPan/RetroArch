@@ -37,13 +37,6 @@
  * with Ozone driver metrics */
 #define OZONE_SIDEBAR_WIDTH 408
 
-static float osk_dark[16] =  {
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
-   0.00, 0.00, 0.00, 0.85,
-};
-
 /* TODO/FIXME - global that gets referenced outside,
  * needs to be refactored */
 uintptr_t gfx_display_white_texture;
@@ -162,7 +155,7 @@ static INLINE float gfx_display_scalef(float val,
 
 static INLINE float gfx_display_randf(float min, float max)
 {
-   return (rand() * ((max - min) / RAND_MAX)) + min;
+   return (rand() * ((max - min) / (double)RAND_MAX)) + min;
 }
 
 static float gfx_display_get_adjusted_scale_internal(
@@ -278,7 +271,7 @@ enum menu_driver_id_type gfx_display_get_driver_id(void)
    return p_disp->menu_driver_id;
 }
 
-float gfx_display_get_dpi_scale_internal(unsigned width, unsigned height)
+static float gfx_display_get_dpi_scale_internal(unsigned width, unsigned height)
 {
    float dpi;
    float diagonal_pixels;
@@ -304,7 +297,7 @@ float gfx_display_get_dpi_scale_internal(unsigned width, unsigned height)
     * unfortunate, and needs to be fixed at the gfx context driver
     * level. Until this is done, all we can do is fallback to using
     * the old legacy 'magic number' scaling on Mac platforms. */
-#if defined(HAVE_COCOA) || defined(HAVE_COCOA_METAL)
+#if !defined(HAVE_COCOATOUCH) && (defined(HAVE_COCOA) || defined(HAVE_COCOA_METAL))
    if (true)
    {
       scale        = (diagonal_pixels / 6.5f) / 212.0f;
@@ -486,15 +479,21 @@ float gfx_display_get_widget_dpi_scale(
 #endif
    gfx_display_t *p_disp                               = disp_get_ptr();
 
-   /* When using RGUI, _menu_scale_factor
-    * is ignored
-    * > If we are not using a widget scale factor override,
-    *   just set menu_scale_factor to 1.0 */
-   float menu_scale_factor                             =
-      gfx_widget_scale_auto ?
-      ((p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI) ?
-       1.0f : _menu_scale_factor) :
-      menu_widget_scale_factor;
+   float menu_scale_factor                             = menu_widget_scale_factor;
+
+   if (gfx_widget_scale_auto)
+   {
+#ifdef HAVE_RGUI
+      /* When using RGUI, _menu_scale_factor
+       * is ignored
+       * > If we are not using a widget scale factor override,
+       *   just set menu_scale_factor to 1.0 */
+      if (p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI)
+         menu_scale_factor                             = 1.0f;
+      else
+#endif
+         menu_scale_factor                             = _menu_scale_factor;
+   }
 
    /* Scale is based on display metrics - these are a fixed
     * hardware property. To minimise performance overheads
@@ -550,15 +549,21 @@ float gfx_display_get_widget_pixel_scale(
          menu_widget_scale_factor_fullscreen : menu_widget_scale_factor_windowed;
 #endif
    gfx_display_t *p_disp                               = disp_get_ptr();
+   float menu_scale_factor                             = menu_widget_scale_factor;
 
-   /* When using RGUI, _menu_scale_factor is ignored
-    * > If we are not using a widget scale factor override,
-    *   just set menu_scale_factor to 1.0 */
-   float menu_scale_factor                             =
-      gfx_widget_scale_auto ?
-            ((p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI) ?
-                  1.0f : _menu_scale_factor) :
-                        menu_widget_scale_factor;
+   if (gfx_widget_scale_auto)
+   {
+#ifdef HAVE_RGUI
+      /* When using RGUI, _menu_scale_factor
+       * is ignored
+       * > If we are not using a widget scale factor override,
+       *   just set menu_scale_factor to 1.0 */
+      if (p_disp->menu_driver_id == MENU_DRIVER_ID_RGUI)
+         menu_scale_factor                             = 1.0f;
+      else
+#endif
+         menu_scale_factor                             = _menu_scale_factor;
+   }
 
    /* We need to perform a square root here, which
     * can be slow on some platforms (not *slow*, but
@@ -737,7 +742,7 @@ void gfx_display_clear_color(gfx_display_ctx_clearcolor_t *color, void *data)
 
 void gfx_display_draw(gfx_display_ctx_draw_t *draw,
       void *data,
-      unsigned video_width,
+      unsigned video_width, 
       unsigned video_height)
 {
    gfx_display_t            *p_disp  = disp_get_ptr();
@@ -877,7 +882,7 @@ void gfx_display_draw_quad(
    draw.matrix_data  = NULL;
    draw.texture      = gfx_display_white_texture;
    draw.prim_type    = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id  = 0;
+   draw.pipeline_id  = 0;
    draw.scale_factor = 1.0f;
    draw.rotation     = 0.0f;
 
@@ -931,7 +936,7 @@ void gfx_display_draw_polygon(
    draw.matrix_data  = NULL;
    draw.texture      = gfx_display_white_texture;
    draw.prim_type    = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id  = 0;
+   draw.pipeline_id  = 0;
    draw.scale_factor = 1.0f;
    draw.rotation     = 0.0f;
 
@@ -970,7 +975,7 @@ void gfx_display_draw_texture(
    draw.coords              = &coords;
    draw.matrix_data         = &mymat;
    draw.prim_type           = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id         = 0;
+   draw.pipeline_id         = 0;
    coords.color             = (const float*)color;
 
    gfx_display_rotate_z(&rotate_draw, userdata);
@@ -1042,9 +1047,9 @@ void gfx_display_draw_texture_slice(
 
    /* need space for the coordinates of two triangles in a strip,
     * so 8 vertices */
-   float *tex_coord  = (float*)malloc(8 * sizeof(float));
-   float *vert_coord = (float*)malloc(8 * sizeof(float));
-   float *colors     = (float*)malloc(16 * sizeof(float));
+   float tex_coord[8];
+   float vert_coord[8];
+   float colors[16];
 
    /* normalized width/height of the amount to offset from the corners,
     * for both the vertex and texture coordinates */
@@ -1102,7 +1107,7 @@ void gfx_display_draw_texture_slice(
    draw.coords              = &coords;
    draw.matrix_data         = &mymat;
    draw.prim_type           = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id         = 0;
+   draw.pipeline_id         = 0;
    coords.color             = (const float*)(color == NULL ? colors : color);
 
    gfx_display_rotate_z(&rotate_draw, userdata);
@@ -1314,10 +1319,6 @@ void gfx_display_draw_texture_slice(
 
    gfx_display_draw(&draw, userdata,
          video_width, video_height);
-
-   free(colors);
-   free(vert_coord);
-   free(tex_coord);
 }
 
 void gfx_display_rotate_z(gfx_display_ctx_rotate_draw_t *draw, void *data)
@@ -1387,7 +1388,7 @@ void gfx_display_draw_cursor(
    draw.matrix_data     = NULL;
    draw.texture         = texture;
    draw.prim_type       = GFX_DISPLAY_PRIM_TRIANGLESTRIP;
-   draw.pipeline.id     = 0;
+   draw.pipeline_id     = 0;
 
    gfx_display_draw(&draw, userdata, video_width, video_height);
 
@@ -1627,7 +1628,8 @@ void gfx_display_set_msg_force(bool state)
 bool gfx_display_get_update_pending(void)
 {
    gfx_display_t *p_disp   = disp_get_ptr();
-   if (gfx_animation_is_active() || p_disp->framebuf_dirty)
+   gfx_animation_t *p_anim = anim_get_ptr();
+   if (ANIM_IS_ACTIVE(p_anim) || p_disp->framebuf_dirty)
       return true;
    return false;
 }
@@ -1755,11 +1757,17 @@ void gfx_display_draw_keyboard(
    unsigned i;
    int ptr_width, ptr_height;
 
-   float white[16]=  {
+   static float white[16] =  {
       1.00, 1.00, 1.00, 1.00,
       1.00, 1.00, 1.00, 1.00,
       1.00, 1.00, 1.00, 1.00,
       1.00, 1.00, 1.00, 1.00,
+   };
+   static float osk_dark[16] =  {
+      0.00, 0.00, 0.00, 0.85,
+      0.00, 0.00, 0.00, 0.85,
+      0.00, 0.00, 0.00, 0.85,
+      0.00, 0.00, 0.00, 0.85,
    };
 
    gfx_display_draw_quad(
@@ -1793,7 +1801,7 @@ void gfx_display_draw_keyboard(
                userdata,
                video_width,
                video_height,
-               video_width / 2.0 - (11 * ptr_width) / 2.0 + (i % 11)
+               video_width / 2.0 - (11 * ptr_width) / 2.0 + (i % 11) 
                * ptr_width,
                video_height / 2.0 + ptr_height * 1.5 + line_y,
                ptr_width, ptr_height,
@@ -1866,8 +1874,10 @@ bool gfx_display_reset_textures_list(
       uintptr_t *item, enum texture_filter_type filter_type,
       unsigned *width, unsigned *height)
 {
+   char texpath[PATH_MAX_LENGTH];
    struct texture_image ti;
-   char texpath[PATH_MAX_LENGTH] = {0};
+
+   texpath[0]                    = '\0';
 
    ti.width                      = 0;
    ti.height                     = 0;
@@ -1920,7 +1930,7 @@ bool gfx_display_reset_textures_list_buffer(
    if (height)
       *height = ti.height;
 
-   /* if the poke interface doesn't support texture load then return false */
+   /* if the poke interface doesn't support texture load then return false */  
    if (!video_driver_texture_load(&ti, filter_type, item))
        return false;
    image_texture_free(&ti);

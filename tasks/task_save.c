@@ -54,9 +54,11 @@
 #include "../retroarch.h"
 #include "../verbosity.h"
 #include "tasks_internal.h"
+#ifdef HAVE_CHEATS
 #include "../managers/cheat_manager.h"
+#endif
 
-#ifdef HAVE_LIBNX
+#if defined(HAVE_LIBNX) || defined(_3DS)
 #define SAVE_STATE_CHUNK 4096 * 10
 #else
 #define SAVE_STATE_CHUNK 4096
@@ -74,34 +76,34 @@ struct ram_type
 struct save_state_buf
 {
    void* data;
-   char path[PATH_MAX_LENGTH];
    size_t size;
+   char path[PATH_MAX_LENGTH];
 };
 
 struct sram_block
 {
-   unsigned type;
    void *data;
    size_t size;
+   unsigned type;
 };
 
 typedef struct
 {
    intfstream_t *file;
-   char path[PATH_MAX_LENGTH];
    void *data;
    void *undo_data;
    ssize_t size;
    ssize_t undo_size;
    ssize_t written;
    ssize_t bytes_read;
+   int state_slot;
+   char path[PATH_MAX_LENGTH];
    bool load_to_backup_buffer;
    bool autoload;
    bool autosave;
    bool yunsave;
    bool undo_save;
    bool mute;
-   int state_slot;
    bool thumbnail_enable;
    bool has_valid_framebuffer;
    bool compress_files;
@@ -119,10 +121,6 @@ struct autosave_st
 
 struct autosave
 {
-   volatile bool quit;
-   size_t bufsize;
-   unsigned interval;
-   bool compress_files;
    void *buffer;
    const void *retro_buffer;
    const char *path;
@@ -130,6 +128,10 @@ struct autosave
    slock_t *cond_lock;
    scond_t *cond;
    sthread_t *thread;
+   size_t bufsize;
+   unsigned interval;
+   volatile bool quit;
+   bool compress_files;
 };
 #endif
 
@@ -870,7 +872,7 @@ static void task_load_handler(retro_task_t *task)
    {
       if (state->autoload)
       {
-         char *msg = (char*)malloc(8192 * sizeof(char));
+         char msg[8192];
 
          msg[0] = '\0';
 
@@ -881,7 +883,6 @@ static void task_load_handler(retro_task_t *task)
                state->path,
                msg_hash_to_str(MSG_FAILED));
          task_set_error(task, strdup(msg));
-         free(msg);
       }
       else
          task_set_error(task, strdup(msg_hash_to_str(MSG_FAILED_TO_LOAD_STATE)));
@@ -894,15 +895,14 @@ static void task_load_handler(retro_task_t *task)
 
    if (state->bytes_read == state->size)
    {
-      size_t sizeof_msg = 8192;
-      char         *msg = (char*)malloc(sizeof_msg * sizeof(char));
+      char msg[8192];
 
       msg[0]            = '\0';
 
       task_free_title(task);
 
       if (state->autoload)
-         snprintf(msg, sizeof_msg,
+         snprintf(msg, sizeof(msg),
                "%s \"%s\" %s.",
                msg_hash_to_str(MSG_AUTOLOADING_SAVESTATE_FROM),
                state->path,
@@ -911,9 +911,9 @@ static void task_load_handler(retro_task_t *task)
       {
          if (state->state_slot < 0)
             strlcpy(msg, msg_hash_to_str(MSG_LOADED_STATE_FROM_SLOT_AUTO),
-                 sizeof_msg);
+                 sizeof(msg));
          else
-            snprintf(msg, sizeof_msg,
+            snprintf(msg, sizeof(msg),
                   msg_hash_to_str(MSG_LOADED_STATE_FROM_SLOT),
                   state->state_slot);
 
@@ -922,7 +922,6 @@ static void task_load_handler(retro_task_t *task)
       if (!task_get_mute(task))
          task_set_title(task, strdup(msg));
 
-      free(msg);
       task_load_handler_finished(task, state);
 
       return;
@@ -1098,6 +1097,7 @@ static void save_state_cb(retro_task_t *task,
       void *user_data, const char *error)
 {
    save_task_state_t *state   = (save_task_state_t*)task_data;
+#ifdef HAVE_SCREENSHOTS
    char               *path   = strdup(state->path);
    settings_t     *settings   = config_get_ptr();
    const char *dir_screenshot = settings->paths.directory_screenshot;
@@ -1114,6 +1114,8 @@ static void save_state_cb(retro_task_t *task,
    }
 
    free(path);
+#endif
+
    free(state);
 }
 
@@ -1386,7 +1388,7 @@ static bool task_save_state_finder(retro_task_t *task, void *user_data)
 }
 
 /* Returns true if a save state task is in progress */
-bool content_save_state_in_progress(void)
+static bool content_save_state_in_progress(void* data)
 {
    task_finder_data_t find_data;
 
@@ -1397,6 +1399,11 @@ bool content_save_state_in_progress(void)
       return true;
 
    return false;
+}
+
+void content_wait_for_save_state_task(void)
+{
+   task_queue_wait(content_save_state_in_progress, NULL);
 }
 
 /**
@@ -1590,22 +1597,19 @@ static bool dump_to_file_desperate(const void *data,
 {
    time_t time_;
    struct tm tm_;
-   char *timebuf;
-   char *path;
-   char *application_data = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
+   char timebuf[256];
+   char path[PATH_MAX_LENGTH];
+   char application_data[PATH_MAX_LENGTH];
+
    application_data[0]    = '\0';
+   path            [0]    = '\0';
+   timebuf         [0]    = '\0';
 
    if (!fill_pathname_application_data(application_data,
-            PATH_MAX_LENGTH * sizeof(char)))
-   {
-      free(application_data);
+            sizeof(application_data)))
       return false;
-   }
 
    time(&time_);
-
-   timebuf    = (char*)malloc(256 * sizeof(char));
-   timebuf[0] = '\0';
 
    rtime_localtime(&time_, &tm_);
 
@@ -1613,16 +1617,10 @@ static bool dump_to_file_desperate(const void *data,
          256 * sizeof(char),
          "%Y-%m-%d-%H-%M-%S", &tm_);
 
-   path    = (char*)malloc(PATH_MAX_LENGTH * sizeof(char));
-   path[0] = '\0';
-   snprintf(path,
-         PATH_MAX_LENGTH * sizeof(char),
+   snprintf(path, sizeof(path),
          "%s/RetroArch-recovery-%u%s",
          application_data, type,
          timebuf);
-
-   free(application_data);
-   free(timebuf);
 
    /* Fallback (emergency) saves are always
     * uncompressed
@@ -1634,13 +1632,9 @@ static bool dump_to_file_desperate(const void *data,
     *   complicate matters by introducing zlib
     *   compression overheads */
    if (!filestream_write_file(path, data, size))
-   {
-      free(path);
       return false;
-   }
 
    RARCH_WARN("[SRAM]: Succeeded in saving RAM data to \"%s\".\n", path);
-   free(path);
    return true;
 }
 
@@ -1704,15 +1698,19 @@ bool event_save_files(bool is_sram_used)
 {
    unsigned i;
    settings_t *settings            = config_get_ptr();
+#ifdef HAVE_CHEATS
    const char *path_cheat_database = settings->paths.path_cheat_database;
+#endif
 #if defined(HAVE_ZLIB)
    bool compress_files             = settings->bools.save_file_compression;
 #else
    bool compress_files             = false;
 #endif
 
+#ifdef HAVE_CHEATS
    cheat_manager_save_game_specific_cheats(
          path_cheat_database);
+#endif
    if (!task_save_files || !is_sram_used)
       return false;
 
@@ -1738,8 +1736,7 @@ bool event_load_save_files(bool is_sram_load_disabled)
 void path_init_savefile_rtc(const char *savefile_path)
 {
    union string_list_elem_attr attr;
-   char *savefile_name_rtc = (char*)
-      malloc(PATH_MAX_LENGTH * sizeof(char));
+   char savefile_name_rtc[PATH_MAX_LENGTH];
 
    savefile_name_rtc[0] = '\0';
 
@@ -1750,9 +1747,8 @@ void path_init_savefile_rtc(const char *savefile_path)
    attr.i = RETRO_MEMORY_RTC;
    fill_pathname(savefile_name_rtc,
          savefile_path, ".rtc",
-         PATH_MAX_LENGTH * sizeof(char));
+         sizeof(savefile_name_rtc));
    string_list_append(task_save_files, savefile_name_rtc, attr);
-   free(savefile_name_rtc);
 }
 
 void path_deinit_savefile(void)
