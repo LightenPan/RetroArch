@@ -448,6 +448,11 @@ typedef struct settings
    {
       bool placeholder;
 
+      // MG 同步OGA特性
+      /* emuelec */
+      bool emuelec_exit_to_kodi;
+      bool video_oga_vertical_enable;
+
       /* Video */
       bool video_fullscreen;
       bool video_windowed_fullscreen;

@@ -5,18 +5,19 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.4.2'
+//    classpath 'com.android.tools.build:gradle:3.4.2'
+    classpath 'com.android.tools.build:gradle:4.0.1'
   }
 }
 
 allprojects {
     repositories {
         google()
-      //修改项目根目录下的build.gradle，将jcenter()或者mavenCentral()替换掉即可，这样国内镜像就很快下载了
-        jcenter()
-        mavenCentral()
-//      maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
-//      maven { url 'http://mirrors.tencent.com/nexus/repository/maven-public' }
+        //修改项目根目录下的build.gradle，将jcenter()或者mavenCentral()替换掉即可，这样国内镜像就很快下载了
+//        jcenter()
+//        mavenCentral()
+      maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
+      maven { url 'http://mirrors.tencent.com/nexus/repository/maven-public' }
     }
 
     Properties props = new Properties()
@@ -136,10 +137,11 @@ android {
       }
     }
   }
+  ndkVersion '21.0.6113669'
 }
 
 dependencies {
-  implementation 'com.google.android.play:core:1.8.0'
+  implementation 'com.google.android.play:core:1.8.2'
 }
 
 def dynamicFeatures = file("dynamic_features.gradle")

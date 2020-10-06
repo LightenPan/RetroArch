@@ -11130,7 +11130,9 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
                      MENU_ENUM_LABEL_DOWNLOAD_CORE_CONTENT_DIRS,
                      MENU_SETTING_ACTION, 0, 0))
                count++;
-#elif defined(HAVE_NETWORKING)
+// MG 去掉LAKKA的特殊判断
+// #elif defined(HAVE_NETWORKING)
+#endif
 #if defined(__WINRT__) || defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
 #else
 #ifdef HAVE_UPDATE_CORES
@@ -11301,7 +11303,8 @@ bool menu_displaylist_ctl(enum menu_displaylist_ctl_state type,
             }
 #endif
 #endif
-#endif
+// MG 去掉LAKKA的特殊判断
+// #endif
 
 #ifdef HAVE_NETWORKING
             if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(info->list,
