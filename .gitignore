@@ -193,3 +193,4 @@ gfx/common/wayland/xdg-shell.h
 /retroarch.si4project
 
 build/
+pkg/android/phoenix/.cxx/
