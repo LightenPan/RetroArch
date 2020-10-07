@@ -430,32 +430,69 @@ static enum menu_action ozone_parse_menu_entry_action(
          /* Ignore if cursor is in sidebar */
          if (ozone->cursor_in_sidebar)
          {
+            /* If cursor is active, ensure we target
+             * an on screen category */
+            // MG 如果是在分类栏中，向上翻页滚动10项
+            size_t selection = (ozone->cursor_mode) ?
+                  ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
+
+            new_selection = (int)selection - 10;
+
+            if (new_selection < 0)
+               new_selection = horizontal_list_size + ozone->system_tab_end;
+
+            ozone_sidebar_goto(ozone, new_selection);
+
             new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            ozone->cursor_mode = false;
             break;
+
+            // MG 去掉官网代码
+            // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            // break;
          }
 
          /* If pointer is active and current selection
           * is off screen, auto select *last* item */
          if (ozone->cursor_mode)
-            ozone_auto_select_onscreen_entry(ozone,
-                  OZONE_ONSCREEN_ENTRY_LAST);
+            ozone_auto_select_onscreen_entry(ozone, OZONE_ONSCREEN_ENTRY_LAST);
+
          ozone->cursor_mode = false;
          break;
+
       case MENU_ACTION_SCROLL_DOWN:
          /* Ascend alphabet (A towards Z) */
 
          /* > Ignore if cursor is in sidebar */
          if (ozone->cursor_in_sidebar)
          {
+            /* If cursor is active, ensure we target
+             * an on screen category */
+            // MG 如果是在分类栏中，向下翻页滚动10项
+            size_t selection = (ozone->cursor_mode) ?
+                  ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
+
+            new_selection = (int)(selection + 10);
+
+            if (new_selection >= (int)(ozone->system_tab_end + horizontal_list_size + 1))
+               new_selection = 0;
+
+            ozone_sidebar_goto(ozone, new_selection);
+
             new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            ozone->cursor_mode = false;
             break;
+
+            // MG 去掉官网代码
+            // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
+            // break;
          }
 
          /* If pointer is active and current selection
           * is off screen, auto select *first* item */
          if (ozone->cursor_mode)
-            ozone_auto_select_onscreen_entry(ozone,
-                  OZONE_ONSCREEN_ENTRY_FIRST);
+            ozone_auto_select_onscreen_entry(ozone, OZONE_ONSCREEN_ENTRY_FIRST);
+
          ozone->cursor_mode = false;
          break;
 

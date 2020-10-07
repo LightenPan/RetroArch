@@ -2270,7 +2270,8 @@ static void xmb_context_reset_horizontal_list(
       if (!path)
          continue;
 
-      if (string_ends_with_size(path, ".lpl",
+      // MG 这里不知道为啥变成了非，可能是同步代码的问题，处理下
+      if (!string_ends_with_size(path, ".lpl",
                strlen(path), STRLEN_CONST(".lpl")))
          continue;
 

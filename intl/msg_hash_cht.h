@@ -3391,15 +3391,45 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "載入狀態"
    )
-// MG 云存档
+// MG 保存云存档
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE,
    "儲存雲狀態"
    )
-// MG 云存档
+// MG 读取云存档
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
    "戴入雲狀態"
+   )
+// MG 保存SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_SRM_FILE,
+   "儲存SRM雲狀態"
+   )
+// MG 读取SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_LOAD_SRM_FILE,
+   "戴入SRM雲狀態"
+   )
+// MG 从当前选定的卡槽加载云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_STATE,
+   "從當前選定的卡槽加載雲存檔。"
+   )
+// MG 从当前选定的卡槽加载SRM云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_SRM_FILE,
+   "從當前選定的卡槽加載SRM雲存檔。"
+   )
+// MG 在当前选定的卡槽保存云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_STATE,
+   "在當前選定的卡槽保存雲存檔。"
+   )
+// MG 在当前选定的卡槽保存SRM云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_SRM_FILE,
+   "在當前選定的卡槽保存SRM雲存檔。"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_UNDO_LOAD_STATE,

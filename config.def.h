@@ -554,7 +554,7 @@ static const bool content_show_history      = true;
 
 static const bool content_show_playlists    = true;
 #if defined(HAVE_LIBRETRODB)
-#define DEFAULT_MENU_CONTENT_SHOW_EXPLORE true
+#define DEFAULT_MENU_CONTENT_SHOW_EXPLORE false // MG 默认不显示探索，因为切换到探索标签时会卡一下
 #endif
 
 #ifdef HAVE_XMB

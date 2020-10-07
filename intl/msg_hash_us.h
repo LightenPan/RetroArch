@@ -5942,15 +5942,45 @@ MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LOAD_STATE,
    "Load State"
    )
-// MG 云存档
+// MG 保存云存档
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_YUN_SAVE_STATE,
    "Save Cloud State"
    )
-// MG 云存档
+// MG 读取云存档
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_YUN_LOAD_STATE,
    "Load Cloud State"
+   )
+// MG 保存SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_SAVE_SRM_FILE,
+   "Save Srm Cloud File"
+   )
+// MG 读取SRM云存档
+MSG_HASH(
+   MENU_ENUM_LABEL_VALUE_YUN_LOAD_SRM_FILE,
+   "Load Srm Cloud File"
+   )
+// MG 从当前选定的卡槽加载云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_STATE,
+   "Load a saved cloud state from the currently selected slot."
+   )
+// MG 从当前选定的卡槽加载SRM云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_LOAD_SRM_FILE,
+   "Load a saved srm cloud file from the currently selected slot."
+   )
+// MG 在当前选定的卡槽保存云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_STATE,
+   "Save a cloud state to the currently selected slot."
+   )
+// MG 在当前选定的卡槽保存SRM云存档。
+MSG_HASH(
+   MENU_ENUM_SUBLABEL_YUN_SAVE_SRM_FILE,
+   "Save a srm cloud file to the currently selected slot."
    )
 MSG_HASH(
    MENU_ENUM_SUBLABEL_LOAD_STATE,
@@ -6888,7 +6918,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ARABIC,
-   "Arabic -  اَلْعَرَبِيَّةُ  (Restart Required)"
+   "Arabic - اَلْعَرَبِيَّةُ (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_ASTURIAN,
@@ -7056,7 +7086,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_PERSIAN,
-   "Persian -  فارسی  (Restart Required)"
+   "Persian - فارسی (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_POLISH,
@@ -7124,7 +7154,7 @@ MSG_HASH(
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_URDU,
-   "Urdu -  اُردُو  (Restart Required)"
+   "Urdu - اُردُو (Restart Required)"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_VALUE_LANG_VIETNAMESE,
