@@ -6173,51 +6173,51 @@ bool menu_entries_ctl(enum menu_entries_ctl_state state, void *data)
 // MG 列表位置记录
 void menu_entries_set_current_playlist_item_size(size_t playlist_size)
 {
-	RARCH_LOG("menu_entries_set_current_playlist_item_size begin. playlist_size: %u\n", playlist_size);
+   RARCH_LOG("menu_entries_set_current_playlist_item_size begin. playlist_size: %u\n", playlist_size);
    struct rarch_state   *p_rarch  = &rarch_st;
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
    menu_list_t *menu_list         = menu_st->entries.list;
-	if (!menu_list)
-		return;
-	menu_list->current_playlist_item_size = playlist_size;
+   if (!menu_list)
+      return;
+   menu_list->current_playlist_item_size = playlist_size;
 }
 
 // MG 列表位置记录
 size_t menu_entries_get_selection_ptr_old(const char *playlist_name, size_t playlist_size)
 {
-	char calc_hashid_key[256] = {0};
+   char calc_hashid_key[256] = {0};
    struct rarch_state   *p_rarch  = &rarch_st;
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
    menu_list_t *menu_list         = menu_st->entries.list;
-	if (!menu_list)
-		return 0;
+   if (!menu_list)
+      return 0;
 
-	if (!playlist_name)
-	{
-		return 0;
-	}
+   if (!playlist_name)
+   {
+      return 0;
+   }
 
-	// 计算HashId
-	char *basename = path_basename(playlist_name);
-	snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, playlist_size);
-	uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
+   // 计算HashId
+   char *basename = path_basename(playlist_name);
+   snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, playlist_size);
+   uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
 
-	// 根据HashId查找
-	int current_playlist = 0;
-	for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
-	{
-		if (menu_list->playlist_hashids[i][0] == playlist_hashid)
-		{
-			break;
-		}
-		current_playlist++;
-	}
-	if (current_playlist >= menu_list->playlist_hashids_size)
-	{
-		return 0;
-	}
+   // 根据HashId查找
+   int current_playlist = 0;
+   for (int i = 0; i < menu_list->playlist_hashids_size; ++i)
+   {
+      if (menu_list->playlist_hashids[i][0] == playlist_hashid)
+      {
+         break;
+      }
+      current_playlist++;
+   }
+   if (current_playlist >= menu_list->playlist_hashids_size)
+   {
+      return 0;
+   }
 
-	return menu_list->playlist_hashids[current_playlist][1];
+   return menu_list->playlist_hashids[current_playlist][1];
 }
 
 // MG 设置列表最近位置
@@ -6227,22 +6227,29 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
    struct rarch_state   *p_rarch  = &rarch_st;
    struct menu_state    *menu_st  = &p_rarch->menu_driver_state;
    menu_list_t *menu_list         = menu_st->entries.list;
-	if (!menu_list) {
-		RARCH_LOG("menu_entries_set_selection_ptr_old menu_list null. select_ptr_old: %u\n",
-			select_ptr_old);
-		return;
-	}
-
-	playlist_t *cached_playlist = playlist_get_cached();
-	if (!cached_playlist) {
-		RARCH_LOG("menu_entries_set_selection_ptr_old no cached playlist. select_ptr_old: %u\n",
-			select_ptr_old);
+   if (!menu_list) {
+      RARCH_LOG("menu_entries_set_selection_ptr_old menu_list null. select_ptr_old: %u\n",
+         select_ptr_old);
       return;
-	}
+   }
+
+   playlist_t *cached_playlist = playlist_get_cached();
+   if (!cached_playlist) {
+      RARCH_LOG("menu_entries_set_selection_ptr_old no cached playlist. select_ptr_old: %u\n",
+         select_ptr_old);
+      return;
+   }
+
+   // MG 如果有模糊匹配记录，则不更新当前位置
+   struct string_list *search_terms = menu_driver_search_get_terms();
+   if (search_terms && search_terms->size > 0)
+   {
+      return;
+   }
 
    // 计算路径HashId
-	RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %u, path: %s, \n",
-			select_ptr_old, cached_playlist->config.path);
+   RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %u, path: %s, \n",
+         select_ptr_old, cached_playlist->config.path);
    char *basename = path_basename(cached_playlist->config.path);
    snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
    uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);
@@ -12524,76 +12531,77 @@ bool menu_input_dialog_get_display_kb(void)
    // MG 默认显示虚拟键盘，不调用系统键盘，不然无法显示九宫格
    // 去掉switch的特殊键盘逻辑
    struct rarch_state *p_rarch = &rarch_st;
-#ifdef HAVE_LIBNX
-   SwkbdConfig kbd;
-   Result rc;
-   /* Indicates that we are "typing" from the swkbd
-    * result to RetroArch with repeated calls to input_keyboard_event
-    * This prevents input_keyboard_event from calling back
-    * menu_input_dialog_get_display_kb, looping indefinintely */
-   static bool typing = false;
-
-   if (typing)
-      return false;
-
-
-   /* swkbd only works on "real" titles */
-   if (     __nx_applet_type != AppletType_Application
-         && __nx_applet_type != AppletType_SystemApplication)
-      return p_rarch->menu_input_dialog_keyboard_display;
-
-   if (!p_rarch->menu_input_dialog_keyboard_display)
-      return false;
-
-   rc = swkbdCreate(&kbd, 0);
-
-   if (R_SUCCEEDED(rc))
-   {
-      unsigned i;
-      char buf[LIBNX_SWKBD_LIMIT] = {'\0'};
-      swkbdConfigMakePresetDefault(&kbd);
-
-      swkbdConfigSetGuideText(&kbd,
-            p_rarch->menu_input_dialog_keyboard_label);
-
-      rc = swkbdShow(&kbd, buf, sizeof(buf));
-
-      swkbdClose(&kbd);
-
-      /* RetroArch uses key-by-key input
-         so we need to simulate it */
-      typing = true;
-      for (i = 0; i < LIBNX_SWKBD_LIMIT; i++)
-      {
-         /* In case a previous "Enter" press closed the keyboard */
-         if (!p_rarch->menu_input_dialog_keyboard_display)
-            break;
-
-         if (buf[i] == '\n' || buf[i] == '\0')
-            input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-         else
-         {
-            /* input_keyboard_line_append expects a null-terminated
-               string, so just make one (yes, the touch keyboard is
-               a list of "null-terminated characters") */
-            char oldchar = buf[i+1];
-            buf[i+1]     = '\0';
-            input_keyboard_line_append(p_rarch, &buf[i]);
-            buf[i+1]     = oldchar;
-         }
-      }
-
-      /* fail-safe */
-      if (p_rarch->menu_input_dialog_keyboard_display)
-         input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
-
-      typing = false;
-      libnx_apply_overclock();
-      return false;
-   }
-   libnx_apply_overclock();
-#endif
    return p_rarch->menu_input_dialog_keyboard_display;
+// #ifdef HAVE_LIBNX
+//    SwkbdConfig kbd;
+//    Result rc;
+//    /* Indicates that we are "typing" from the swkbd
+//     * result to RetroArch with repeated calls to input_keyboard_event
+//     * This prevents input_keyboard_event from calling back
+//     * menu_input_dialog_get_display_kb, looping indefinintely */
+//    static bool typing = false;
+
+//    if (typing)
+//       return false;
+
+
+//    /* swkbd only works on "real" titles */
+//    if (     __nx_applet_type != AppletType_Application
+//          && __nx_applet_type != AppletType_SystemApplication)
+//       return p_rarch->menu_input_dialog_keyboard_display;
+
+//    if (!p_rarch->menu_input_dialog_keyboard_display)
+//       return false;
+
+//    rc = swkbdCreate(&kbd, 0);
+
+//    if (R_SUCCEEDED(rc))
+//    {
+//       unsigned i;
+//       char buf[LIBNX_SWKBD_LIMIT] = {'\0'};
+//       swkbdConfigMakePresetDefault(&kbd);
+
+//       swkbdConfigSetGuideText(&kbd,
+//             p_rarch->menu_input_dialog_keyboard_label);
+
+//       rc = swkbdShow(&kbd, buf, sizeof(buf));
+
+//       swkbdClose(&kbd);
+
+//       /* RetroArch uses key-by-key input
+//          so we need to simulate it */
+//       typing = true;
+//       for (i = 0; i < LIBNX_SWKBD_LIMIT; i++)
+//       {
+//          /* In case a previous "Enter" press closed the keyboard */
+//          if (!p_rarch->menu_input_dialog_keyboard_display)
+//             break;
+
+//          if (buf[i] == '\n' || buf[i] == '\0')
+//             input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+//          else
+//          {
+//             /* input_keyboard_line_append expects a null-terminated
+//                string, so just make one (yes, the touch keyboard is
+//                a list of "null-terminated characters") */
+//             char oldchar = buf[i+1];
+//             buf[i+1]     = '\0';
+//             input_keyboard_line_append(p_rarch, &buf[i]);
+//             buf[i+1]     = oldchar;
+//          }
+//       }
+
+//       /* fail-safe */
+//       if (p_rarch->menu_input_dialog_keyboard_display)
+//          input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+
+//       typing = false;
+//       libnx_apply_overclock();
+//       return false;
+//    }
+//    libnx_apply_overclock();
+// #endif
+//    return p_rarch->menu_input_dialog_keyboard_display;
 }
 
 /* Checks if the menu is still running */
@@ -25544,7 +25552,7 @@ void input_event_osk_append(
          *osk_idx = ((enum osk_type)(OSK_TYPE_UNKNOWN + 1));
    else
    {
-      // MG 处理九宫格输入罗技
+      // MG 处理九宫格输入
       if (*osk_idx == OSK_NINENUM)
       {
          // MG 九宫格只取第一个字符

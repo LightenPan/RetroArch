@@ -1561,8 +1561,12 @@ static int menu_displaylist_parse_playlist(menu_displaylist_info_t *info,
          {
             const char *search_term = search_terms->elems[j].data;
 
+            // MG 如果是游戏列表，这里用九宫格模糊匹配
+            char ninenum[1024] = {0};
+            chs_to_ninenum(menu_entry_label, true, ninenum, sizeof(ninenum));
             if (!string_is_empty(search_term) &&
-                !strcasestr(menu_entry_label, search_term))
+                !string_is_empty(ninenum) &&
+                !strcasestr(ninenum, search_term))
             {
                entry_valid = false;
                break;

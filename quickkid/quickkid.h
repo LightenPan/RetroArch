@@ -25,7 +25,7 @@
 #endif
 
 
-// ºº×Ö×ª¾Å¹¬¸ñÊı×Ö
+// æ±‰å­—è½¬ä¹å®«æ ¼æ•°å­—
 int chs_to_ninenum(const char *keyword, bool only_first, char *out_str, int out_len);
 
 #endif

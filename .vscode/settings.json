@@ -75,7 +75,10 @@
       "ranges": "c",
       "*.tcc": "c",
       "filesystem": "c",
-      "iterator": "c"
+      "iterator": "c",
+      "__hash_table": "c",
+      "__split_buffer": "c",
+      "bitset": "c"
    },
    "C_Cpp.dimInactiveRegions": false,
 }
