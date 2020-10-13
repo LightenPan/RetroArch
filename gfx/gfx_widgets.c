@@ -936,7 +936,9 @@ static int gfx_widgets_draw_indicator(
 
    if (icon)
    {
-      unsigned height = p_dispwidget->simple_widget_height * 2;
+      // MG 调整指示器图标大小，减小为原来的1/2
+      // unsigned height = p_dispwidget->simple_widget_height * 2;
+      unsigned height = p_dispwidget->simple_widget_height;
       width  = height;
 
       gfx_display_draw_quad(userdata,
