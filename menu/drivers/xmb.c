@@ -6610,16 +6610,22 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
                   xmb->categories_active_idx    = (unsigned)(list_size - 1);
                }
                else
+               {
                   xmb->categories_selection_ptr = xmb->categories_selection_ptr - categories_page_size;
+                  xmb->categories_active_idx = xmb->categories_active_idx - categories_page_size + 1;
+               }
                break;
             case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
                if (xmb->categories_selection_ptr + categories_page_size - 1 > list_size)
                {
-                  xmb->categories_selection_ptr = 0;
-                  xmb->categories_active_idx    = 0;
+                  // xmb->categories_selection_ptr = 0;
+                  // xmb->categories_active_idx    = 0;
                }
                else
+               {
                   xmb->categories_selection_ptr = xmb->categories_selection_ptr + categories_page_size - 1;
+                  xmb->categories_active_idx    = xmb->categories_active_idx + categories_page_size - 1;
+               }
             default:
                if (xmb->categories_selection_ptr == list_size)
                {
