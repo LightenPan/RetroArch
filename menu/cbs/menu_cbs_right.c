@@ -1129,3 +1129,82 @@ int menu_cbs_init_bind_right(menu_file_list_cbs_t *cbs,
 
    return menu_cbs_exit();
 }
+
+
+// MG xmb分类列表左右翻页
+static int bind_page_right_generic(unsigned type, const char *label,
+      bool wraparound)
+{
+   return menu_setting_set(type, MENU_ACTION_PAGE_RIGHT, wraparound);
+}
+
+static int action_page_right_mainmenu(unsigned type, const char *label, bool wraparound)
+{
+   menu_ctx_list_t list_info;
+   settings_t            *settings = config_get_ptr();
+   bool menu_nav_wraparound_enable = settings->bools.menu_navigation_wraparound_enable;
+   const char *menu_ident          = menu_driver_ident();
+
+   menu_driver_list_get_selection(&list_info);
+
+   list_info.type = MENU_LIST_PLAIN;
+
+   menu_driver_list_get_size(&list_info);
+
+   /* Tab switching functionality only applies
+    * to XMB */
+   if ((list_info.size == 1) &&
+       string_is_equal(menu_ident, "xmb"))
+   {
+      if ((list_info.selection != 0) || menu_nav_wraparound_enable) {
+         menu_ctx_list_t list_info;
+         file_list_t *selection_buf = menu_entries_get_selection_buf_ptr(0);
+         file_list_t *menu_stack    = menu_entries_get_menu_stack_ptr(0);
+         size_t selection           = menu_navigation_get_selection();
+         menu_file_list_cbs_t *cbs  = selection_buf ? (menu_file_list_cbs_t*)
+            selection_buf->list[selection].actiondata : NULL;
+
+         list_info.type             = MENU_LIST_HORIZONTAL;
+         list_info.action           = MENU_ACTION_PAGE_RIGHT;
+
+         menu_driver_list_cache(&list_info);
+
+         if (cbs && cbs->action_content_list_switch)
+            return cbs->action_content_list_switch(selection_buf, menu_stack,
+                  "", "", 0);
+
+         return 0;
+      }
+   }
+   else
+      action_right_scroll(0, "", false);
+
+   return 0;
+}
+
+#ifndef BIND_ACTION_PAGE_RIGHT
+#define BIND_ACTION_PAGE_RIGHT(cbs, name) (cbs)->action_page_right = (name)
+#endif
+
+// MG xmb分类列表左右翻页
+int menu_cbs_init_bind_page_right(menu_file_list_cbs_t *cbs,
+      const char *path, const char *label, unsigned type, size_t idx,
+      const char *menu_label)
+{
+   if (!cbs)
+      return -1;
+
+   BIND_ACTION_PAGE_RIGHT(cbs, bind_page_right_generic);
+   if (
+      string_ends_with_size(menu_label, "_tab",
+         strlen(menu_label),
+         STRLEN_CONST("_tab")
+         )
+      || string_is_equal(menu_label, msg_hash_to_str(MENU_ENUM_LABEL_MAIN_MENU))
+      || string_is_equal(menu_label, msg_hash_to_str(MENU_ENUM_LABEL_HORIZONTAL_MENU))
+   ) {
+      BIND_ACTION_PAGE_RIGHT(cbs, action_page_right_mainmenu);
+   }
+
+   return -1;
+}

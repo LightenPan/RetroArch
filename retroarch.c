@@ -4319,6 +4319,12 @@ static void menu_cbs_init(
     * menu_cbs_right.c, then map this callback to the entry. */
    menu_cbs_init_bind_right(cbs, path, label, type, idx, menu_label);
 
+   // MG xmb分类列表左右翻页
+   menu_cbs_init_bind_page_left(cbs, path, label, type, idx, menu_label);
+
+   // MG xmb分类列表左右翻页
+   menu_cbs_init_bind_page_right(cbs, path, label, type, idx, menu_label);
+
    /* It will try to find a corresponding callback function inside
     * menu_cbs_deferred_push.c, then map this callback to the entry. */
    menu_cbs_init_bind_deferred_push(cbs, path, label, type, idx);
@@ -4879,6 +4885,14 @@ int generic_menu_entry_action(
       case MENU_ACTION_RIGHT:
          if (cbs && cbs->action_right)
             ret = cbs->action_right(entry->type, entry->label, false);
+         break;
+      case MENU_ACTION_PAGE_LEFT: // MG xmb分类列表左右翻页
+         if (cbs && cbs->action_page_left)
+            ret = cbs->action_page_left(entry->type, entry->label, false);
+         break;
+      case MENU_ACTION_PAGE_RIGHT: // MG xmb分类列表左右翻页
+         if (cbs && cbs->action_page_right)
+            ret = cbs->action_page_right(entry->type, entry->label, false);
          break;
       case MENU_ACTION_INFO:
          if (cbs && cbs->action_info)
@@ -25897,6 +25911,11 @@ static unsigned menu_event(
          ret = MENU_ACTION_INFO;
       else if (BIT256_GET_PTR(p_trigger_input, RARCH_MENU_TOGGLE))
          ret = MENU_ACTION_TOGGLE;
+      // MG L2/R2对xmb进行分类的左右翻页
+      else if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_L2))
+         ret = MENU_ACTION_PAGE_LEFT;
+      else if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_R2))
+         ret = MENU_ACTION_PAGE_RIGHT;
    }
 
    /* Get pointer (mouse + touchscreen) input */
@@ -39309,6 +39328,8 @@ static enum runloop_state runloop_check_state(
                {0,                RARCH_SEND_DEBUG_INFO         },
                {0,                RARCH_NETPLAY_HOST_TOGGLE     },
                {0,                RARCH_MENU_TOGGLE             },
+               {RETROK_r,         RETRO_DEVICE_ID_JOYPAD_R2     },
+               {RETROK_e,         RETRO_DEVICE_ID_JOYPAD_L2     },
             };
 
             ids[9][0]  = input_config_binds[port][RARCH_QUIT_KEY].key;

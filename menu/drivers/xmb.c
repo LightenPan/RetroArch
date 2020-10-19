@@ -256,8 +256,6 @@ typedef struct
    float zoom;
    float x;
    float y;
-	char iconname[64]; // MG 动态图标
-	char content_iconname[64]; // MG 动态图标
 } xmb_node_t;
 
 typedef struct xmb_handle
@@ -650,9 +648,6 @@ static xmb_node_t *xmb_alloc_node(void)
    node->zoom     = node->x = node->y  = 0;
    node->icon     = node->content_icon = 0;
    node->fullpath = NULL;
-   // 动态图标
-   node->iconname[0] = '\0';
-   node->content_iconname[0] = '\0';
 
    return node;
 }
@@ -3903,6 +3898,8 @@ static enum menu_action xmb_parse_menu_entry_action(
    {
       case MENU_ACTION_LEFT:
       case MENU_ACTION_RIGHT:
+      case MENU_ACTION_PAGE_LEFT: // MG 左右分类列表翻页
+      case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
          /* Check whether left/right action will
           * trigger a tab switch event */
          if (xmb->depth == 1)
@@ -5317,6 +5314,16 @@ static void xmb_frame(void *data, video_frame_info_t *video_info)
 
             gfx_display_rotate_z(&rotate_draw, userdata);
 
+            // // todo MG 绘制标题
+            // char *console_label = NULL;
+            // file_list_get_at_offset(&xmb->horizontal_list, i,
+            //       NULL, &console_label, NULL, NULL);
+            // if (!string_is_empty(console_label)) {
+            //    xmb_draw_text(xmb_shadows_enable, xmb, console_label,
+            //          x, y - (2 * xmb->font_size), 1, 1, TEXT_ALIGN_CENTER,
+            //          video_width, video_height, xmb->font);
+            // }
+
             xmb_draw_icon(
                   userdata,
                   video_width,
@@ -6583,6 +6590,7 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
          break;
       case MENU_LIST_HORIZONTAL:
          xmb->categories_selection_ptr_old = xmb->categories_selection_ptr;
+         int categories_page_size = 4;
 
          switch (action)
          {
@@ -6595,6 +6603,23 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
                else
                   xmb->categories_selection_ptr--;
                break;
+            case MENU_ACTION_PAGE_LEFT: // MG 左右分类列表翻页
+               if (xmb->categories_selection_ptr < categories_page_size)
+               {
+                  xmb->categories_selection_ptr = list_size;
+                  xmb->categories_active_idx    = (unsigned)(list_size - 1);
+               }
+               else
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr - categories_page_size;
+               break;
+            case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
+               if (xmb->categories_selection_ptr + categories_page_size - 1 > list_size)
+               {
+                  xmb->categories_selection_ptr = 0;
+                  xmb->categories_active_idx    = 0;
+               }
+               else
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr + categories_page_size - 1;
             default:
                if (xmb->categories_selection_ptr == list_size)
                {

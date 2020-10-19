@@ -3960,6 +3960,7 @@ static void stripes_list_cache(void *data, enum menu_list_type type, unsigned ac
          break;
       case MENU_LIST_HORIZONTAL:
          stripes->categories_selection_ptr_old = stripes->categories_selection_ptr;
+         int categories_page_size = 4;
 
          switch (action)
          {
@@ -3972,6 +3973,23 @@ static void stripes_list_cache(void *data, enum menu_list_type type, unsigned ac
                else
                   stripes->categories_selection_ptr--;
                break;
+            case MENU_ACTION_PAGE_LEFT: // MG 左右分类列表翻页
+               if (xmb->categories_selection_ptr < categories_page_size)
+               {
+                  xmb->categories_selection_ptr = list_size;
+                  xmb->categories_active_idx    = (unsigned)(list_size - 1);
+               }
+               else
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr - categories_page_size;
+               break;
+            case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
+               if (xmb->categories_selection_ptr + categories_page_size - 1 > list_size)
+               {
+                  xmb->categories_selection_ptr = 0;
+                  xmb->categories_active_idx    = 0;
+               }
+               else
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr + categories_page_size - 1;
             default:
                if (stripes->categories_selection_ptr == list_size)
                {

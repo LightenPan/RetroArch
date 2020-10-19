@@ -148,7 +148,7 @@ enum
    ACTION_OK_DL_CURSOR_MANAGER_LIST,
    ACTION_OK_DL_CORE_UPDATER_LIST,
    ACTION_OK_DL_CORE_MANAGER_LIST,
-   ACTION_OK_DL_CORE_UPDATER_PLAYLISTS, // 更新游戏列表
+   ACTION_OK_DL_CORE_UPDATER_PLAYLISTS, // 鏇存柊娓告垙鍒楄〃
    ACTION_OK_DL_THUMBNAILS_UPDATER_LIST,
    ACTION_OK_DL_PL_THUMBNAILS_UPDATER_LIST,
    ACTION_OK_DL_BROWSE_URL_LIST,
@@ -247,6 +247,16 @@ int menu_cbs_init_bind_left(menu_file_list_cbs_t *cbs,
       const char *menu_label);
 
 int menu_cbs_init_bind_right(menu_file_list_cbs_t *cbs,
+      const char *path, const char *label, unsigned type, size_t idx,
+      const char *menu_label);
+
+// MG xmb鍒嗙被鍒楄〃宸﹀彸缈婚〉
+int menu_cbs_init_bind_page_left(menu_file_list_cbs_t *cbs,
+      const char *path, const char *label, unsigned type, size_t idx,
+      const char *menu_label);
+
+// MG xmb鍒嗙被鍒楄〃宸﹀彸缈婚〉
+int menu_cbs_init_bind_page_right(menu_file_list_cbs_t *cbs,
       const char *path, const char *label, unsigned type, size_t idx,
       const char *menu_label);
 

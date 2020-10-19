@@ -97,6 +97,10 @@ typedef struct rarch_setting_group_info rarch_setting_group_info_t;
 typedef void (*change_handler_t               )(rarch_setting_t *setting);
 typedef int  (*action_left_handler_t          )(rarch_setting_t *setting, size_t idx, bool wraparound);
 typedef int  (*action_right_handler_t         )(rarch_setting_t *setting, size_t idx, bool wraparound);
+// MG xmb分类列表左右翻页
+typedef int  (*action_page_left_handler_t          )(rarch_setting_t *setting, size_t idx, bool wraparound);
+// MG xmb分类列表左右翻页
+typedef int  (*action_page_right_handler_t         )(rarch_setting_t *setting, size_t idx, bool wraparound);
 typedef int  (*action_up_handler_t            )(rarch_setting_t *setting);
 typedef int  (*action_down_handler_t          )(rarch_setting_t *setting);
 typedef int  (*action_start_handler_t         )(rarch_setting_t *setting);
@@ -146,6 +150,11 @@ struct rarch_setting
    action_ok_handler_t           action_ok;
    action_select_handler_t       action_select;
    get_string_representation_t   get_string_representation;
+
+   // MG xmb分类列表左右翻页
+   action_page_left_handler_t         action_page_left;
+   // MG xmb分类列表左右翻页
+   action_page_right_handler_t        action_page_right;
 
    struct
    {

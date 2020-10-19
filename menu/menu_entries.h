@@ -132,6 +132,11 @@ typedef struct menu_file_list_cbs
    char action_sublabel_cache[MENU_SUBLABEL_MAX_LENGTH];
    char action_title_cache   [512];
    bool checked;
+
+   // MG xmb分类列表左右翻页
+   int (*action_page_left)(unsigned type, const char *label, bool wraparound);
+   // MG xmb分类列表左右翻页
+   int (*action_page_right)(unsigned type, const char *label, bool wraparound);
 } menu_file_list_cbs_t;
 
 typedef struct menu_entry
