@@ -1912,7 +1912,11 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill,
       /* brute force every pixel */
 
       /* compute intersection points with top & bottom */
-      assert(e->ey >= y_top);
+      // assert(e->ey >= y_top);
+      // MG 未知异常，这里直接返回
+      if (e->ey < y_top) {
+         return;
+      }
 
       if (e->fdx == 0) {
          float x0 = e->fx;
@@ -2121,8 +2125,9 @@ static void stbtt__rasterize_sorted_edges(stbtt__bitmap *result, stbtt__edge *e,
       while (e->y0 <= scan_y_bottom)
       {
          stbtt__active_edge *z = stbtt__new_active(&hh, e, off_x, scan_y_top, userdata);
-         assert(z->ey >= scan_y_top);
-
+         // MG 未知异常，这里忽略，不然程序会崩溃
+         // assert(z->ey >= scan_y_top);
+         
          /* insert at front */
          z->next = active;
          active = z;

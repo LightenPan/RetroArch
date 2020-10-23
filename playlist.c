@@ -366,6 +366,8 @@ uint32_t playlist_get_size(playlist_t *playlist)
 {
    if (!playlist)
       return 0;
+   if (!playlist->entries)
+      return 0;
    return (uint32_t)RBUF_LEN(playlist->entries);
 }
 
@@ -1954,6 +1956,8 @@ void playlist_clear(playlist_t *playlist)
 size_t playlist_size(playlist_t *playlist)
 {
    if (!playlist)
+      return 0;
+   if (!playlist->entries)
       return 0;
    return RBUF_LEN(playlist->entries);
 }

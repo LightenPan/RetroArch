@@ -90,8 +90,7 @@ typedef struct get_ext_game_info_handle
    retro_task_t *http_task;
    char system[1024];
    char crc32[1024];
-   playlist_t *playlist;
-   uint32_t selected;
+   char label[1024];
 } get_ext_game_info_handle_t;
 
 enum rom_download_status
@@ -1502,34 +1501,14 @@ void task_push_pl_entry_get_ext_game_info_cb(retro_task_t *task, void *task_data
    if (strcmp(status, "SUCCESS") != 0)
       goto finish;
 
-   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result1. "
-      "status: %s, message: %s, has_achievements: %s\n",
-      status, message, has_achievements);
    // 修改游戏信息
    get_ext_game_info_handle_t *handle = (get_ext_game_info_handle_t *)file_transfer->user_data;
    if (!handle)
       goto finish;
 
-   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result2. "
-      "selected: %u, playlist_size: %u\n",
-      handle->selected, playlist_size(handle->playlist));
-   if (handle->selected >= playlist_size(handle->playlist))
-      goto finish;
-
-   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result3. "
-      "status: %s, message: %s, has_achievements: %s\n",
-      status, message, has_achievements);
-   struct playlist_entry *entry = NULL;
-   playlist_get_index(handle->playlist, handle->selected, &entry);
-   if (!entry)
-      goto finish;
-
-   RARCH_LOG("task_push_pl_entry_get_ext_game_info_cb log result4. "
-      "status: %s, message: %s, has_achievements: %s\n",
-      status, message, has_achievements);
    if (0 == strcmp(has_achievements, "yes"))
    {
-      succ_msg_queue_push("%s ☆☆有成就☆☆", entry->label);
+      succ_msg_queue_push("%s ☆☆有成就☆☆", handle->label);
    }
 
 finish:
@@ -1708,8 +1687,7 @@ bool task_push_pl_entry_get_ext_game_info(
    snprintf(handle->taskid, sizeof(handle->taskid), "%s", taskid);
    snprintf(handle->system, sizeof(handle->system), "%s", system);
    snprintf(handle->crc32, sizeof(handle->crc32), "%s", crc32);
-   handle->playlist = playlist;
-   handle->selected = idx;
+   snprintf(handle->label, sizeof(handle->crc32), "%s", entry->label);
 
    /* Configure task */
    task->handler                 = task_push_pl_entry_get_ext_game_info_handler;
