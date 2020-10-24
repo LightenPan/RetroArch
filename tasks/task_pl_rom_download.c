@@ -1751,7 +1751,7 @@ void yun_load_srm_file_cb(retro_task_t *task, void *task_data, void *user_data, 
       snprintf(show_errmsg, sizeof(show_errmsg), "保存SRM存档文件失败：%s", transf->path);
       goto finish;
    }
-   
+
    if (event_load_save_files(false))
    {
       succ_msg_queue_push("下载SRM云存档并加载成功");
@@ -1887,4 +1887,44 @@ error:
       free(save_state_buf);
    }
    return false;
+}
+
+// MG 从服务器获取当前游戏列表的额外信息
+void mg_update_ext_game_info(gfx_thumbnail_path_data_t *thumbnail_path_data)
+{
+	RARCH_LOG("mg_update_ext_game_info log search_terms match info.\n");
+
+   size_t selection      = menu_navigation_get_selection();
+   playlist_t *playlist  = playlist_get_cached();
+   settings_t *settings  = config_get_ptr();
+
+   if (!thumbnail_path_data)
+      return;
+
+   if (!playlist)
+      return;
+
+   /* Trigger thumbnail download */
+   struct string_list *search_terms = menu_driver_search_get_terms();
+   if (search_terms && search_terms->size > 0)
+   {
+      file_list_t *selection_buf   = menu_entries_get_selection_buf_ptr(0);
+      if (selection_buf)
+		{
+         size_t menu_list_size = file_list_get_size(selection_buf);
+         char *path = NULL;
+         char *label = NULL;
+         unsigned file_type = 0;
+         size_t entry_idx = 0;
+         file_list_get_at_offset(selection_buf, selection, &path, &label, &file_type, &entry_idx);
+         RARCH_LOG("mg_update_ext_game_info log search_terms match info. path: %s, label: %s, file_type: %u, entry_idx: %u\n", path, label, file_type, entry_idx);
+         selection = entry_idx;
+      }
+   }
+
+   char *system = NULL;
+   if (gfx_thumbnail_get_system(thumbnail_path_data, &system))
+   {
+      task_push_pl_entry_get_ext_game_info(system, playlist, selection, true);
+   }
 }

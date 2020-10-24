@@ -1196,38 +1196,6 @@ static void xmb_update_thumbnail_image(void *data)
    }
 }
 
-// 从服务器获取游戏信息
-static void xmb_update_ext_game_info(void *data)
-{
-   xmb_handle_t *xmb     = (xmb_handle_t*)data;
-   size_t selection      = menu_navigation_get_selection();
-   playlist_t *playlist  = playlist_get_cached();
-   settings_t *settings  = config_get_ptr();
-
-   if (!xmb)
-      return;
-
-   if (!playlist)
-      return;
-
-   /* Trigger thumbnail download */
-
-   char *system = NULL;
-   if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
-   {
-      if (settings->bools.network_on_demand_thumbnails)
-      {
-         const char *system = NULL;
-
-         if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
-            task_push_pl_entry_thumbnail_download(system,
-                  playlist_get_cached(), (unsigned)menu_navigation_get_selection(),
-                  false, true);
-      }
-      task_push_pl_entry_get_ext_game_info(system, playlist, selection, true);
-   }
-}
-
 static unsigned xmb_get_system_tab(xmb_handle_t *xmb, unsigned i)
 {
    if (i <= xmb->system_tab_end)
@@ -1523,10 +1491,10 @@ static void xmb_selection_pointer_changed(
                }
             }
 
-            // 如果是游戏列表，从服务器获取当前游戏列表的额外信息
             if (xmb->is_playlist)
             {
-               xmb_update_ext_game_info(xmb);
+               // MG 从服务器获取当前游戏列表的额外信息
+               mg_update_ext_game_info(xmb->thumbnail_path_data);
             }
 
             if (update_thumbnails)

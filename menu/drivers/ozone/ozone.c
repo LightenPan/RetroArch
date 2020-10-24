@@ -1,8 +1,8 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2011-2017 - Daniel De Matteis
- *  Copyright (C) 2014-2017 - Jean-AndrÃ© Santoni
+ *  Copyright (C) 2014-2017 - Jean-Andr¨¦ Santoni
  *  Copyright (C) 2016-2019 - Brad Parker
- *  Copyright (C) 2018      - Alfredo MonclÃºs
+ *  Copyright (C) 2018      - Alfredo Moncl¨²s
  *  Copyright (C) 2018      - natinusala
  *  Copyright (C) 2019      - Patrick Scheurenbrand
  *
@@ -432,7 +432,7 @@ static enum menu_action ozone_parse_menu_entry_action(
          {
             /* If cursor is active, ensure we target
              * an on screen category */
-            // MG å¦‚æžœæ˜¯åœ¨åˆ†ç±»æ ä¸­ï¼Œå‘ä¸Šç¿»é¡µæ»šåŠ¨10é¡¹
+            // MG Èç¹ûÊÇÔÚ·ÖÀàÀ¸ÖÐ£¬ÏòÉÏ·­Ò³¹ö¶¯10Ïî
             size_t selection = (ozone->cursor_mode) ?
                   ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
 
@@ -447,7 +447,7 @@ static enum menu_action ozone_parse_menu_entry_action(
             ozone->cursor_mode = false;
             break;
 
-            // MG åŽ»æŽ‰å®˜ç½‘ä»£ç 
+            // MG È¥µô¹ÙÍø´úÂë
             // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
             // break;
          }
@@ -468,7 +468,7 @@ static enum menu_action ozone_parse_menu_entry_action(
          {
             /* If cursor is active, ensure we target
              * an on screen category */
-            // MG å¦‚æžœæ˜¯åœ¨åˆ†ç±»æ ä¸­ï¼Œå‘ä¸‹ç¿»é¡µæ»šåŠ¨10é¡¹
+            // MG Èç¹ûÊÇÔÚ·ÖÀàÀ¸ÖÐ£¬ÏòÏÂ·­Ò³¹ö¶¯10Ïî
             size_t selection = (ozone->cursor_mode) ?
                   ozone_get_onscreen_category_selection(ozone) : ozone->categories_selection_ptr;
 
@@ -483,7 +483,7 @@ static enum menu_action ozone_parse_menu_entry_action(
             ozone->cursor_mode = false;
             break;
 
-            // MG åŽ»æŽ‰å®˜ç½‘ä»£ç 
+            // MG È¥µô¹ÙÍø´úÂë
             // new_action = MENU_ACTION_ACCESSIBILITY_SPEAK_TITLE;
             // break;
          }
@@ -2895,7 +2895,7 @@ static void ozone_frame(void *data, video_frame_info_t *video_info)
          gfx_animation_push(&entry);
       }
 
-      // MG è°ƒæ•´èƒŒæ™¯è‰²
+      // MG µ÷Õû±³¾°É«
       // ozone_draw_backdrop(
       //       userdata,
       //       video_width,
@@ -3061,11 +3061,11 @@ static void ozone_populate_entries(void *data, const char *path, const char *lab
       return;
    }
 
-   // MG ä¿®æ”¹é»˜è®¤é”®ç›˜
+   // MG ÐÞ¸ÄÄ¬ÈÏ¼üÅÌ
    if (ozone->is_playlist) {
-      input_event_set_osk_idx(OSK_NINENUM); // è®¾ç½®é”®ç›˜ä¸ºä¹å®«æ ¼é”®ç›˜
+      input_event_set_osk_idx(OSK_NINENUM); // ÉèÖÃ¼üÅÌÎª¾Å¹¬¸ñ¼üÅÌ
    } else {
-      input_event_set_osk_idx(OSK_LOWERCASE_LATIN); // è®¾ç½®ä¸ºé»˜è®¤é”®ç›˜
+      input_event_set_osk_idx(OSK_LOWERCASE_LATIN); // ÉèÖÃÎªÄ¬ÈÏ¼üÅÌ
    }
 
    ozone->need_compute = true;
@@ -3261,7 +3261,7 @@ static void ozone_list_deep_copy(const file_list_t *src, file_list_t *dst,
       d->alt   = string_is_empty(d->alt)   ? NULL : strdup(d->alt);
       d->path  = string_is_empty(d->path)  ? NULL : strdup(d->path);
       d->label = string_is_empty(d->label) ? NULL : strdup(d->label);
-      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum); // ä¹å®«æ ¼
+      d->ninenum = string_is_empty(d->ninenum) ? NULL : strdup(d->ninenum); // ¾Å¹¬¸ñ
 
       if (src_udata)
          file_list_set_userdata(dst, j, (void*)ozone_copy_node((const ozone_node_t*)src_udata));
