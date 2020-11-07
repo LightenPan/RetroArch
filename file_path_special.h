@@ -140,9 +140,9 @@ bool fill_pathname_application_data(char *s, size_t len);
 void fill_pathname_application_special(char *s, size_t len, enum application_special_type type);
 
 // MG 特殊路径处理
-const char *gen_core_thumbnails_url();
-const char *gen_rom_download_url();
-const char *gen_wiki_api_url();
+void gen_core_thumbnails_url(char *newstr, size_t len);
+void gen_rom_download_url(char *newstr, size_t len);
+void gen_wiki_api_url(char *newstr, size_t len);
 
 RETRO_END_DECLS
 

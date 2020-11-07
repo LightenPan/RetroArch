@@ -6249,8 +6249,8 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
 
    playlist_t *cached_playlist = playlist_get_cached();
    if (!cached_playlist) {
-      RARCH_LOG("menu_entries_set_selection_ptr_old no cached playlist. select_ptr_old: %u\n",
-         select_ptr_old);
+      // RARCH_LOG("menu_entries_set_selection_ptr_old no cached playlist. select_ptr_old: %u\n",
+      //    select_ptr_old);
       return;
    }
 
@@ -6262,8 +6262,8 @@ void menu_entries_set_selection_ptr_old(size_t select_ptr_old)
    }
 
    // 计算路径HashId
-   RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %u, path: %s, \n",
-         select_ptr_old, cached_playlist->config.path);
+   // RARCH_LOG("menu_entries_set_selection_ptr_old begin. select_ptr_old: %u, path: %s, \n",
+   //       select_ptr_old, cached_playlist->config.path);
    char *basename = path_basename(cached_playlist->config.path);
    snprintf(calc_hashid_key, sizeof(calc_hashid_key), "%s_%u", basename, menu_list->current_playlist_item_size);
    uint32_t playlist_hashid = msg_hash_calculate(calc_hashid_key);

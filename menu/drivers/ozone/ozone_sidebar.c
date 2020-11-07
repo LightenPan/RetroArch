@@ -956,7 +956,7 @@ void ozone_context_reset_horizontal_list(ozone_handle_t *ozone)
          // RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
          //    conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
       }
-      free(conf);
+      config_file_free(conf);
       /////////////////////////////////////////////////////////////////////////////
 
       {

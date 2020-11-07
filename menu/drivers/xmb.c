@@ -2284,7 +2284,7 @@ static void xmb_context_reset_horizontal_list(
       char conf_console_content_logo_path[PATH_MAX_LENGTH] = {0};
       config_file_t *conf = config_file_new_from_path_to_string(lpl_ini_file);
       char xmb_iconpath[PATH_MAX_LENGTH] = {0};
-      if (conf != NULL && xmb_iconpath != NULL)
+      if (conf != NULL)
       {
          fill_pathname_application_special(xmb_iconpath,
                PATH_MAX_LENGTH * sizeof(char),
@@ -2318,11 +2318,12 @@ static void xmb_context_reset_horizontal_list(
          // RARCH_LOG("conf_console_name: %s, conf_console_logo_path: %s, conf_console_content_logo_path: %s\n",
          //    conf_console_name, conf_console_logo_path, conf_console_content_logo_path);
       }
-      free(conf);
+      config_file_free(conf);
       /////////////////////////////////////////////////////////////////////////////
 
       // MG 设置标题
-      if (strlen(conf_console_name) > 0) {
+      if (strlen(conf_console_name) > 0)
+      {
          file_list_set_label_at_offset(&xmb->horizontal_list, i, conf_console_name);
       }
 
@@ -6550,7 +6551,7 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
    settings_t *settings           = config_get_ptr();
    bool menu_horizontal_animation = settings->bools.menu_horizontal_animation;
 
-   RARCH_LOG("xmb_list_cache begin. selection_buf_file_list_size: %u\n", selection_buf->size);
+   // RARCH_LOG("xmb_list_cache begin. selection_buf_file_list_size: %u\n", selection_buf->size);
 
    if (!xmb)
       return;

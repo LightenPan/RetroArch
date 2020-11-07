@@ -151,8 +151,10 @@ static bool get_thumbnail_paths(
       return false;
 
    /* Generate remote path */
+   char core_thumbnails_url[1024] = {0};
+   gen_core_thumbnails_url(core_thumbnails_url, sizeof(core_thumbnails_url));
    snprintf(raw_url, sizeof(raw_url), "%s/%s/%s/%s",
-   		gen_core_thumbnails_url(),
+         core_thumbnails_url,
          system_name,
          sub_dir,
          img_name
@@ -162,8 +164,8 @@ static bool get_thumbnail_paths(
       return false;
 
    net_http_urlencode_full(url, raw_url, url_size);
-   RARCH_LOG("get_thumbnail_paths begin. raw_url: %s\n", raw_url);
-   RARCH_LOG("get_thumbnail_paths begin. url: %s\n", url);
+   // RARCH_LOG("get_thumbnail_paths begin. raw_url: %s\n", raw_url);
+   // RARCH_LOG("get_thumbnail_paths begin. url: %s\n", url);
 
    if (string_is_empty(url))
       return false;
@@ -784,8 +786,8 @@ bool task_push_pl_entry_thumbnail_download(
       bool overwrite,
       bool mute)
 {
-   RARCH_LOG("task_push_pl_entry_thumbnail_download begin. playlist: %s, system: %s, idx: %u\n",
-      playlist->base_content_directory, system, idx);
+   // RARCH_LOG("task_push_pl_entry_thumbnail_download begin. playlist: %s, system: %s, idx: %u\n",
+   //    playlist->base_content_directory, system, idx);
 
    task_finder_data_t find_data;
    settings_t *settings          = config_get_ptr();
@@ -852,8 +854,8 @@ bool task_push_pl_entry_thumbnail_download(
          thumbnail_path_data, playlist, idx))
       goto error;
 
-   RARCH_LOG("task_push_pl_entry_thumbnail_download need download. playlist: %s, system: %s, idx: %u\n",
-           playlist->base_content_directory, system, idx);
+   // RARCH_LOG("task_push_pl_entry_thumbnail_download need download. playlist: %s, system: %s, idx: %u\n",
+   //         playlist->base_content_directory, system, idx);
 
    /* Configure handle
     * > Note: playlist_config is unused by this task */
@@ -882,13 +884,13 @@ bool task_push_pl_entry_thumbnail_download(
 
    task_queue_push(task);
 
-   RARCH_LOG("task_push_pl_entry_thumbnail_download succ. playlist: %s, system: %s, idx: %u\n",
-      playlist->base_content_directory, system, idx);
+   // RARCH_LOG("task_push_pl_entry_thumbnail_download succ. playlist: %s, system: %s, idx: %u\n",
+   //    playlist->base_content_directory, system, idx);
    return true;
 
 error:
-   RARCH_LOG("task_push_pl_entry_thumbnail_download error. playlist: %s, system: %s, idx: %u\n",
-      playlist->base_content_directory, system, idx);
+   // RARCH_LOG("task_push_pl_entry_thumbnail_download error. playlist: %s, system: %s, idx: %u\n",
+   //    playlist->base_content_directory, system, idx);
 
    if (task)
    {
