@@ -1196,38 +1196,6 @@ static void xmb_update_thumbnail_image(void *data)
    }
 }
 
-// 从服务器获取游戏信息
-static void xmb_update_ext_game_info(void *data)
-{
-   xmb_handle_t *xmb     = (xmb_handle_t*)data;
-   size_t selection      = menu_navigation_get_selection();
-   playlist_t *playlist  = playlist_get_cached();
-   settings_t *settings  = config_get_ptr();
-
-   if (!xmb)
-      return;
-
-   if (!playlist)
-      return;
-
-   /* Trigger thumbnail download */
-
-   char *system = NULL;
-   if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
-   {
-      if (settings->bools.network_on_demand_thumbnails)
-      {
-         const char *system = NULL;
-
-         if (gfx_thumbnail_get_system(xmb->thumbnail_path_data, &system))
-            task_push_pl_entry_thumbnail_download(system,
-                  playlist_get_cached(), (unsigned)menu_navigation_get_selection(),
-                  false, true);
-      }
-      task_push_pl_entry_get_ext_game_info(system, playlist, selection, true);
-   }
-}
-
 static unsigned xmb_get_system_tab(xmb_handle_t *xmb, unsigned i)
 {
    if (i <= xmb->system_tab_end)
@@ -1523,10 +1491,10 @@ static void xmb_selection_pointer_changed(
                }
             }
 
-            // 如果是游戏列表，从服务器获取当前游戏列表的额外信息
             if (xmb->is_playlist)
             {
-               xmb_update_ext_game_info(xmb);
+               // MG 从服务器获取当前游戏列表的额外信息
+               mg_update_ext_game_info(xmb->thumbnail_path_data);
             }
 
             if (update_thumbnails)
@@ -6596,6 +6564,9 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
          switch (action)
          {
             case MENU_ACTION_LEFT:
+               // RARCH_LOG("MENU_ACTION_LEFT. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
                if (xmb->categories_selection_ptr == 0)
                {
                   xmb->categories_selection_ptr = list_size;
@@ -6603,31 +6574,60 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
                }
                else
                   xmb->categories_selection_ptr--;
+               // RARCH_LOG("MENU_ACTION_LEFT2. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
                break;
             case MENU_ACTION_PAGE_LEFT: // MG 左右分类列表翻页
-               if (xmb->categories_selection_ptr < categories_page_size)
+               // RARCH_LOG("MENU_ACTION_PAGE_LEFT. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
+               if (xmb->categories_selection_ptr == 0)
+               {
+                  xmb->categories_selection_ptr = list_size;
+                  xmb->categories_active_idx    = (unsigned)(list_size - 1);
+               }
+               else if (xmb->categories_selection_ptr < categories_page_size) // 无符号整数，不能用减法
+               {
+                  xmb->categories_selection_ptr = 0;
+                  xmb->categories_active_idx    = 1;
+               }
+               else
+               {
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr - categories_page_size;
+                  xmb->categories_active_idx = xmb->categories_active_idx - categories_page_size + 1; // 后续逻辑不知道哪里会修改categories_active_idx的值，这里要多+1
+               }
+               // RARCH_LOG("MENU_ACTION_PAGE_LEFT2. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
+               break;
+            case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
+               // RARCH_LOG("MENU_ACTION_PAGE_RIGHT. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
+               if (xmb->categories_selection_ptr == list_size)
+               {
+                  xmb->categories_selection_ptr = 0;
+                  xmb->categories_active_idx    = 1;
+               }
+               else if (xmb->categories_selection_ptr + categories_page_size > list_size)
                {
                   xmb->categories_selection_ptr = list_size;
                   xmb->categories_active_idx    = (unsigned)(list_size - 1);
                }
                else
                {
-                  xmb->categories_selection_ptr = xmb->categories_selection_ptr - categories_page_size;
-                  xmb->categories_active_idx = xmb->categories_active_idx - categories_page_size + 1;
+                  xmb->categories_selection_ptr = xmb->categories_selection_ptr + categories_page_size;
+                  xmb->categories_active_idx    = xmb->categories_active_idx + categories_page_size - 1; // 后续逻辑不知道哪里会修改categories_active_idx的值，这里要多-1
                }
+               // RARCH_LOG("MENU_ACTION_PAGE_RIGHT2. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
                break;
-            case MENU_ACTION_PAGE_RIGHT: // MG 左右分类列表翻页
-               if (xmb->categories_selection_ptr + categories_page_size - 1 > list_size)
-               {
-                  // xmb->categories_selection_ptr = 0;
-                  // xmb->categories_active_idx    = 0;
-               }
-               else
-               {
-                  xmb->categories_selection_ptr = xmb->categories_selection_ptr + categories_page_size - 1;
-                  xmb->categories_active_idx    = xmb->categories_active_idx + categories_page_size - 1;
-               }
             default:
+               // RARCH_LOG("MENU_ACTION_RIGHT. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
                if (xmb->categories_selection_ptr == list_size)
                {
                   xmb->categories_selection_ptr = 0;
@@ -6635,6 +6635,9 @@ static void xmb_list_cache(void *data, enum menu_list_type type, unsigned action
                }
                else
                   xmb->categories_selection_ptr++;
+               // RARCH_LOG("MENU_ACTION_RIGHT2. xmb->categories_selection_ptr: %d, xmb->categories_active_idx: %d, categories_page_size: %d, list_size: %d\n",
+               //    xmb->categories_selection_ptr, xmb->categories_active_idx, categories_page_size, list_size
+               // );
                break;
          }
 
