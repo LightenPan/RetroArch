@@ -1097,6 +1097,13 @@ static void save_state_cb(retro_task_t *task,
       void *user_data, const char *error)
 {
    save_task_state_t *state   = (save_task_state_t*)task_data;
+
+   // MG 保存云存档
+   if (state->yunsave)
+   {
+      task_push_yun_save_rom_state(state->path);
+   }
+
 #ifdef HAVE_SCREENSHOTS
    char               *path   = strdup(state->path);
    settings_t     *settings   = config_get_ptr();
@@ -1107,11 +1114,6 @@ static void save_state_cb(retro_task_t *task,
    if (state->thumbnail_enable)
       take_screenshot(dir_screenshot,
             path, true, state->has_valid_framebuffer, false, true);
-
-   // MG 保存云存档
-   if (state->yunsave) {
-      task_push_yun_save_rom_state(path);
-   }
 
    free(path);
 #endif
@@ -1153,7 +1155,6 @@ static void task_push_save_state(const char *path, void *data, size_t size, bool
    state->state_slot             = state_slot;
    state->has_valid_framebuffer  = video_driver_cached_frame_has_valid_framebuffer();
    state->compress_files         = compress_files;
-   state->yunsave                = yunsave;
 
    task->type              = TASK_TYPE_BLOCKING;
    task->state             = state;
