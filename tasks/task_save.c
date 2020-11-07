@@ -1153,6 +1153,7 @@ static void task_push_save_state(const char *path, void *data, size_t size, bool
    state->state_slot             = state_slot;
    state->has_valid_framebuffer  = video_driver_cached_frame_has_valid_framebuffer();
    state->compress_files         = compress_files;
+   state->yunsave                = yunsave;
 
    task->type              = TASK_TYPE_BLOCKING;
    task->state             = state;
