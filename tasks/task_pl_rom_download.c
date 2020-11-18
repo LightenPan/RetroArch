@@ -320,7 +320,9 @@ static bool get_rom_paths(
       return false;
 
    /* Generate remote path */
-   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
+   char rom_download_url[1024] = {0};
+   gen_rom_download_url(rom_download_url, sizeof(rom_download_url));
+   strlcpy(raw_url, rom_download_url, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -672,7 +674,9 @@ void task_push_rom_download_multi(rom_download_handle_t *pHandle, bool iszip, co
    char url_query[1024] = {0};
    clac_retrogame_allinone_sign(url_query, sizeof(url_query));
    char raw_url[1024] = {0};
-   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
+   char rom_download_url[1024] = {0};
+   gen_rom_download_url(rom_download_url, sizeof(rom_download_url));
+   strlcpy(raw_url, rom_download_url, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, pHandle->system, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -898,7 +902,9 @@ bool task_push_pl_entry_rom_download(
 
    // 获取正常rom下载地址
    char raw_url[1024] = {0};
-   strlcpy(raw_url, gen_rom_download_url(), sizeof(raw_url));
+   char rom_download_url[1024] = {0};
+   gen_rom_download_url(rom_download_url, sizeof(rom_download_url));
+   strlcpy(raw_url, rom_download_url, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
    strlcat(raw_url, system_name, sizeof(raw_url));
    strlcat(raw_url, "/", sizeof(raw_url));
@@ -1573,9 +1579,11 @@ static void task_push_pl_entry_get_ext_game_info_handler(retro_task_t *task)
 
    // 没有任务，创建一个新任务，获取正常rom下载地址
    char url[2048] = {0};
+   char wiki_api_url[1024] = {0};
+   gen_wiki_api_url(wiki_api_url, sizeof(wiki_api_url));
    snprintf(url, sizeof(url),
       "%s/api/RetroGameWiki/extGameInfo?platform=%s&crc32=%s",
-				gen_wiki_api_url(), handle->system, handle->crc32);
+      wiki_api_url, handle->system, handle->crc32);
    RARCH_LOG("task_push_pl_entry_get_ext_game_info log http transfer. url: %s\n", url);
 
    // 新建的http任务，需要透传get_ext_game_info_handle_t
@@ -1626,9 +1634,9 @@ bool task_push_pl_entry_get_ext_game_info(
       return false;
 
    bool cheevos_enable = settings->bools.cheevos_enable;
-   RARCH_LOG("task_push_pl_entry_get_ext_game_info begin. "
-      "system: %s, cheevos_enable: %d, mute: %d\n",
-      system, cheevos_enable, mute);
+   // RARCH_LOG("task_push_pl_entry_get_ext_game_info begin. "
+   //    "system: %s, cheevos_enable: %d, mute: %d\n",
+   //    system, cheevos_enable, mute);
 
    if (!cheevos_enable)
       return true;
