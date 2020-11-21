@@ -25810,7 +25810,7 @@ static unsigned menu_event(
 
          // MG 九宫格键盘时，再按一次X，则隐藏键盘
          if (BIT256_GET_PTR(p_trigger_input, RETRO_DEVICE_ID_JOYPAD_X)) {
-            input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
+            input_keyboard_event(true, 27, 27, 0, RETRO_DEVICE_KEYBOARD);
          }
       }
       else
@@ -27714,6 +27714,18 @@ static bool input_keyboard_line_event(
       array[1] = 0;
 
       word     = array;
+      ret      = true;
+   }
+   else if (c == 27) /* 27 is ASCII for esc */
+   {
+      // MG 清空输入内容
+      if (state->ptr)
+      {
+         state->ptr = 0;
+         memset(state->buffer, 0, sizeof(state->buffer));
+         state->cb(state->userdata, state->buffer);
+      }
+      word = state->buffer;
       ret      = true;
    }
    else if (c == '\b' || c == '\x7f') /* 0x7f is ASCII for del */
